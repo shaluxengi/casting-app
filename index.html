@@ -77,7 +77,6 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col pb-20 md:pb-0">
 
-    <!-- Navigation Header -->
     <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
         <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
             <!-- Brand Logo & Title -->
@@ -93,7 +92,7 @@
                 </div>
             </div>
 
-            <!-- Command Palette Trigger -->
+            <!-- Command Palette Search Input -->
             <div class="hidden md:flex items-center flex-1 max-w-md mx-4">
                 <button onclick="openCommandPalette()" class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition">
                     <div class="flex items-center gap-2.5 text-sm">
@@ -104,30 +103,30 @@
                 </button>
             </div>
 
-            <!-- Header Right Session Menu -->
+            <!-- Header Right Menu -->
             <div class="flex items-center gap-3">
                 <button onclick="openCommandPalette()" class="md:hidden p-2 rounded-lg bg-slate-900 text-slate-300 hover:bg-slate-800">
                     <i data-lucide="search" class="w-5 h-5"></i>
                 </button>
 
-                <!-- Admin Data Purge Reset Button -->
-                <button id="admin-purge-btn" onclick="confirmPurgeAllData()" title="Purge Test Dummies" class="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+                <!-- Admin Purge Data Trigger -->
+                <button id="admin-purge-btn" onclick="confirmPurgeAllData()" title="Purge Storage & Reset" class="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Purge Dummies</span>
+                    <span class="hidden sm:inline">Purge All Data</span>
                 </button>
 
-                <!-- User Session Profile Badge -->
+                <!-- User Session Badge -->
                 <div id="user-profile-badge" class="hidden flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-1.5 pl-3">
                     <div class="text-right">
-                        <span id="user-display-name" class="text-xs font-bold text-slate-100 block leading-tight">Operations Admin</span>
-                        <span id="user-role-pill" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold uppercase">Admin</span>
+                        <span id="user-display-name" class="text-xs font-bold text-slate-100 block leading-tight">Guest User</span>
+                        <span id="user-role-pill" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold uppercase">Guest</span>
                     </div>
                     <button onclick="handleLogout()" title="Sign Out" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-400 border border-slate-700 transition">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                     </button>
                 </div>
 
-                <!-- Sign In / Register Button -->
+                <!-- Auth Trigger -->
                 <button id="guest-login-btn" onclick="openAuthModal()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow flex items-center gap-1.5 transition">
                     <i data-lucide="lock" class="w-4 h-4"></i> Sign In / Register
                 </button>
@@ -135,10 +134,9 @@
         </div>
     </header>
 
-    <!-- Main Workspace Area -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
 
-        <!-- Desktop Navigation Tabs -->
+        <!-- Navigation Bar -->
         <div class="hidden md:flex items-center justify-between border-b border-slate-800 pb-3">
             <nav class="flex items-center gap-2">
                 <button onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="nav-tab active px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 bg-slate-900 border border-slate-800 text-cyan-400">
@@ -155,23 +153,20 @@
                 </button>
             </nav>
 
-            <div class="flex items-center gap-3">
-                <button onclick="openNewOrderModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white text-sm font-semibold flex items-center gap-2 hover:brightness-110 shadow-lg shadow-cyan-500/20 transition">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
-                </button>
-            </div>
+            <button onclick="openNewOrderModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white text-sm font-semibold flex items-center gap-2 hover:brightness-110 shadow-lg shadow-cyan-500/20 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
+            </button>
         </div>
 
         <!-- TAB 1: EXECUTIVE DASHBOARD -->
         <section id="tab-dashboard" class="tab-content space-y-6">
-            <!-- Analytics Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-cyan-500">
                     <div>
-                        <p class="text-xs text-slate-400 font-medium">Total Purchase Orders</p>
+                        <p class="text-xs text-slate-400 font-medium">Total Active Orders</p>
                         <h3 id="stat-active-orders" class="text-2xl font-bold text-white mt-1">0</h3>
                         <p class="text-[11px] text-vortex-emerald flex items-center gap-1 mt-1">
-                            <i data-lucide="trending-up" class="w-3 h-3"></i> Firestore Synchronized
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> Live Persistence
                         </p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
@@ -194,7 +189,7 @@
 
                 <div class="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-vortex-amber">
                     <div>
-                        <p class="text-xs text-slate-400 font-medium">Pending Supply Quantity</p>
+                        <p class="text-xs text-slate-400 font-medium">Pending Quantity</p>
                         <h3 id="stat-pending-qty" class="text-2xl font-bold text-white mt-1">0 pcs</h3>
                         <p class="text-[11px] text-slate-400 mt-1">In active production</p>
                     </div>
@@ -207,7 +202,7 @@
                     <div>
                         <p id="stat-card4-title" class="text-xs text-slate-400 font-medium">Registered Clients</p>
                         <h3 id="stat-card4-value" class="text-2xl font-bold text-white mt-1">0 Companies</h3>
-                        <p id="stat-card4-sub" class="text-[11px] text-vortex-purple mt-1">Approved Accounts</p>
+                        <p id="stat-card4-sub" class="text-[11px] text-vortex-purple mt-1">Approved Roster</p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-vortex-purple/10 text-vortex-purple flex items-center justify-center">
                         <i data-lucide="building-2" class="w-6 h-6"></i>
@@ -283,7 +278,6 @@
 
         <!-- TAB 2: ORDER MANAGEMENT -->
         <section id="tab-orders" class="tab-content hidden space-y-6">
-            <!-- Filter Toolbar -->
             <div class="glass-panel rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative flex-1 md:w-80">
@@ -341,7 +335,7 @@
                         <h3 class="text-base font-bold text-white flex items-center gap-2">
                             <i data-lucide="truck" class="w-5 h-5 text-cyan-400"></i> Partial Supply & Dispatch Logs
                         </h3>
-                        <p class="text-xs text-slate-400">Record partial deliveries, attach billing challan photos, and update client records instantly.</p>
+                        <p class="text-xs text-slate-400">Record partial deliveries, attach billing challan details, and sync records.</p>
                     </div>
 
                     <button id="admin-dispatch-btn" onclick="openDispatchModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-vortex-emerald to-teal-600 text-white text-xs font-semibold flex items-center gap-2 hover:brightness-110 shadow-lg shadow-vortex-emerald/20 transition">
@@ -349,7 +343,6 @@
                     </button>
                 </div>
 
-                <!-- Dispatch Log Table -->
                 <div class="overflow-x-auto border border-slate-800 rounded-xl">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -370,7 +363,7 @@
             </div>
         </section>
 
-        <!-- TAB 4: CLIENT ACCOUNT APPROVAL ROSTER (Admin Only) -->
+        <!-- TAB 4: CLIENT ACCOUNT APPROVAL ROSTER -->
         <section id="tab-clients" class="tab-content hidden space-y-6">
             <div class="glass-panel rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -405,7 +398,7 @@
         </section>
     </main>
 
-    <!-- MODAL 0: FIREBASE AUTHENTICATION -->
+    <!-- MODAL 0: HARDENED AUTHENTICATION MODAL -->
     <div id="modal-auth" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-5 shadow-2xl relative">
             <div class="text-center space-y-1">
@@ -413,17 +406,20 @@
                     <i data-lucide="shield-check" class="w-7 h-7"></i>
                 </div>
                 <h3 class="text-lg font-bold text-white">VortexFlow Portal Access</h3>
-                <p class="text-xs text-slate-400">Sign in to your account or request client access</p>
+                <p class="text-xs text-slate-400">Sign in with validated credentials or request client access</p>
             </div>
 
-            <!-- Auth Form Switcher Tabs -->
-            <div class="grid grid-cols-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
-                <button id="auth-tab-login" onclick="switchAuthMode('login')" class="py-2 rounded-lg bg-indigo-600 text-white transition">Sign In</button>
-                <button id="auth-tab-register" onclick="switchAuthMode('register')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Register Account</button>
+            <!-- Role Mode Switcher Tabs -->
+            <div class="grid grid-cols-3 bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-semibold text-center">
+                <button id="auth-tab-admin" onclick="switchAuthRoleMode('admin')" class="py-2 rounded-lg bg-indigo-600 text-white transition">Admin Login</button>
+                <button id="auth-tab-client" onclick="switchAuthRoleMode('client')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Client Login</button>
+                <button id="auth-tab-register" onclick="switchAuthRoleMode('register')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Register</button>
             </div>
 
-            <!-- Sign In Form -->
-            <form id="form-login" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+            <!-- Form: Login -->
+            <form id="form-login" onsubmit="handleAuthLoginSubmit(event)" class="space-y-4">
+                <input type="hidden" id="login-role-type" value="admin">
+                
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
                     <input type="email" id="login-email" required placeholder="admin@vortexflow.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
@@ -432,16 +428,17 @@
                     <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
                     <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
                 </div>
-                <div class="flex items-center justify-between text-xs">
-                    <button type="button" onclick="quickFillAdmin()" class="text-cyan-400 hover:underline">Demo Admin Login</button>
-                    <button type="button" onclick="quickFillClient()" class="text-indigo-400 hover:underline">Demo Client Login</button>
+                
+                <div id="admin-auth-warning" class="text-[11px] text-amber-400 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                    <i data-lucide="shield-alert" class="w-3.5 h-3.5 inline mr-1"></i> Admin login restricted to master email: <span class="font-mono font-bold">admin@vortexflow.com</span>
                 </div>
+
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition">
                     Sign In to Portal
                 </button>
             </form>
 
-            <!-- Registration Form -->
+            <!-- Form: Register Client -->
             <form id="form-register" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Company / Organization Name</label>
@@ -456,10 +453,10 @@
                     <input type="password" id="reg-password" required placeholder="At least 6 characters" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
                 </div>
                 <p class="text-[11px] text-slate-400 bg-slate-900 p-2 rounded-lg border border-slate-800">
-                    <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-400 inline mr-1"></i> Client sign-ups are saved as unapproved. Admin authorization is required before access is granted.
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-400 inline mr-1"></i> Registrations default to unapproved. Admin authorization is required before access is granted.
                 </p>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-lg shadow-cyan-600/30 transition">
-                    Request Client Registration
+                    Request Client Account
                 </button>
             </form>
         </div>
@@ -483,7 +480,6 @@
                 </button>
             </div>
 
-            <!-- Form Body -->
             <form id="form-new-order" onsubmit="handleCreateOrder(event)" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
@@ -509,7 +505,7 @@
                     </div>
                 </div>
 
-                <!-- Order Matrix Grid -->
+                <!-- Order Item Matrix Grid -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
@@ -531,7 +527,7 @@
                             <tbody id="matrix-items-body" class="divide-y divide-slate-800">
                                 <tr class="matrix-row">
                                     <td class="p-2">
-                                        <input type="text" list="pattern-memory-list" placeholder="Pattern / DWG No." required class="item-name w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500">
+                                        <input type="text" list="pattern-memory-list" placeholder="Pattern Name / Drawing No." required class="item-name w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500">
                                     </td>
                                     <td class="p-2">
                                         <select required class="item-grade w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500">
@@ -575,13 +571,13 @@
 
                 <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
                     <button type="button" onclick="closeModal('modal-new-order')" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow">Save Order to Firestore</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow">Save Order</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Dynamic Datalist for Pattern Name Memory -->
+    <!-- Dynamic Datalist for Pattern Memory -->
     <datalist id="pattern-memory-list">
         <!-- JS Auto-Populated -->
     </datalist>
@@ -646,7 +642,7 @@
                     <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-400 text-[10px] rounded">Export</kbd>
                 </div>
                 <div onclick="confirmPurgeAllData(); closeModal('modal-command-palette');" class="p-2.5 rounded-lg bg-slate-900 hover:bg-rose-900/40 cursor-pointer flex justify-between items-center text-rose-300">
-                    <span>Purge / Delete All Test Data & Dummies</span>
+                    <span>Purge / Delete All Local Data</span>
                     <kbd class="px-1.5 py-0.5 bg-rose-900/60 text-rose-300 text-[10px] rounded">Admin Reset</kbd>
                 </div>
             </div>
@@ -707,182 +703,47 @@
         </div>
     </div>
 
-    <!-- Firebase Auth & Firestore Core Modules -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithCustomToken, 
-            signInAnonymously, 
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            collection, 
-            onSnapshot,
-            addDoc,
-            deleteDoc,
-            updateDoc
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global Variable Fallbacks
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'vortexflow-prod-v1';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "AIzaSyDemoConfigKeyForVortexFlowPortal01",
-                authDomain: "vortexflow-portal.firebaseapp.com",
-                projectId: "vortexflow-portal",
-                storageBucket: "vortexflow-portal.appspot.com",
-                messagingSenderId: "109887262",
-                appId: "1:109887262:web:a987ef123"
-            };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.vortexAuth = auth;
-        window.vortexDb = db;
-        window.vortexAppId = appId;
-
-        // Initialize Firebase Listeners
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                console.warn('Firebase Auth falling back to guest mode:', e);
-            }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    initFirestoreRealtimeSync();
-                }
-            });
-        });
-
-        // Realtime Firestore Collections Synchronization
-        function initFirestoreRealtimeSync() {
-            // 1. Orders Collection Listener
-            const ordersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
-            onSnapshot(ordersColRef, (snapshot) => {
-                const liveOrders = [];
-                snapshot.forEach(docSnap => {
-                    liveOrders.push({ firestoreId: docSnap.id, ...docSnap.data() });
-                });
-                
-                window.orders = liveOrders;
-                window.renderAll();
-            }, (err) => {
-                console.error('Firestore Orders Sync Error:', err);
-            });
-
-            // 2. Client Users Collection Listener
-            const usersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-            onSnapshot(usersColRef, (snapshot) => {
-                const liveClients = [];
-                snapshot.forEach(docSnap => {
-                    liveClients.push({ firestoreId: docSnap.id, ...docSnap.data() });
-                });
-                
-                window.clientsList = liveClients;
-                window.populateClientDropdown();
-                window.renderClientsTable();
-            }, (err) => {
-                console.error('Firestore Users Sync Error:', err);
-            });
-        }
-
-        // Export Global Firestore Methods
-        window.saveOrderToFirestore = async function(orderData) {
-            try {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
-                await addDoc(colRef, orderData);
-                return true;
-            } catch(e) {
-                console.error('Save Order Error:', e);
-                window.orders.unshift(orderData);
-                window.renderAll();
-                return true;
-            }
-        };
-
-        window.deleteOrderFromFirestore = async function(firestoreId) {
-            try {
-                if (firestoreId) {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', firestoreId);
-                    await deleteDoc(docRef);
-                }
-            } catch(e) {
-                console.error('Delete Order Error:', e);
-            }
-        };
-
-        window.saveClientToFirestore = async function(clientData) {
-            try {
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-                await addDoc(colRef, clientData);
-            } catch(e) {
-                console.error('Save Client Error:', e);
-                window.clientsList.push(clientData);
-                window.populateClientDropdown();
-                window.renderClientsTable();
-            }
-        };
-
-        window.deleteClientFromFirestore = async function(firestoreId) {
-            try {
-                if (firestoreId) {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', firestoreId);
-                    await deleteDoc(docRef);
-                }
-            } catch(e) {
-                console.error('Delete Client Error:', e);
-            }
-        };
-
-        window.updateClientInFirestore = async function(firestoreId, updateData) {
-            try {
-                if (firestoreId) {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', firestoreId);
-                    await updateDoc(docRef, updateData);
-                }
-            } catch(e) {
-                console.error('Update Client Error:', e);
-            }
-        };
-    </script>
-
     <script>
-        // ZERO PRE-LOADED DUMMY ORDERS
-        window.orders = []; 
-        window.clientsList = [];
-        let currentUser = { name: 'Operations Admin', role: 'admin' };
-        let currentRole = 'admin';
+        // MASTER CREDENTIALS GUARDRAIL
+        const MASTER_ADMIN_EMAIL = "admin@vortexflow.com";
+        const MASTER_ADMIN_PASS = "admin123";
+
+        // ZERO PRE-LOADED DUMMIES - PERSISTENCE INITIALIZATION
+        window.orders = JSON.parse(localStorage.getItem('vf_orders') || '[]');
+        window.clientsList = JSON.parse(localStorage.getItem('vf_clients') || '[]');
+        
+        let currentUser = JSON.parse(localStorage.getItem('vf_session') || 'null');
+        let currentRole = currentUser ? currentUser.role : 'guest';
 
         window.onload = function() {
             lucide.createIcons();
-            applyPrivacyScope();
+            if (!currentUser) {
+                openAuthModal();
+            } else {
+                handleUserSessionActive(currentUser);
+            }
             renderAll();
             setupKeyboardShortcuts();
-            populateClientDropdown();
         };
+
+        function saveStorage() {
+            localStorage.setItem('vf_orders', JSON.stringify(window.orders));
+            localStorage.setItem('vf_clients', JSON.stringify(window.clientsList));
+            localStorage.setItem('vf_session', JSON.stringify(currentUser));
+        }
 
         window.renderAll = function() {
             renderDashboard();
             renderOrdersTable();
             renderDispatchHistory();
             renderClientsTable();
+            populateClientDropdown();
             populateDispatchSelectOptions();
             updatePatternMemoryList();
+            applyPrivacyScope();
         };
 
-        // AUTH & ACCESS CONTROLLERS
+        // AUTH & ACCESS CONTROLLERS WITH STRICT GUARDRAILS
         function openAuthModal() {
             document.getElementById('modal-auth').classList.remove('hidden');
         }
@@ -891,91 +752,121 @@
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        function switchAuthMode(mode) {
+        function switchAuthRoleMode(mode) {
             const loginForm = document.getElementById('form-login');
             const regForm = document.getElementById('form-register');
-            const btnLogin = document.getElementById('auth-tab-login');
+            const btnAdmin = document.getElementById('auth-tab-admin');
+            const btnClient = document.getElementById('auth-tab-client');
             const btnReg = document.getElementById('auth-tab-register');
+            const roleTypeInput = document.getElementById('login-role-type');
+            const adminWarning = document.getElementById('admin-auth-warning');
 
-            if (mode === 'login') {
+            if (mode === 'admin') {
                 loginForm.classList.remove('hidden');
                 regForm.classList.add('hidden');
-                btnLogin.className = "py-2 rounded-lg bg-indigo-600 text-white transition";
+                roleTypeInput.value = 'admin';
+                adminWarning.classList.remove('hidden');
+                document.getElementById('login-email').value = MASTER_ADMIN_EMAIL;
+                btnAdmin.className = "py-2 rounded-lg bg-indigo-600 text-white transition";
+                btnClient.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
+                btnReg.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
+            } else if (mode === 'client') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                roleTypeInput.value = 'client';
+                adminWarning.classList.add('hidden');
+                document.getElementById('login-email').value = '';
+                btnClient.className = "py-2 rounded-lg bg-indigo-600 text-white transition";
+                btnAdmin.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
                 btnReg.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
             } else {
                 regForm.classList.remove('hidden');
                 loginForm.classList.add('hidden');
                 btnReg.className = "py-2 rounded-lg bg-indigo-600 text-white transition";
-                btnLogin.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
+                btnAdmin.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
+                btnClient.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
             }
         }
 
-        function quickFillAdmin() {
-            document.getElementById('login-email').value = 'admin@vortexflow.com';
-            document.getElementById('login-password').value = 'admin123';
-        }
-
-        function quickFillClient() {
-            document.getElementById('login-email').value = 'client@umaeng.com';
-            document.getElementById('login-password').value = 'client123';
-        }
-
-        function handleLoginSubmit(e) {
+        function handleAuthLoginSubmit(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-password').value;
+            const roleType = document.getElementById('login-role-type').value;
 
-            // Strict Client Approval Guardrail Check
-            if (email.includes('client')) {
-                const existingClient = window.clientsList.find(c => c.email.toLowerCase() === email.toLowerCase());
-                
-                if (existingClient && !existingClient.approved) {
-                    alert("ACCESS DENIED: Your client account has been registered but is pending Admin approval.");
+            // 1. HARDENED ADMIN GUARDRAIL CHECK
+            if (roleType === 'admin') {
+                if (email !== MASTER_ADMIN_EMAIL.toLowerCase() || pass !== MASTER_ADMIN_PASS) {
+                    alert("SECURITY REJECTION: Invalid Admin Credentials. Access denied.");
                     return;
                 }
-
-                currentUser = { 
-                    name: existingClient ? existingClient.name : 'Client Company', 
-                    email, 
-                    role: 'client' 
-                };
-            } else {
                 currentUser = { name: 'Operations Admin', email, role: 'admin' };
+            } 
+            // 2. CLIENT LOGIN GUARDRAIL CHECK
+            else {
+                const clientAcc = window.clientsList.find(c => c.email.toLowerCase() === email);
+                if (!clientAcc) {
+                    alert("Account Not Found: Please register your client account first.");
+                    return;
+                }
+                if (clientAcc.password && clientAcc.password !== pass) {
+                    alert("Invalid Password. Please try again.");
+                    return;
+                }
+                if (!clientAcc.approved) {
+                    alert("ACCESS DENIED: Your account is pending Admin approval. Please contact operations.");
+                    return;
+                }
+                currentUser = { name: clientAcc.name, email, role: 'client' };
             }
 
+            saveStorage();
             handleUserSessionActive(currentUser);
             closeModal('modal-auth');
         }
 
-        async function handleRegisterSubmit(e) {
+        function handleRegisterSubmit(e) {
             e.preventDefault();
-            const company = document.getElementById('reg-company').value;
-            const email = document.getElementById('reg-email').value;
+            const company = document.getElementById('reg-company').value.trim();
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const password = document.getElementById('reg-password').value;
 
-            const newClient = {
-                name: company,
-                email,
-                role: 'client',
-                date: new Date().toISOString().split('T')[0],
-                approved: false // Explicitly unapproved on registration!
-            };
-
-            if (window.saveClientToFirestore) {
-                await window.saveClientToFirestore(newClient);
+            if (window.clientsList.some(c => c.email === email)) {
+                alert("An account request with this email already exists.");
+                return;
             }
 
-            alert(`Registration for "${company}" submitted! Account is pending Admin approval.`);
-            switchAuthMode('login');
+            const newClient = {
+                id: 'cli_' + Date.now(),
+                name: company,
+                email,
+                password,
+                role: 'client',
+                date: new Date().toISOString().split('T')[0],
+                approved: false // Explicitly unapproved on signup!
+            };
+
+            window.clientsList.push(newClient);
+            saveStorage();
+            renderClientsTable();
+            alert(`Registration for "${company}" submitted! Admin authorization is required before login.`);
+            switchAuthRoleMode('client');
         }
 
         function handleUserSessionActive(user) {
             currentUser = user;
-            currentRole = user.role || 'admin';
+            currentRole = user ? user.role : 'guest';
 
-            document.getElementById('guest-login-btn').classList.add('hidden');
-            const badge = document.getElementById('user-profile-badge');
-            badge.classList.remove('hidden');
-            document.getElementById('user-display-name').innerText = user.name || 'Active User';
-            document.getElementById('user-role-pill').innerText = currentRole;
+            if (user) {
+                document.getElementById('guest-login-btn').classList.add('hidden');
+                const badge = document.getElementById('user-profile-badge');
+                badge.classList.remove('hidden');
+                document.getElementById('user-display-name').innerText = user.name || 'User';
+                document.getElementById('user-role-pill').innerText = currentRole;
+            } else {
+                document.getElementById('guest-login-btn').classList.remove('hidden');
+                document.getElementById('user-profile-badge').classList.add('hidden');
+            }
 
             applyPrivacyScope();
             renderAll();
@@ -983,12 +874,14 @@
 
         function handleLogout() {
             currentUser = null;
+            currentRole = 'guest';
+            localStorage.removeItem('vf_session');
             document.getElementById('user-profile-badge').classList.add('hidden');
             document.getElementById('guest-login-btn').classList.remove('hidden');
             openAuthModal();
         }
 
-        // PRIVACY & ADMIN PURGE ENFORCER
+        // PRIVACY & ADMIN RESET ENFORCER
         function applyPrivacyScope() {
             const adminElements = document.querySelectorAll('.admin-only');
             const adminDispatchBtn = document.getElementById('admin-dispatch-btn');
@@ -1012,24 +905,12 @@
             }
         }
 
-        async function confirmPurgeAllData() {
-            if (confirm("ADMIN RESET: Are you sure you want to permanently delete all orders, dispatches, and client dummies?")) {
-                // Delete all orders in memory/Firestore
-                for (let o of window.orders) {
-                    if (o.firestoreId && window.deleteOrderFromFirestore) {
-                        await window.deleteOrderFromFirestore(o.firestoreId);
-                    }
-                }
+        function confirmPurgeAllData() {
+            if (confirm("ADMIN RESET: Permanently delete all local orders, dispatches, and client registries?")) {
                 window.orders = [];
-
-                // Delete all unapproved clients
-                for (let c of window.clientsList) {
-                    if (c.firestoreId && window.deleteClientFromFirestore) {
-                        await window.deleteClientFromFirestore(c.firestoreId);
-                    }
-                }
                 window.clientsList = [];
-
+                localStorage.removeItem('vf_orders');
+                localStorage.removeItem('vf_clients');
                 renderAll();
                 alert("Database purged successfully! Zero dummy records remain.");
             }
@@ -1077,7 +958,6 @@
             document.getElementById('stat-fulfill-bar').style.width = fulfillRate + '%';
             document.getElementById('stat-pending-qty').innerText = pendingQty + ' pcs';
 
-            // Recent Snapshots or Empty Slate
             const recentContainer = document.getElementById('dashboard-recent-orders');
             recentContainer.innerHTML = '';
 
@@ -1088,8 +968,8 @@
                             <i data-lucide="package-open" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-bold text-white">No Purchase Orders Found</h4>
-                            <p class="text-xs text-slate-400 mt-0.5">Start by placing a purchase order or approving registered clients.</p>
+                            <h4 class="text-sm font-bold text-white">No Active Orders</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Start by creating a purchase order or approving registered clients.</p>
                         </div>
                         <button onclick="openNewOrderModal()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition">
                             <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
@@ -1122,7 +1002,6 @@
                 });
             }
 
-            // Pipeline Status Counters
             const pPending = displayOrders.filter(o => o.status === 'PENDING').length;
             const pProd = displayOrders.filter(o => o.status === 'IN_PRODUCTION').length;
             const pPartial = displayOrders.filter(o => o.status === 'PARTIAL').length;
@@ -1142,7 +1021,7 @@
             lucide.createIcons();
         }
 
-        // ORDERS TABLE & INDIVIDUAL DELETION
+        // ORDERS TABLE & INDIVIDUAL DELETIONS
         function renderOrdersTable() {
             const tbody = document.getElementById('orders-table-body');
             const search = document.getElementById('order-search-input').value.toLowerCase();
@@ -1234,15 +1113,11 @@
             lucide.createIcons();
         }
 
-        async function deleteSingleOrder(woId) {
-            if (confirm(`Delete Order ${woId}? This cannot be undone.`)) {
-                const target = window.orders.find(o => o.id === woId);
-                if (target && target.firestoreId && window.deleteOrderFromFirestore) {
-                    await window.deleteOrderFromFirestore(target.firestoreId);
-                } else {
-                    window.orders = window.orders.filter(o => o.id !== woId);
-                    renderAll();
-                }
+        function deleteSingleOrder(woId) {
+            if (confirm(`Delete Order ${woId}? This action cannot be undone.`)) {
+                window.orders = window.orders.filter(o => o.id !== woId);
+                saveStorage();
+                renderAll();
             }
         }
 
@@ -1252,7 +1127,7 @@
             const tr = document.createElement('tr');
             tr.className = 'matrix-row';
             tr.innerHTML = `
-                <td class="p-2"><input type="text" list="pattern-memory-list" placeholder="Pattern / DWG No." required class="item-name w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500"></td>
+                <td class="p-2"><input type="text" list="pattern-memory-list" placeholder="Pattern Name / Drawing No." required class="item-name w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500"></td>
                 <td class="p-2">
                     <select required class="item-grade w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500">
                         <option value="" disabled selected>Select Grade...</option>
@@ -1315,7 +1190,7 @@
             });
         }
 
-        async function handleCreateOrder(e) {
+        function handleCreateOrder(e) {
             e.preventDefault();
             const client = document.getElementById('new-order-client').value || (currentUser ? currentUser.name : 'Uma Engineering Works');
             const foundry = document.getElementById('new-order-foundry').value || 'Unassigned Foundry';
@@ -1342,11 +1217,10 @@
                 createdAt: new Date().toISOString()
             };
 
-            if (window.saveOrderToFirestore) {
-                await window.saveOrderToFirestore(newWO);
-            }
-
+            window.orders.unshift(newWO);
+            saveStorage();
             closeModal('modal-new-order');
+            renderAll();
             alert(`Purchase Order ${newWO.id} saved successfully!`);
         }
 
@@ -1362,7 +1236,7 @@
             document.getElementById('modal-dispatch').classList.remove('hidden');
         }
 
-        async function handleSaveDispatch(e) {
+        function handleSaveDispatch(e) {
             e.preventDefault();
             const woId = document.getElementById('dispatch-wo-select').value;
             const qty = parseInt(document.getElementById('dispatch-qty').value);
@@ -1391,14 +1265,7 @@
             if (totalSup >= totalOrd) targetOrder.status = 'COMPLETED';
             else targetOrder.status = 'PARTIAL';
 
-            if (window.updateOrderInFirestore && targetOrder.firestoreId) {
-                await window.updateOrderInFirestore(targetOrder.firestoreId, {
-                    items: targetOrder.items,
-                    dispatches: targetOrder.dispatches,
-                    status: targetOrder.status
-                });
-            }
-
+            saveStorage();
             closeModal('modal-dispatch');
             renderAll();
             alert(`Partial dispatch logged for ${woId}. Client record updated!`);
@@ -1445,7 +1312,7 @@
             }
         }
 
-        // CLIENT APPROVAL & ROSTER MANAGEMENT
+        // CLIENT ROSTER & APPROVAL ENGINE
         function renderClientsTable() {
             const tbody = document.getElementById('clients-table-body');
             tbody.innerHTML = '';
@@ -1475,7 +1342,7 @@
                             </span>
                         </td>
                         <td class="p-3.5 text-right space-x-2">
-                            <button onclick="toggleClientApprovalStatus('${c.email}')" class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-cyan-400 hover:text-white">
+                            <button onclick="toggleClientApprovalStatus('${c.email}')" class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-cyan-400 hover:text-white transition">
                                 ${c.approved ? 'Revoke Access' : 'Approve Client'}
                             </button>
                             <button onclick="deleteClientAccount('${c.email}')" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-rose-400 hover:text-white hover:bg-rose-600 transition">
@@ -1488,29 +1355,23 @@
             lucide.createIcons();
         }
 
-        async function toggleClientApprovalStatus(email) {
+        function toggleClientApprovalStatus(email) {
             const client = window.clientsList.find(c => c.email === email);
             if (client) {
                 client.approved = !client.approved;
-                if (window.updateClientInFirestore && client.firestoreId) {
-                    await window.updateClientInFirestore(client.firestoreId, { approved: client.approved });
-                }
+                saveStorage();
                 renderClientsTable();
                 populateClientDropdown();
-                alert(`Account for ${client.name} updated to: ${client.approved ? 'APPROVED' : 'PENDING'}`);
+                alert(`Account status for ${client.name} updated to: ${client.approved ? 'APPROVED' : 'PENDING'}`);
             }
         }
 
-        async function deleteClientAccount(email) {
+        function deleteClientAccount(email) {
             if (confirm(`Delete client record for ${email}?`)) {
-                const target = window.clientsList.find(c => c.email === email);
-                if (target && target.firestoreId && window.deleteClientFromFirestore) {
-                    await window.deleteClientFromFirestore(target.firestoreId);
-                } else {
-                    window.clientsList = window.clientsList.filter(c => c.email !== email);
-                    renderClientsTable();
-                    populateClientDropdown();
-                }
+                window.clientsList = window.clientsList.filter(c => c.email !== email);
+                saveStorage();
+                renderClientsTable();
+                populateClientDropdown();
             }
         }
 
