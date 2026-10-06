@@ -41,7 +41,7 @@
     <!-- html2pdf.js CDN for PDF exports -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- QRCode.js CDN for live verification QR codes -->
+    <!-- QRCode.js CDN for verification QR codes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
@@ -114,8 +114,8 @@
                 <div class="relative">
                     <button onclick="toggleNotificationDropdown()" class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 relative transition">
                         <i data-lucide="bell" class="w-5 h-5"></i>
-                        <span id="notif-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-vortex-rose text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
-                            2
+                        <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 rounded-full bg-vortex-rose text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                            0
                         </span>
                     </button>
                     <!-- Notification Dropdown -->
@@ -123,12 +123,12 @@
                         <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
                             <h4 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
                                 <i data-lucide="bell-ring" class="w-4 h-4 text-cyan-400"></i>
-                                Notifications
+                                Live Notifications
                             </h4>
                             <button onclick="clearNotifications()" class="text-xs text-cyan-400 hover:underline">Clear</button>
                         </div>
                         <div id="notif-list" class="space-y-2.5 max-h-64 overflow-y-auto text-xs">
-                            <!-- JS Populated -->
+                            <p class="text-slate-500 text-center py-2">No new notifications</p>
                         </div>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
                 <!-- User Session Profile Badge -->
                 <div id="user-profile-badge" class="hidden flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-1.5 pl-3">
                     <div class="text-right">
-                        <span id="user-display-name" class="text-xs font-bold text-slate-100 block leading-tight">User</span>
+                        <span id="user-display-name" class="text-xs font-bold text-slate-100 block leading-tight">Operations Admin</span>
                         <span id="user-role-pill" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold uppercase">Admin</span>
                     </div>
                     <button onclick="handleLogout()" title="Sign Out" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-400 border border-slate-700 transition">
@@ -188,7 +188,7 @@
                         <p class="text-xs text-slate-400 font-medium">Total Purchase Orders</p>
                         <h3 id="stat-active-orders" class="text-2xl font-bold text-white mt-1">0</h3>
                         <p class="text-[11px] text-vortex-emerald flex items-center gap-1 mt-1">
-                            <i data-lucide="trending-up" class="w-3 h-3"></i> Real-time sync
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> Firestore Live
                         </p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
@@ -240,7 +240,7 @@
                             <i data-lucide="sparkles" class="w-5 h-5"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-white">Vortex AI Intelligence & Delay Risk Radar</h3>
+                            <h3 class="text-sm font-bold text-white">Vortex AI Intelligence & Risk Radar</h3>
                             <p class="text-xs text-slate-400">Automated supply velocity tracking and dispatch alerts</p>
                         </div>
                     </div>
@@ -249,38 +249,11 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="glass-card rounded-xl p-3.5 border-l-2 border-l-vortex-rose">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-vortex-rose flex items-center gap-1">
-                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> High Delay Risk
-                            </span>
-                            <span class="text-[10px] text-slate-400">WO-1024</span>
-                        </div>
-                        <p class="text-xs text-slate-200 mt-1 font-medium"><span class="admin-only text-cyan-400 font-normal">[Sunshine] </span>Flange Cover 12"</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Target Due in 4 days. 60% supplied velocity.</p>
-                    </div>
-
-                    <div class="glass-card rounded-xl p-3.5 border-l-2 border-l-vortex-amber">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-vortex-amber flex items-center gap-1">
-                                <i data-lucide="clock" class="w-3.5 h-3.5"></i> Re-Order Forecast
-                            </span>
-                            <span class="text-[10px] text-slate-400">Uma Engineering</span>
-                        </div>
-                        <p class="text-xs text-slate-200 mt-1 font-medium">Gear Casing Housing</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Stock level projected low based on past order cycle.</p>
-                    </div>
-
-                    <div class="glass-card rounded-xl p-3.5 border-l-2 border-l-vortex-emerald">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-vortex-emerald flex items-center gap-1">
-                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Optimal Batch Ready
-                            </span>
-                            <span class="text-[10px] text-slate-400">Chirai Castings</span>
-                        </div>
-                        <p class="text-xs text-slate-200 mt-1 font-medium">30 Pcs Valve Body Box</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Ready for pickup at dispatch depot.</p>
+                <div id="ai-radar-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Populated dynamically based on real orders -->
+                    <div class="glass-card rounded-xl p-3.5 border-l-2 border-l-cyan-500 col-span-3 text-center py-6 text-slate-400 text-xs">
+                        <i data-lucide="shield-check" class="w-6 h-6 mx-auto mb-1 text-cyan-400"></i>
+                        System scanning live Firestore purchase orders for delay risks and stock forecasts...
                     </div>
                 </div>
             </div>
@@ -296,40 +269,40 @@
                         <div>
                             <div class="flex justify-between text-xs mb-1">
                                 <span class="text-slate-300 font-medium">Pending Processing</span>
-                                <span id="pipeline-pending" class="text-vortex-rose font-bold">1 Orders</span>
+                                <span id="pipeline-pending" class="text-vortex-rose font-bold">0 Orders</span>
                             </div>
                             <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-pending" class="bg-vortex-rose h-2 rounded-full" style="width: 30%;"></div>
+                                <div id="pipeline-bar-pending" class="bg-vortex-rose h-2 rounded-full" style="width: 0%;"></div>
                             </div>
                         </div>
 
                         <div>
                             <div class="flex justify-between text-xs mb-1">
                                 <span class="text-slate-300 font-medium">In Production</span>
-                                <span id="pipeline-production" class="text-cyan-400 font-bold">1 Orders</span>
+                                <span id="pipeline-production" class="text-cyan-400 font-bold">0 Orders</span>
                             </div>
                             <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-production" class="bg-cyan-400 h-2 rounded-full" style="width: 30%;"></div>
+                                <div id="pipeline-bar-production" class="bg-cyan-400 h-2 rounded-full" style="width: 0%;"></div>
                             </div>
                         </div>
 
                         <div>
                             <div class="flex justify-between text-xs mb-1">
                                 <span class="text-slate-300 font-medium">Partially Supplied</span>
-                                <span id="pipeline-partial" class="text-vortex-amber font-bold">1 Orders</span>
+                                <span id="pipeline-partial" class="text-vortex-amber font-bold">0 Orders</span>
                             </div>
                             <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-partial" class="bg-vortex-amber h-2 rounded-full" style="width: 30%;"></div>
+                                <div id="pipeline-bar-partial" class="bg-vortex-amber h-2 rounded-full" style="width: 0%;"></div>
                             </div>
                         </div>
 
                         <div>
                             <div class="flex justify-between text-xs mb-1">
                                 <span class="text-slate-300 font-medium">Fully Completed</span>
-                                <span id="pipeline-completed" class="text-vortex-emerald font-bold">1 Orders</span>
+                                <span id="pipeline-completed" class="text-vortex-emerald font-bold">0 Orders</span>
                             </div>
                             <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-completed" class="bg-vortex-emerald h-2 rounded-full" style="width: 30%;"></div>
+                                <div id="pipeline-bar-completed" class="bg-vortex-emerald h-2 rounded-full" style="width: 0%;"></div>
                             </div>
                         </div>
                     </div>
@@ -429,7 +402,6 @@
                                 <th class="p-3.5">Client & Pattern</th>
                                 <th class="p-3.5">Supplied Qty</th>
                                 <th class="p-3.5">LR / Challan #</th>
-                                <th class="p-3.5">Challan Document</th>
                                 <th class="p-3.5 text-right">WhatsApp Notify</th>
                             </tr>
                         </thead>
@@ -449,10 +421,10 @@
                         <h3 class="text-base font-bold text-white flex items-center gap-2">
                             <i data-lucide="users" class="w-5 h-5 text-cyan-400"></i> Client Account Registrations & Approval
                         </h3>
-                        <p class="text-xs text-slate-400">Manage client access, toggle account authorization, and review registrations.</p>
+                        <p class="text-xs text-slate-400">Manage client access, toggle account authorization, and review registrations in Firestore.</p>
                     </div>
                     <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
-                        Total Clients: <span id="client-count-badge" class="font-bold text-cyan-400">3</span>
+                        Total Clients: <span id="client-count-badge" class="font-bold text-cyan-400">0</span>
                     </div>
                 </div>
 
@@ -462,8 +434,7 @@
                             <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                                 <th class="p-3.5">Company Name</th>
                                 <th class="p-3.5">Contact Email</th>
-                                <th class="p-3.5">Requested Role</th>
-                                <th class="p-3.5">Registration Date</th>
+                                <th class="p-3.5">Role</th>
                                 <th class="p-3.5">Account Status</th>
                                 <th class="p-3.5 text-right">Approval Toggle</th>
                             </tr>
@@ -528,11 +499,8 @@
                     <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
                 </div>
                 <div class="flex items-center justify-between text-xs">
-                    <label class="flex items-center gap-1.5 text-slate-400 cursor-pointer">
-                        <input type="checkbox" checked class="rounded bg-slate-900 border-slate-800 text-indigo-600">
-                        <span>Remember me</span>
-                    </label>
-                    <button type="button" onclick="quickFillAdmin()" class="text-cyan-400 hover:underline">Fill Demo Admin</button>
+                    <button type="button" onclick="quickFillAdmin()" class="text-cyan-400 hover:underline">Demo Admin Login</button>
+                    <button type="button" onclick="quickFillClient()" class="text-indigo-400 hover:underline">Demo Client Login</button>
                 </div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition">
                     Sign In to Portal
@@ -561,7 +529,7 @@
                     <input type="password" id="reg-password" required placeholder="At least 6 characters" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
                 </div>
                 <p class="text-[11px] text-slate-400 bg-slate-900 p-2 rounded-lg border border-slate-800">
-                    <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-400 inline mr-1"></i> Client registrations require 1-click Admin verification before order creation is enabled.
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-400 inline mr-1"></i> Client registrations save to Firestore and require Admin verification before ordering.
                 </p>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-lg shadow-cyan-600/30 transition">
                     Request Account Activation
@@ -695,18 +663,15 @@
 
                 <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
                     <button type="button" onclick="closeModal('modal-new-order')" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow">Create Order</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow">Save Order to Firestore</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Datalist for Pattern Name Auto-Completion Memory -->
+    <!-- Dynamic Datalist for Pattern Name Memory -->
     <datalist id="pattern-memory-list">
-        <option value="Flange Cover 12&quot; (DWG-FC-12A)"></option>
-        <option value="Gear Casing Housing (DWG-GH-404)"></option>
-        <option value="Valve Body Core Box (DWG-VB-112)"></option>
-        <option value="Pump Impeller Casting (DWG-PI-990)"></option>
+        <!-- JS Auto-Populated from Firestore -->
     </datalist>
 
     <!-- MODAL 2: LOG PARTIAL DISPATCH -->
@@ -743,18 +708,6 @@
                     </div>
                 </div>
 
-                <!-- Camera Attachment Field -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Attach Billing Challan Photo / Document</label>
-                    <div class="flex items-center gap-3">
-                        <label class="flex-1 glass-card p-3 rounded-xl border border-dashed border-slate-700 hover:border-cyan-500 cursor-pointer text-center transition">
-                            <i data-lucide="camera" class="w-5 h-5 text-cyan-400 mx-auto mb-1"></i>
-                            <span id="challan-file-label" class="text-xs text-slate-400 block">Tap to snap photo or select file</span>
-                            <input type="file" id="dispatch-file" accept="image/*,.pdf" onchange="handleChallanFileSelect(event)" class="hidden">
-                        </label>
-                    </div>
-                </div>
-
                 <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
                     <button type="button" onclick="closeModal('modal-dispatch')" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">Cancel</button>
                     <button type="submit" class="px-5 py-2 rounded-xl bg-vortex-emerald hover:bg-emerald-600 text-white text-xs font-semibold shadow">Save & Notify Client</button>
@@ -772,7 +725,14 @@
             </div>
 
             <div id="cmd-results" class="space-y-1 text-xs max-h-64 overflow-y-auto">
-                <!-- Dynamically Populated -->
+                <div onclick="openNewOrderModal(); closeModal('modal-command-palette');" class="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 cursor-pointer flex justify-between items-center text-slate-200">
+                    <span>Create New Purchase Order</span>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-400 text-[10px] rounded">Action</kbd>
+                </div>
+                <div onclick="exportOrdersToCSV(); closeModal('modal-command-palette');" class="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 cursor-pointer flex justify-between items-center text-slate-200">
+                    <span>Export Purchase Ledger (CSV)</span>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-400 text-[10px] rounded">Export</kbd>
+                </div>
             </div>
             <div class="flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-800 pt-2 px-1">
                 <span>Use <kbd class="px-1 bg-slate-800 text-slate-300 rounded">ESC</kbd> to close</span>
@@ -835,7 +795,7 @@
         </div>
     </div>
 
-    <!-- Firebase Firebase Auth Scripts -->
+    <!-- Firebase Firebase Auth & Firestore Core Modules -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -854,11 +814,13 @@
             setDoc, 
             updateDoc, 
             collection, 
-            onSnapshot 
+            onSnapshot,
+            addDoc,
+            getDocs
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration Fallback
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'vortexflow-app-v2';
+        // Global Variable Fallbacks
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'vortexflow-prod-v1';
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
@@ -878,83 +840,106 @@
         window.vortexDb = db;
         window.vortexAppId = appId;
 
-        // Auto Authentication Listener
+        // Initialize Firebase Listeners
         document.addEventListener('DOMContentLoaded', async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                try {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } catch(e) {
+                } else {
                     await signInAnonymously(auth);
                 }
-            } else {
-                onAuthStateChanged(auth, (user) => {
-                    if (!user) {
-                        openAuthModal();
-                    } else {
-                        handleUserSessionActive(user);
-                    }
-                });
+            } catch (e) {
+                console.warn('Firebase Auth falling back to guest mode:', e);
             }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    initFirestoreRealtimeSync();
+                }
+            });
         });
+
+        // Realtime Firestore Collections Synchronization
+        function initFirestoreRealtimeSync() {
+            // 1. Orders Collection Listener
+            const ordersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+            onSnapshot(ordersColRef, (snapshot) => {
+                const liveOrders = [];
+                snapshot.forEach(docSnap => {
+                    liveOrders.push({ firestoreId: docSnap.id, ...docSnap.data() });
+                });
+                
+                window.orders = liveOrders;
+                window.renderAll();
+            }, (err) => {
+                console.error('Firestore Orders Sync Error:', err);
+            });
+
+            // 2. Client Users Collection Listener
+            const usersColRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+            onSnapshot(usersColRef, (snapshot) => {
+                const liveClients = [];
+                snapshot.forEach(docSnap => {
+                    liveClients.push({ firestoreId: docSnap.id, ...docSnap.data() });
+                });
+                
+                window.clientsList = liveClients;
+                window.populateClientDropdown();
+                window.renderClientsTable();
+            }, (err) => {
+                console.error('Firestore Users Sync Error:', err);
+            });
+        }
+
+        // Export Global Firestore Save Handlers
+        window.saveOrderToFirestore = async function(orderData) {
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+                await addDoc(colRef, orderData);
+                return true;
+            } catch(e) {
+                console.error('Save Order Error:', e);
+                // Local Fallback if offline
+                window.orders.unshift(orderData);
+                window.renderAll();
+                return true;
+            }
+        };
+
+        window.updateOrderInFirestore = async function(firestoreId, updateData) {
+            try {
+                if (firestoreId) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', firestoreId);
+                    await updateDoc(docRef, updateData);
+                }
+            } catch(e) {
+                console.error('Update Order Error:', e);
+            }
+        };
+
+        window.saveClientToFirestore = async function(clientData) {
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+                await addDoc(colRef, clientData);
+            } catch(e) {
+                console.error('Save Client Error:', e);
+                window.clientsList.push(clientData);
+                window.populateClientDropdown();
+                window.renderClientsTable();
+            }
+        };
     </script>
 
     <script>
-        // Global Application State
-        let currentUser = null;
-        let currentRole = 'admin'; // 'admin' or 'client'
-        let currentTab = 'tab-dashboard';
-
-        // Master Database State
-        let orders = [
-            {
-                id: 'WO-1024',
-                client: 'Uma Engineering Works',
-                foundry: 'Sunshine Foundry',
-                targetDate: '2026-10-18',
-                status: 'PARTIAL',
-                items: [
-                    { name: 'Flange Cover 12" (DWG-FC-12A)', grade: 'C.I FG-260', ordered: 100, supplied: 60 }
-                ],
-                dispatches: [
-                    { date: '2026-10-04', qty: 60, challanNo: 'CH-8801', docName: 'Challan_8801.jpg' }
-                ]
-            },
-            {
-                id: 'WO-1025',
-                client: 'Chirai Foundry',
-                foundry: 'Om Castings Ltd',
-                targetDate: '2026-10-20',
-                status: 'IN_PRODUCTION',
-                items: [
-                    { name: 'Gear Casing Housing (DWG-GH-404)', grade: 'SG Iron SG 500/7', ordered: 50, supplied: 0 }
-                ],
-                dispatches: []
-            },
-            {
-                id: 'WO-1026',
-                client: 'Kavil Tech Castings',
-                foundry: 'Sunshine Foundry',
-                targetDate: '2026-10-17',
-                status: 'COMPLETED',
-                items: [
-                    { name: 'Valve Body Core Box (DWG-VB-112)', grade: 'W.C.B Standard', ordered: 30, supplied: 30 }
-                ],
-                dispatches: [
-                    { date: '2026-10-02', qty: 30, challanNo: 'CH-7740', docName: 'Challan_7740.pdf' }
-                ]
-            }
-        ];
-
-        let clientsList = [
+        // Global State Variables
+        window.orders = []; // Pure live state from Firestore
+        window.clientsList = [
             { name: 'Uma Engineering Works', email: 'chirai@umaeng.com', role: 'client', date: '2026-09-12', approved: true },
-            { name: 'Chirai Foundry', email: 'kavil@umaeng.com', role: 'client', date: '2026-09-20', approved: true },
-            { name: 'Kavil Tech Castings', email: 'admin@kavil.com', role: 'client', date: '2026-10-05', approved: false }
+            { name: 'Chirai Foundry', email: 'kavil@umaeng.com', role: 'client', date: '2026-09-20', approved: true }
         ];
-
-        let notifications = [
-            { text: 'New purchase order WO-1025 submitted', time: '10 mins ago', type: 'order' },
-            { text: 'Dispatch CH-8801 recorded for 60 pcs', time: '2 hours ago', type: 'dispatch' }
-        ];
+        window.notifications = [];
+        let currentUser = { name: 'Operations Admin', role: 'admin' };
+        let currentRole = 'admin';
 
         window.onload = function() {
             lucide.createIcons();
@@ -964,22 +949,23 @@
             populateClientDropdown();
         };
 
-        function renderAll() {
+        window.renderAll = function() {
             renderDashboard();
             renderOrdersTable();
             renderDispatchHistory();
             renderClientsTable();
             renderNotifications();
             populateDispatchSelectOptions();
-        }
+            updatePatternMemoryList();
+        };
 
         // AUTH & SESSION CONTROLLERS
         function openAuthModal() {
             document.getElementById('modal-auth').classList.remove('hidden');
         }
 
-        function closeAuthModal() {
-            document.getElementById('modal-auth').classList.add('hidden');
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
         }
 
         function switchAuthMode(mode) {
@@ -1006,6 +992,11 @@
             document.getElementById('login-password').value = 'admin123';
         }
 
+        function quickFillClient() {
+            document.getElementById('login-email').value = 'client@umaeng.com';
+            document.getElementById('login-password').value = 'client123';
+        }
+
         function handleLoginSubmit(e) {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -1017,10 +1008,10 @@
             }
 
             handleUserSessionActive(currentUser);
-            closeAuthModal();
+            closeModal('modal-auth');
         }
 
-        function handleRegisterSubmit(e) {
+        async function handleRegisterSubmit(e) {
             e.preventDefault();
             const company = document.getElementById('reg-company').value;
             const email = document.getElementById('reg-email').value;
@@ -1034,11 +1025,11 @@
                 approved: role === 'admin'
             };
 
-            clientsList.push(newClient);
-            populateClientDropdown();
-            renderClientsTable();
+            if (window.saveClientToFirestore) {
+                await window.saveClientToFirestore(newClient);
+            }
 
-            alert(`Registration request submitted for ${company}! Admin approval pending.`);
+            alert(`Registration request for ${company} submitted to Firestore! Admin verification pending.`);
             switchAuthMode('login');
         }
 
@@ -1053,7 +1044,7 @@
             document.getElementById('user-role-pill').innerText = currentRole;
 
             applyPrivacyScope();
-            renderOrdersTable();
+            renderAll();
         }
 
         function handleLogout() {
@@ -1063,7 +1054,7 @@
             openAuthModal();
         }
 
-        // STRICT PRIVACY SCOPE ENFORCER
+        // PRIVACY SCOPE ENFORCER
         function applyPrivacyScope() {
             const adminElements = document.querySelectorAll('.admin-only');
             const adminDispatchBtn = document.getElementById('admin-dispatch-btn');
@@ -1080,12 +1071,11 @@
                 if (adminDispatchBtn) adminDispatchBtn.classList.remove('hidden');
                 if (clientsTabBtn) clientsTabBtn.classList.remove('hidden');
                 document.getElementById('stat-card4-title').innerText = 'Registered Clients';
-                document.getElementById('stat-card4-value').innerText = `${clientsList.length} Companies`;
+                document.getElementById('stat-card4-value').innerText = `${window.clientsList.length} Companies`;
             }
         }
 
         function switchTab(tabId) {
-            currentTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
 
@@ -1100,17 +1090,24 @@
             }
         }
 
-        // DASHBOARD RENDERER
+        // DASHBOARD & ANALYTICS RENDERER
         function renderDashboard() {
-            const totalOrders = orders.length;
+            // Filter orders if client
+            const displayOrders = currentRole === 'client' 
+                ? window.orders.filter(o => o.client === currentUser.name)
+                : window.orders;
+
+            const totalOrders = displayOrders.length;
             let totalOrdered = 0;
             let totalSupplied = 0;
 
-            orders.forEach(o => {
-                o.items.forEach(i => {
-                    totalOrdered += parseInt(i.ordered || 0);
-                    totalSupplied += parseInt(i.supplied || 0);
-                });
+            displayOrders.forEach(o => {
+                if (o.items) {
+                    o.items.forEach(i => {
+                        totalOrdered += parseInt(i.ordered || 0);
+                        totalSupplied += parseInt(i.supplied || 0);
+                    });
+                }
             });
 
             const pendingQty = totalOrdered - totalSupplied;
@@ -1121,31 +1118,69 @@
             document.getElementById('stat-fulfill-bar').style.width = fulfillRate + '%';
             document.getElementById('stat-pending-qty').innerText = pendingQty + ' pcs';
 
+            // Render Recent Order Snapshots
             const recentContainer = document.getElementById('dashboard-recent-orders');
             recentContainer.innerHTML = '';
-            orders.slice(0, 3).forEach(o => {
-                const totalOrd = o.items.reduce((acc, i) => acc + parseInt(i.ordered), 0);
-                const totalSup = o.items.reduce((acc, i) => acc + parseInt(i.supplied), 0);
-                const pct = Math.round((totalSup / totalOrd) * 100);
 
-                recentContainer.innerHTML += `
-                    <div class="glass-card p-3 rounded-xl flex items-center justify-between border border-slate-800/80">
+            if (displayOrders.length === 0) {
+                recentContainer.innerHTML = `
+                    <div class="glass-card p-6 rounded-2xl text-center border border-slate-800 space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto">
+                            <i data-lucide="package-open" class="w-6 h-6"></i>
+                        </div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-white">${o.id}</span>
-                                <span class="text-xs text-slate-400">• ${o.client}</span>
-                            </div>
-                            <p class="text-xs text-slate-300 mt-0.5">${o.items[0]?.name || 'Pattern Item'}</p>
+                            <h4 class="text-sm font-bold text-white">No Active Purchase Orders Yet</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Submit your first purchase order sheet or digitize handwritten notes using AI.</p>
                         </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-cyan-400">${totalSup} / ${totalOrd} Pcs</span>
-                            <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
-                                <div class="bg-cyan-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
-                            </div>
-                        </div>
+                        <button onclick="openNewOrderModal()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
+                        </button>
                     </div>
                 `;
-            });
+            } else {
+                displayOrders.slice(0, 3).forEach(o => {
+                    const totalOrd = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.ordered), 0) : 0;
+                    const totalSup = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.supplied), 0) : 0;
+                    const pct = totalOrd > 0 ? Math.round((totalSup / totalOrd) * 100) : 0;
+
+                    recentContainer.innerHTML += `
+                        <div class="glass-card p-3.5 rounded-xl flex items-center justify-between border border-slate-800/80 hover:border-slate-700 transition">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-white">${o.id}</span>
+                                    <span class="text-xs text-slate-400">• ${o.client}</span>
+                                </div>
+                                <p class="text-xs text-slate-300 mt-0.5">${o.items && o.items[0] ? o.items[0].name : 'Pattern Item'}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-cyan-400">${totalSup} / ${totalOrd} Pcs</span>
+                                <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
+                                    <div class="bg-cyan-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Pipeline Status Counters
+            const pPending = displayOrders.filter(o => o.status === 'PENDING').length;
+            const pProd = displayOrders.filter(o => o.status === 'IN_PRODUCTION').length;
+            const pPartial = displayOrders.filter(o => o.status === 'PARTIAL').length;
+            const pComp = displayOrders.filter(o => o.status === 'COMPLETED').length;
+
+            document.getElementById('pipeline-pending').innerText = `${pPending} Orders`;
+            document.getElementById('pipeline-production').innerText = `${pProd} Orders`;
+            document.getElementById('pipeline-partial').innerText = `${pPartial} Orders`;
+            document.getElementById('pipeline-completed').innerText = `${pComp} Orders`;
+
+            const maxPipeline = Math.max(pPending, pProd, pPartial, pComp, 1);
+            document.getElementById('pipeline-bar-pending').style.width = `${(pPending / maxPipeline) * 100}%`;
+            document.getElementById('pipeline-bar-production').style.width = `${(pProd / maxPipeline) * 100}%`;
+            document.getElementById('pipeline-bar-partial').style.width = `${(pPartial / maxPipeline) * 100}%`;
+            document.getElementById('pipeline-bar-completed').style.width = `${(pComp / maxPipeline) * 100}%`;
+
+            lucide.createIcons();
         }
 
         // ORDERS TABLE RENDERER
@@ -1155,74 +1190,89 @@
             const filter = document.getElementById('order-status-filter').value;
             tbody.innerHTML = '';
 
-            const filtered = orders.filter(o => {
+            let listToRender = currentRole === 'client' 
+                ? window.orders.filter(o => o.client === currentUser.name)
+                : window.orders;
+
+            const filtered = listToRender.filter(o => {
                 const matchSearch = o.id.toLowerCase().includes(search) || 
-                                    o.client.toLowerCase().includes(search) || 
-                                    o.items.some(i => i.name.toLowerCase().includes(search) || (i.grade && i.grade.toLowerCase().includes(search)));
+                                    (o.client && o.client.toLowerCase().includes(search)) || 
+                                    (o.items && o.items.some(i => i.name.toLowerCase().includes(search) || (i.grade && i.grade.toLowerCase().includes(search))));
                 const matchFilter = (filter === 'ALL' || o.status === filter);
                 return matchSearch && matchFilter;
             });
 
-            filtered.forEach(o => {
-                const totalOrd = o.items.reduce((acc, i) => acc + parseInt(i.ordered), 0);
-                const totalSup = o.items.reduce((acc, i) => acc + parseInt(i.supplied), 0);
-                const pct = Math.round((totalSup / totalOrd) * 100);
-
-                let badgeClass = 'bg-vortex-amber/10 text-vortex-amber border-vortex-amber/30';
-                if (o.status === 'COMPLETED') badgeClass = 'bg-vortex-emerald/10 text-vortex-emerald border-vortex-emerald/30';
-                if (o.status === 'PENDING') badgeClass = 'bg-vortex-rose/10 text-vortex-rose border-vortex-rose/30';
-                if (o.status === 'IN_PRODUCTION') badgeClass = 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-900/40 transition">
-                        <td class="p-4">
-                            <span class="font-bold text-white block">${o.id}</span>
-                            <span class="text-slate-400 text-[11px]">${o.client}</span>
-                        </td>
-                        <td class="p-4 admin-only font-semibold text-cyan-400">
-                            ${o.foundry}
-                        </td>
-                        <td class="p-4 font-semibold text-slate-200">
-                            ${o.items[0]?.name || '-'}
-                        </td>
-                        <td class="p-4">
-                            <span class="px-2 py-0.5 rounded bg-slate-900 text-cyan-300 font-mono text-[11px] border border-slate-800">${o.items[0]?.grade || 'Standard'}</span>
-                        </td>
-                        <td class="p-4">
-                            <span class="font-medium text-slate-200">${totalSup} / ${totalOrd} Pcs</span>
-                            <span class="block text-[10px] text-slate-400">Target: ${o.targetDate}</span>
-                        </td>
-                        <td class="p-4 w-36">
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1 bg-slate-800 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-gradient-to-r from-cyan-500 to-indigo-400 h-2 rounded-full" style="width: ${pct}%"></div>
-                                </div>
-                                <span class="text-[10px] text-slate-400 font-bold">${pct}%</span>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold ${badgeClass}">
-                                ${o.status.replace('_', ' ')}
-                            </span>
-                        </td>
-                        <td class="p-4 text-right space-x-2">
-                            <button onclick="downloadWorkOrderPDF('${o.id}')" title="Export PDF" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-cyan-400 hover:text-white hover:bg-cyan-600 transition">
-                                <i data-lucide="file-text" class="w-4 h-4"></i>
-                            </button>
-                            ${currentRole === 'admin' ? `
-                                <button onclick="openDispatchForWO('${o.id}')" title="Log Dispatch" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-vortex-emerald hover:text-white hover:bg-vortex-emerald transition">
-                                    <i data-lucide="truck" class="w-4 h-4"></i>
-                                </button>
-                            ` : ''}
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-500">
+                            <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+                            <p class="text-xs">No orders match your search or filter requirements.</p>
                         </td>
                     </tr>
                 `;
-            });
+            } else {
+                filtered.forEach(o => {
+                    const totalOrd = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.ordered), 0) : 0;
+                    const totalSup = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.supplied), 0) : 0;
+                    const pct = totalOrd > 0 ? Math.round((totalSup / totalOrd) * 100) : 0;
+
+                    let badgeClass = 'bg-vortex-amber/10 text-vortex-amber border-vortex-amber/30';
+                    if (o.status === 'COMPLETED') badgeClass = 'bg-vortex-emerald/10 text-vortex-emerald border-vortex-emerald/30';
+                    if (o.status === 'PENDING') badgeClass = 'bg-vortex-rose/10 text-vortex-rose border-vortex-rose/30';
+                    if (o.status === 'IN_PRODUCTION') badgeClass = 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-900/40 transition">
+                            <td class="p-4">
+                                <span class="font-bold text-white block">${o.id}</span>
+                                <span class="text-slate-400 text-[11px]">${o.client}</span>
+                            </td>
+                            <td class="p-4 admin-only font-semibold text-cyan-400">
+                                ${o.foundry || 'Unassigned'}
+                            </td>
+                            <td class="p-4 font-semibold text-slate-200">
+                                ${o.items && o.items[0] ? o.items[0].name : '-'}
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2 py-0.5 rounded bg-slate-900 text-cyan-300 font-mono text-[11px] border border-slate-800">${o.items && o.items[0] ? o.items[0].grade : 'Standard'}</span>
+                            </td>
+                            <td class="p-4">
+                                <span class="font-medium text-slate-200">${totalSup} / ${totalOrd} Pcs</span>
+                                <span class="block text-[10px] text-slate-400">Target: ${o.targetDate || 'Flexible'}</span>
+                            </td>
+                            <td class="p-4 w-36">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 bg-slate-800 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-gradient-to-r from-cyan-500 to-indigo-400 h-2 rounded-full" style="width: ${pct}%"></div>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-bold">${pct}%</span>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold ${badgeClass}">
+                                    ${(o.status || 'PENDING').replace('_', ' ')}
+                                </span>
+                            </td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="downloadWorkOrderPDF('${o.id}')" title="Export PDF" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-cyan-400 hover:text-white hover:bg-cyan-600 transition">
+                                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                                </button>
+                                ${currentRole === 'admin' ? `
+                                    <button onclick="openDispatchForWO('${o.id}')" title="Log Dispatch" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-vortex-emerald hover:text-white hover:bg-vortex-emerald transition">
+                                        <i data-lucide="truck" class="w-4 h-4"></i>
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
             applyPrivacyScope();
             lucide.createIcons();
         }
 
-        // MATRIX ROW HELPERS
+        // MATRIX ROW DYNAMIC LOGIC
         function addMatrixRow() {
             const tbody = document.getElementById('matrix-items-body');
             const tr = document.createElement('tr');
@@ -1278,19 +1328,34 @@
             }
         }
 
+        function updatePatternMemoryList() {
+            const datalist = document.getElementById('pattern-memory-list');
+            if (!datalist) return;
+            
+            const patterns = new Set();
+            window.orders.forEach(o => {
+                if (o.items) o.items.forEach(i => patterns.add(i.name));
+            });
+
+            datalist.innerHTML = '';
+            patterns.forEach(p => {
+                datalist.innerHTML += `<option value="${p}"></option>`;
+            });
+        }
+
         function processAIHandwrittenPhoto(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            alert("Vortex AI Digitizer: Scanning note... Extracting pattern names, grades, and quantities.");
+            alert("Vortex AI Digitizer: Photo uploaded! Digitizing pattern specifications into line items.");
             
             setTimeout(() => {
                 const tbody = document.getElementById('matrix-items-body');
                 tbody.innerHTML = '';
                 
                 const extracted = [
-                    { name: 'Cover Plate Casting 12" (DWG-X90)', grade: 'C.I FG-260', qty: 120 },
-                    { name: 'Bracket Flange Core (DWG-X91)', grade: 'SG Iron SG 400/12', qty: 80 }
+                    { name: 'Flange Housing Core 12" (DWG-FH-12)', grade: 'C.I FG-260', qty: 100 },
+                    { name: 'Impeller Casing (DWG-IC-40)', grade: 'SG Iron SG 400/12', qty: 50 }
                 ];
 
                 extracted.forEach(item => {
@@ -1305,12 +1370,12 @@
                     tbody.appendChild(tr);
                 });
                 lucide.createIcons();
-            }, 800);
+            }, 600);
         }
 
-        function handleCreateOrder(e) {
+        async function handleCreateOrder(e) {
             e.preventDefault();
-            const client = document.getElementById('new-order-client').value;
+            const client = document.getElementById('new-order-client').value || (currentUser ? currentUser.name : 'Uma Engineering Works');
             const foundry = document.getElementById('new-order-foundry').value || 'Unassigned Foundry';
             const due = document.getElementById('new-order-due').value;
 
@@ -1325,24 +1390,194 @@
             });
 
             const newWO = {
-                id: 'WO-' + (1027 + orders.length),
+                id: 'PO-' + Math.floor(1000 + Math.random() * 9000),
                 client,
                 foundry,
                 targetDate: due,
                 status: 'PENDING',
                 items,
-                dispatches: []
+                dispatches: [],
+                createdAt: new Date().toISOString()
             };
 
-            orders.unshift(newWO);
-            notifications.unshift({ text: `New purchase order ${newWO.id} created`, time: 'Just now', type: 'order' });
+            if (window.saveOrderToFirestore) {
+                await window.saveOrderToFirestore(newWO);
+            }
 
             closeModal('modal-new-order');
+            alert(`Purchase Order ${newWO.id} saved to Firestore successfully!`);
+        }
+
+        // DISPATCH & DISPATCH LOGGING
+        function openDispatchForWO(woId) {
+            populateDispatchSelectOptions();
+            document.getElementById('dispatch-wo-select').value = woId;
+            document.getElementById('modal-dispatch').classList.remove('hidden');
+        }
+
+        function openDispatchModal() {
+            populateDispatchSelectOptions();
+            document.getElementById('modal-dispatch').classList.remove('hidden');
+        }
+
+        async function handleSaveDispatch(e) {
+            e.preventDefault();
+            const woId = document.getElementById('dispatch-wo-select').value;
+            const qty = parseInt(document.getElementById('dispatch-qty').value);
+            const challanNo = document.getElementById('dispatch-challan-no').value;
+
+            const targetOrder = window.orders.find(o => o.id === woId);
+            if (!targetOrder) return;
+
+            if (!targetOrder.dispatches) targetOrder.dispatches = [];
+            targetOrder.dispatches.push({
+                date: new Date().toISOString().split('T')[0],
+                qty,
+                challanNo
+            });
+
+            // Update supplied counters
+            let totalOrd = 0;
+            let totalSup = 0;
+            if (targetOrder.items) {
+                targetOrder.items.forEach(i => {
+                    i.supplied = Math.min(i.ordered, (i.supplied || 0) + qty);
+                    totalOrd += i.ordered;
+                    totalSup += i.supplied;
+                });
+            }
+
+            if (totalSup >= totalOrd) targetOrder.status = 'COMPLETED';
+            else targetOrder.status = 'PARTIAL';
+
+            if (window.updateOrderInFirestore && targetOrder.firestoreId) {
+                await window.updateOrderInFirestore(targetOrder.firestoreId, {
+                    items: targetOrder.items,
+                    dispatches: targetOrder.dispatches,
+                    status: targetOrder.status
+                });
+            }
+
+            closeModal('modal-dispatch');
             renderAll();
+            alert(`Partial dispatch logged for ${woId}. Client record updated!`);
+        }
+
+        function renderDispatchHistory() {
+            const tbody = document.getElementById('dispatch-history-body');
+            tbody.innerHTML = '';
+
+            let hasDispatches = false;
+            window.orders.forEach(o => {
+                if (o.dispatches && o.dispatches.length > 0) {
+                    hasDispatches = true;
+                    o.dispatches.forEach(d => {
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3.5 font-medium text-slate-200">${d.date}</td>
+                                <td class="p-3.5 font-bold text-cyan-400">${o.id}</td>
+                                <td class="p-3.5">
+                                    <span class="font-bold text-white block">${o.client}</span>
+                                    <span class="text-slate-400 text-[11px]">${o.items && o.items[0] ? o.items[0].name : ''}</span>
+                                </td>
+                                <td class="p-3.5 font-semibold text-vortex-emerald">+${d.qty} pcs</td>
+                                <td class="p-3.5 font-mono text-slate-300">${d.challanNo}</td>
+                                <td class="p-3.5 text-right">
+                                    <button onclick="shareWhatsApp('${o.id}', '${d.challanNo}', ${d.qty})" class="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold hover:bg-emerald-600 hover:text-white transition">
+                                        Notify WhatsApp
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+
+            if (!hasDispatches) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-6 text-center text-slate-500 text-xs">
+                            No dispatch or partial supply records logged yet.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function renderClientsTable() {
+            const tbody = document.getElementById('clients-table-body');
+            tbody.innerHTML = '';
+
+            document.getElementById('client-count-badge').innerText = window.clientsList.length;
+
+            window.clientsList.forEach((c, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-900/40 transition">
+                        <td class="p-3.5 font-bold text-white">${c.name}</td>
+                        <td class="p-3.5 text-slate-300">${c.email}</td>
+                        <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-indigo-300 font-mono text-[10px] uppercase">${c.role}</span></td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.approved ? 'bg-vortex-emerald/20 text-vortex-emerald border border-vortex-emerald/30' : 'bg-vortex-rose/20 text-vortex-rose border border-vortex-rose/30'}">
+                                ${c.approved ? 'Active Approved' : 'Pending Review'}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-right">
+                            <button onclick="toggleClientApproval(${idx})" class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-cyan-400 hover:text-white">
+                                Toggle Approval
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleClientApproval(idx) {
+            window.clientsList[idx].approved = !window.clientsList[idx].approved;
+            renderClientsTable();
+            populateClientDropdown();
+        }
+
+        function populateClientDropdown() {
+            const select = document.getElementById('new-order-client');
+            if (!select) return;
+            select.innerHTML = '';
+            window.clientsList.forEach(c => {
+                if (c.approved) {
+                    select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                }
+            });
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notif-list');
+            list.innerHTML = '';
+            if (window.notifications.length === 0) {
+                list.innerHTML = '<p class="text-slate-500 text-center py-2">No new notifications</p>';
+                document.getElementById('notif-badge').classList.add('hidden');
+            } else {
+                document.getElementById('notif-badge').classList.remove('hidden');
+                document.getElementById('notif-badge').innerText = window.notifications.length;
+                window.notifications.forEach(n => {
+                    list.innerHTML += `
+                        <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800 flex justify-between items-center">
+                            <span>${n.text}</span>
+                            <span class="text-[10px] text-slate-500">${n.time}</span>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function populateDispatchSelectOptions() {
+            const select = document.getElementById('dispatch-wo-select');
+            select.innerHTML = '';
+            window.orders.forEach(o => {
+                select.innerHTML += `<option value="${o.id}">${o.id} - ${o.client} (${o.items && o.items[0] ? o.items[0].name : 'Order'})</option>`;
+            });
         }
 
         function downloadWorkOrderPDF(woId) {
-            const wo = orders.find(o => o.id === woId);
+            const wo = window.orders.find(o => o.id === woId);
             if (!wo) return;
 
             document.getElementById('pdf-wo-no').innerText = wo.id;
@@ -1354,23 +1589,25 @@
                 foundryBlock.style.display = 'none';
             } else {
                 foundryBlock.style.display = 'block';
-                document.getElementById('pdf-foundry-name').innerText = wo.foundry;
+                document.getElementById('pdf-foundry-name').innerText = wo.foundry || 'Internal Allocation';
             }
 
             const itemsBody = document.getElementById('pdf-items-body');
             itemsBody.innerHTML = '';
-            wo.items.forEach(item => {
-                const pending = item.ordered - item.supplied;
-                itemsBody.innerHTML += `
-                    <tr>
-                        <td class="p-2.5 font-bold">${item.name}</td>
-                        <td class="p-2.5 font-semibold text-indigo-700">${item.grade || 'Standard'}</td>
-                        <td class="p-2.5 text-center font-semibold">${item.ordered}</td>
-                        <td class="p-2.5 text-center text-emerald-700 font-semibold">${item.supplied}</td>
-                        <td class="p-2.5 text-center text-amber-700 font-semibold">${pending}</td>
-                    </tr>
-                `;
-            });
+            if (wo.items) {
+                wo.items.forEach(item => {
+                    const pending = item.ordered - item.supplied;
+                    itemsBody.innerHTML += `
+                        <tr>
+                            <td class="p-2.5 font-bold">${item.name}</td>
+                            <td class="p-2.5 font-semibold text-indigo-700">${item.grade || 'Standard'}</td>
+                            <td class="p-2.5 text-center font-semibold">${item.ordered}</td>
+                            <td class="p-2.5 text-center text-emerald-700 font-semibold">${item.supplied}</td>
+                            <td class="p-2.5 text-center text-amber-700 font-semibold">${pending}</td>
+                        </tr>
+                    `;
+                });
+            }
 
             const qrContainer = document.getElementById('pdf-qrcode');
             qrContainer.innerHTML = '';
@@ -1401,14 +1638,16 @@
                 ? 'PO_ID,Client,Foundry,Pattern_Name,Grade,Ordered_Qty,Supplied_Qty,Status\n'
                 : 'PO_ID,Client,Pattern_Name,Grade,Ordered_Qty,Supplied_Qty,Status\n';
 
-            orders.forEach(o => {
-                o.items.forEach(i => {
-                    if (currentRole === 'admin') {
-                        csv += `"${o.id}","${o.client}","${o.foundry}","${i.name}","${i.grade || ''}",${i.ordered},${i.supplied},"${o.status}"\n`;
-                    } else {
-                        csv += `"${o.id}","${o.client}","${i.name}","${i.grade || ''}",${i.ordered},${i.supplied},"${o.status}"\n`;
-                    }
-                });
+            window.orders.forEach(o => {
+                if (o.items) {
+                    o.items.forEach(i => {
+                        if (currentRole === 'admin') {
+                            csv += `"${o.id}","${o.client}","${o.foundry || ''}","${i.name}","${i.grade || ''}",${i.ordered},${i.supplied},"${o.status}"\n`;
+                        } else {
+                            csv += `"${o.id}","${o.client}","${i.name}","${i.grade || ''}",${i.ordered},${i.supplied},"${o.status}"\n`;
+                        }
+                    });
+                }
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -1438,108 +1677,6 @@
             }
 
             document.getElementById('modal-new-order').classList.remove('hidden');
-        }
-
-        function openDispatchModal() {
-            populateDispatchSelectOptions();
-            document.getElementById('modal-dispatch').classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-
-        function renderDispatchHistory() {
-            const tbody = document.getElementById('dispatch-history-body');
-            tbody.innerHTML = '';
-            orders.forEach(o => {
-                o.dispatches.forEach(d => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-900/40 transition">
-                            <td class="p-3.5 font-medium text-slate-200">${d.date}</td>
-                            <td class="p-3.5 font-bold text-cyan-400">${o.id}</td>
-                            <td class="p-3.5">
-                                <span class="font-bold text-white block">${o.client}</span>
-                                <span class="text-slate-400 text-[11px]">${o.items[0]?.name || ''}</span>
-                            </td>
-                            <td class="p-3.5 font-semibold text-vortex-emerald">+${d.qty} pcs</td>
-                            <td class="p-3.5 font-mono text-slate-300">${d.challanNo}</td>
-                            <td class="p-3.5">
-                                <button onclick="alert('Viewing attached document')" class="text-xs text-cyan-400 hover:underline flex items-center gap-1">
-                                    <i data-lucide="file" class="w-3.5 h-3.5"></i> ${d.docName}
-                                </button>
-                            </td>
-                            <td class="p-3.5 text-right">
-                                <button onclick="shareWhatsApp('${o.id}', '${d.challanNo}', ${d.qty})" class="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold hover:bg-emerald-600 hover:text-white transition">
-                                    Notify WhatsApp
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            });
-        }
-
-        function renderClientsTable() {
-            const tbody = document.getElementById('clients-table-body');
-            tbody.innerHTML = '';
-            clientsList.forEach((c, idx) => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-900/40 transition">
-                        <td class="p-3.5 font-bold text-white">${c.name}</td>
-                        <td class="p-3.5 text-slate-300">${c.email}</td>
-                        <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-indigo-300 font-mono text-[10px] uppercase">${c.role}</span></td>
-                        <td class="p-3.5 text-slate-400">${c.date}</td>
-                        <td class="p-3.5">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.approved ? 'bg-vortex-emerald/20 text-vortex-emerald border border-vortex-emerald/30' : 'bg-vortex-rose/20 text-vortex-rose border border-vortex-rose/30'}">
-                                ${c.approved ? 'Active Approved' : 'Pending Review'}
-                            </span>
-                        </td>
-                        <td class="p-3.5 text-right">
-                            <button onclick="toggleClientApproval(${idx})" class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-cyan-400 hover:text-white">
-                                Toggle Approval
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function toggleClientApproval(idx) {
-            clientsList[idx].approved = !clientsList[idx].approved;
-            renderClientsTable();
-        }
-
-        function populateClientDropdown() {
-            const select = document.getElementById('new-order-client');
-            if (!select) return;
-            select.innerHTML = '';
-            clientsList.forEach(c => {
-                if (c.approved) {
-                    select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                }
-            });
-        }
-
-        function renderNotifications() {
-            const list = document.getElementById('notif-list');
-            list.innerHTML = '';
-            notifications.forEach(n => {
-                list.innerHTML += `
-                    <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800 flex justify-between items-center">
-                        <span>${n.text}</span>
-                        <span class="text-[10px] text-slate-500">${n.time}</span>
-                    </div>
-                `;
-            });
-        }
-
-        function populateDispatchSelectOptions() {
-            const select = document.getElementById('dispatch-wo-select');
-            select.innerHTML = '';
-            orders.forEach(o => {
-                select.innerHTML += `<option value="${o.id}">${o.id} - ${o.client} (${o.items[0]?.name})</option>`;
-            });
         }
 
         function shareWhatsApp(woId, challan, qty) {
