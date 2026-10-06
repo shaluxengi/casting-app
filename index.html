@@ -1,12 +1,10 @@
-```html
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VortexFlow | Intelligent Supply & Fast Execution</title>
-    
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -15,1510 +13,769 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#eef2ff',
+                            50: '#f0f3ff',
                             100: '#e0e7ff',
                             500: '#6366f1',
                             600: '#4f46e5',
                             700: '#4338ca',
                             900: '#312e81'
-                        },
-                        vortex: {
-                            cyan: '#06b6d4',
-                            purple: '#a855f7',
-                            emerald: '#10b981',
-                            amber: '#f59e0b',
-                            rose: '#f43f5e'
                         }
                     }
                 }
             }
         }
     </script>
-    
-    <!-- Lucide Icons CDN -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- html2pdf.js CDN for PDF exports -->
+    <!-- html2pdf for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <!-- QRCode.js CDN for verification QR codes -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
     <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
-        
         .glass-panel {
-            background: rgba(30, 41, 59, 0.75);
+            background: rgba(17, 24, 39, 0.75);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        
-        .glass-card {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
         .glass-modal {
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(15, 23, 42, 0.92);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.12);
         }
-
-        @media print {
-            body * { visibility: hidden; }
-            #printable-work-order, #printable-work-order * { visibility: visible; }
-            #printable-work-order { position: absolute; left: 0; top: 0; width: 100%; }
-        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col pb-20 md:pb-0">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-20 md:pb-6">
 
-    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <!-- Brand Logo & Title -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
-                    <i data-lucide="zap" class="w-6 h-6"></i>
+    <!-- AUTHENTICATION OVERLAY (Shown when logged out) -->
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
+        <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i data-lucide="layers" class="w-7 h-7 text-white"></i>
                 </div>
-                <div>
-                    <h1 class="text-lg font-bold bg-gradient-to-r from-white via-cyan-200 to-indigo-300 bg-clip-text text-transparent leading-none">
-                        VortexFlow
-                    </h1>
-                    <span class="text-xs text-cyan-400 font-medium">Intelligent Supply & Fast Execution</span>
-                </div>
+                <h2 class="text-xl font-bold text-white tracking-tight">VortexFlow Portal</h2>
+                <p class="text-xs text-slate-400">Intelligent Casting Execution & Order Management</p>
             </div>
 
-            <!-- Command Palette Search Input -->
-            <div class="hidden md:flex items-center flex-1 max-w-md mx-4">
-                <button onclick="openCommandPalette()" class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition">
-                    <div class="flex items-center gap-2.5 text-sm">
-                        <i data-lucide="search" class="w-4 h-4 text-cyan-400"></i>
-                        <span>Search orders, patterns, or commands...</span>
-                    </div>
-                    <kbd class="px-2 py-0.5 text-xs bg-slate-800 border border-slate-700 text-slate-300 rounded-md font-mono">Ctrl + K</kbd>
-                </button>
-            </div>
-
-            <!-- Header Right Menu -->
-            <div class="flex items-center gap-3">
-                <button onclick="openCommandPalette()" class="md:hidden p-2 rounded-lg bg-slate-900 text-slate-300 hover:bg-slate-800">
-                    <i data-lucide="search" class="w-5 h-5"></i>
-                </button>
-
-                <!-- Admin Purge Data Trigger -->
-                <button id="admin-purge-btn" onclick="confirmPurgeAllData()" title="Purge Storage & Reset" class="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Purge All Data</span>
-                </button>
-
-                <!-- User Session Badge -->
-                <div id="user-profile-badge" class="hidden flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-1.5 pl-3">
-                    <div class="text-right">
-                        <span id="user-display-name" class="text-xs font-bold text-slate-100 block leading-tight">Guest User</span>
-                        <span id="user-role-pill" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold uppercase">Guest</span>
-                    </div>
-                    <button onclick="handleLogout()" title="Sign Out" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-600/20 text-slate-300 hover:text-rose-400 border border-slate-700 transition">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <!-- Auth Trigger -->
-                <button id="guest-login-btn" onclick="openAuthModal()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow flex items-center gap-1.5 transition">
-                    <i data-lucide="lock" class="w-4 h-4"></i> Sign In / Register
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
-
-        <!-- Navigation Bar -->
-        <div class="hidden md:flex items-center justify-between border-b border-slate-800 pb-3">
-            <nav class="flex items-center gap-2">
-                <button onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="nav-tab active px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 bg-slate-900 border border-slate-800 text-cyan-400">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Executive Dashboard
-                </button>
-                <button onclick="switchTab('tab-orders')" id="btn-tab-orders" class="nav-tab px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50">
-                    <i data-lucide="shopping-bag" class="w-4 h-4"></i> Purchase Orders
-                </button>
-                <button onclick="switchTab('tab-dispatches')" id="btn-tab-dispatches" class="nav-tab px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50">
-                    <i data-lucide="truck" class="w-4 h-4"></i> Partial Supply Logs
-                </button>
-                <button id="tab-btn-clients" onclick="switchTab('tab-clients')" class="nav-tab px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50">
-                    <i data-lucide="users" class="w-4 h-4"></i> Client Registrations
-                </button>
-            </nav>
-
-            <button onclick="openNewOrderModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white text-sm font-semibold flex items-center gap-2 hover:brightness-110 shadow-lg shadow-cyan-500/20 transition">
-                <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
-            </button>
-        </div>
-
-        <!-- TAB 1: EXECUTIVE DASHBOARD -->
-        <section id="tab-dashboard" class="tab-content space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-cyan-500">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Total Active Orders</p>
-                        <h3 id="stat-active-orders" class="text-2xl font-bold text-white mt-1">0</h3>
-                        <p class="text-[11px] text-vortex-emerald flex items-center gap-1 mt-1">
-                            <i data-lucide="trending-up" class="w-3 h-3"></i> Live Persistence
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-                        <i data-lucide="package" class="w-6 h-6"></i>
-                    </div>
-                </div>
-
-                <div class="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-vortex-emerald">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Supply Fulfillment Rate</p>
-                        <h3 id="stat-fulfillment-rate" class="text-2xl font-bold text-white mt-1">0.0%</h3>
-                        <div class="w-32 bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
-                            <div id="stat-fulfill-bar" class="bg-vortex-emerald h-1.5 rounded-full" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-vortex-emerald/10 text-vortex-emerald flex items-center justify-center">
-                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-                    </div>
-                </div>
-
-                <div class="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-vortex-amber">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Pending Quantity</p>
-                        <h3 id="stat-pending-qty" class="text-2xl font-bold text-white mt-1">0 pcs</h3>
-                        <p class="text-[11px] text-slate-400 mt-1">In active production</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-vortex-amber/10 text-vortex-amber flex items-center justify-center">
-                        <i data-lucide="hourglass" class="w-6 h-6"></i>
-                    </div>
-                </div>
-
-                <div class="glass-panel rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-vortex-purple">
-                    <div>
-                        <p id="stat-card4-title" class="text-xs text-slate-400 font-medium">Registered Clients</p>
-                        <h3 id="stat-card4-value" class="text-2xl font-bold text-white mt-1">0 Companies</h3>
-                        <p id="stat-card4-sub" class="text-[11px] text-vortex-purple mt-1">Approved Roster</p>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-vortex-purple/10 text-vortex-purple flex items-center justify-center">
-                        <i data-lucide="building-2" class="w-6 h-6"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pipeline Progress & Active Snapshots -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Status Pipeline -->
-                <div class="glass-panel rounded-2xl p-5 space-y-4">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-400"></i> Order Pipeline Status
-                    </h3>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="text-slate-300 font-medium">Pending Processing</span>
-                                <span id="pipeline-pending" class="text-vortex-rose font-bold">0 Orders</span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-pending" class="bg-vortex-rose h-2 rounded-full" style="width: 0%;"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="text-slate-300 font-medium">In Production</span>
-                                <span id="pipeline-production" class="text-cyan-400 font-bold">0 Orders</span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-production" class="bg-cyan-400 h-2 rounded-full" style="width: 0%;"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="text-slate-300 font-medium">Partially Supplied</span>
-                                <span id="pipeline-partial" class="text-vortex-amber font-bold">0 Orders</span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-partial" class="bg-vortex-amber h-2 rounded-full" style="width: 0%;"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="text-slate-300 font-medium">Fully Completed</span>
-                                <span id="pipeline-completed" class="text-vortex-emerald font-bold">0 Orders</span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div id="pipeline-bar-completed" class="bg-vortex-emerald h-2 rounded-full" style="width: 0%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity Snapshots -->
-                <div class="glass-panel rounded-2xl p-5 lg:col-span-2 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                            <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i> Active Order Snapshots
-                        </h3>
-                        <button onclick="switchTab('tab-orders')" class="text-xs text-cyan-400 hover:underline">View All</button>
-                    </div>
-
-                    <div id="dashboard-recent-orders" class="space-y-3">
-                        <!-- Dynamic Snapshots or Empty Slate -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: ORDER MANAGEMENT -->
-        <section id="tab-orders" class="tab-content hidden space-y-6">
-            <div class="glass-panel rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <div class="relative flex-1 md:w-80">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-                        <input type="text" id="order-search-input" onkeyup="renderOrdersTable()" placeholder="Search pattern, drawing, client, or PO #..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                    </div>
-                    <select id="order-status-filter" onchange="renderOrdersTable()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                        <option value="ALL">All Statuses</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="IN_PRODUCTION">In Production</option>
-                        <option value="PARTIAL">Partially Supplied</option>
-                        <option value="COMPLETED">Completed</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-                    <button onclick="exportOrdersToCSV()" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition">
-                        <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i> Export CSV
-                    </button>
-                    <button onclick="openNewOrderModal()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
-                    </button>
-                </div>
-            </div>
-
-            <!-- Orders Table -->
-            <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800/80">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-900/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                <th class="p-4">PO Ref & Client</th>
-                                <th class="p-4 admin-only">Target Foundry</th>
-                                <th class="p-4">Pattern / Drawing No.</th>
-                                <th class="p-4">Grade</th>
-                                <th class="p-4">Ordered vs Supplied</th>
-                                <th class="p-4">Fulfillment Bar</th>
-                                <th class="p-4">Status</th>
-                                <th class="p-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-table-body" class="divide-y divide-slate-800/60 text-xs text-slate-300">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: DISPATCH & PARTIAL SUPPLY -->
-        <section id="tab-dispatches" class="tab-content hidden space-y-6">
-            <div class="glass-panel rounded-2xl p-5 space-y-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <i data-lucide="truck" class="w-5 h-5 text-cyan-400"></i> Partial Supply & Dispatch Logs
-                        </h3>
-                        <p class="text-xs text-slate-400">Record partial deliveries, attach billing challan details, and sync records.</p>
-                    </div>
-
-                    <button id="admin-dispatch-btn" onclick="openDispatchModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-vortex-emerald to-teal-600 text-white text-xs font-semibold flex items-center gap-2 hover:brightness-110 shadow-lg shadow-vortex-emerald/20 transition">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Log New Dispatch
-                    </button>
-                </div>
-
-                <div class="overflow-x-auto border border-slate-800 rounded-xl">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                <th class="p-3.5">Dispatch Date</th>
-                                <th class="p-3.5">PO Ref #</th>
-                                <th class="p-3.5">Client & Pattern</th>
-                                <th class="p-3.5">Supplied Qty</th>
-                                <th class="p-3.5">LR / Challan #</th>
-                                <th class="p-3.5 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dispatch-history-body" class="divide-y divide-slate-800/60 text-xs text-slate-300">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 4: CLIENT ACCOUNT APPROVAL ROSTER -->
-        <section id="tab-clients" class="tab-content hidden space-y-6">
-            <div class="glass-panel rounded-2xl p-5 space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <i data-lucide="users" class="w-5 h-5 text-cyan-400"></i> Client Account Registrations & Approval
-                        </h3>
-                        <p class="text-xs text-slate-400">Review pending sign-ups, authorize client access, or delete unauthorized entries.</p>
-                    </div>
-                    <div class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
-                        Total Clients: <span id="client-count-badge" class="font-bold text-cyan-400">0</span>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto border border-slate-800 rounded-xl">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                <th class="p-3.5">Company Name</th>
-                                <th class="p-3.5">Contact Email</th>
-                                <th class="p-3.5">Role</th>
-                                <th class="p-3.5">Account Status</th>
-                                <th class="p-3.5 text-right">Approval Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clients-table-body" class="divide-y divide-slate-800/60 text-xs text-slate-300">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- MODAL 0: HARDENED AUTHENTICATION MODAL -->
-    <div id="modal-auth" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 p-6 space-y-5 shadow-2xl relative">
-            <div class="text-center space-y-1">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-cyan-500/30 mb-2">
-                    <i data-lucide="shield-check" class="w-7 h-7"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white">VortexFlow Portal Access</h3>
-                <p class="text-xs text-slate-400">Sign in with validated credentials or request client access</p>
-            </div>
-
-            <!-- Role Mode Switcher Tabs -->
-            <div class="grid grid-cols-3 bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-semibold text-center">
-                <button id="auth-tab-admin" onclick="switchAuthRoleMode('admin')" class="py-2 rounded-lg bg-indigo-600 text-white transition">Admin Login</button>
-                <button id="auth-tab-client" onclick="switchAuthRoleMode('client')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Client Login</button>
-                <button id="auth-tab-register" onclick="switchAuthRoleMode('register')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Register</button>
-            </div>
-
-            <!-- Form: Login -->
-            <form id="form-login" onsubmit="handleAuthLoginSubmit(event)" class="space-y-4">
-                <input type="hidden" id="login-role-type" value="admin">
-                
+            <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="login-email" required placeholder="admin@vortexflow.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+                    <input type="email" id="login-email" placeholder="e.g. shaluxengi@gmail.com" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
-                    <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-                </div>
-                
-                <div id="admin-auth-warning" class="text-[11px] text-amber-400 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
-                    <i data-lucide="shield-alert" class="w-3.5 h-3.5 inline mr-1"></i> Admin login restricted to master email: <span class="font-mono font-bold">admin@vortexflow.com</span>
+                    <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
 
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition">
-                    Sign In to Portal
-                </button>
-            </form>
+                <div class="pt-2 space-y-2">
+                    <button onclick="loginUser()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition">
+                        Sign In to Portal
+                    </button>
+                    <button onclick="quickAdminLogin()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-xs border border-slate-700 transition flex items-center justify-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Log in with Gmail (Master Admin)
+                    </button>
+                </div>
 
-            <!-- Form: Register Client -->
-            <form id="form-register" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Company / Organization Name</label>
-                    <input type="text" id="reg-company" required placeholder="e.g. Uma Engineering Works" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+                <div class="border-t border-slate-800 pt-3 text-center">
+                    <p class="text-[11px] text-slate-400">New Client Company? <button onclick="openRegisterModal()" class="text-indigo-400 font-semibold hover:underline">Request Account</button></p>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Work Email</label>
-                    <input type="email" id="reg-email" required placeholder="client@company.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
-                    <input type="password" id="reg-password" required placeholder="At least 6 characters" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-                </div>
-                <p class="text-[11px] text-slate-400 bg-slate-900 p-2 rounded-lg border border-slate-800">
-                    <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-400 inline mr-1"></i> Registrations default to unapproved. Admin authorization is required before access is granted.
-                </p>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-lg shadow-cyan-600/30 transition">
-                    Request Client Account
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL 1: CREATE PURCHASE ORDER -->
-    <div id="modal-new-order" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-        <div class="glass-modal w-full max-w-3xl rounded-2xl border border-slate-800 p-6 space-y-5 my-8 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
-                        <i data-lucide="file-plus-2" class="w-5 h-5"></i>
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-workspace" class="hidden">
+        <!-- Top Navigation Header -->
+        <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <i data-lucide="layers" class="w-6 h-6 text-white"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold text-white">Create Purchase Order</h3>
-                        <p class="text-xs text-slate-400">Input order items or digitize handwritten notes with AI</p>
+                        <h1 class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+                            VortexFlow
+                            <span id="role-badge" class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Admin Mode</span>
+                        </h1>
+                        <p class="text-xs text-slate-400">Logged in as: <span id="user-display-email" class="text-slate-200 font-mono">shaluxengi@gmail.com</span></p>
                     </div>
                 </div>
-                <button onclick="closeModal('modal-new-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-900 border border-slate-800">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+
+                <div class="flex items-center space-x-3">
+                    <!-- Notifications Bell -->
+                    <button onclick="toggleNotifications()" class="relative p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">1</span>
+                    </button>
+
+                    <!-- Logout Button -->
+                    <button onclick="logoutUser()" class="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 border border-slate-800 transition">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
+                </div>
             </div>
+        </header>
 
-            <form id="form-new-order" onsubmit="handleCreateOrder(event)" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Client</label>
-                        <select id="new-order-client" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                            <!-- Populated dynamically -->
-                        </select>
-                    </div>
+        <!-- Main Content Area -->
+        <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-                    <!-- STRICT PRIVACY GUARDRAIL: Hidden from Client Role -->
-                    <div class="admin-only">
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Foundry Partner (Admin Only)</label>
-                        <select id="new-order-foundry" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                            <option value="Sunshine Foundry">Sunshine Foundry (GIDC Rajkot)</option>
-                            <option value="Apex Industrial Alloys">Apex Industrial Alloys (Anand)</option>
-                            <option value="Om Castings Ltd">Om Castings Ltd (Ahmedabad)</option>
-                        </select>
+            <!-- Stats Bar -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase">Active Orders</span>
+                        <i data-lucide="shopping-bag" class="w-4 h-4 text-indigo-400"></i>
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Delivery Date <span id="due-restriction-label" class="text-[10px] text-cyan-400 font-normal"></span></label>
-                        <input type="date" id="new-order-due" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                    </div>
+                    <div class="text-2xl font-bold text-white" id="stat-active-orders">0</div>
+                    <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> Live Sync
+                    </p>
                 </div>
 
-                <!-- Order Item Matrix Grid -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                            <i data-lucide="table" class="w-4 h-4 text-cyan-400"></i> Order Item Matrix
-                        </label>
-                        <span class="text-[11px] text-slate-400">Press <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px]">Tab</kbd> or <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px]">Enter</kbd> on last cell to add row</span>
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase">Completed</span>
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
                     </div>
+                    <div class="text-2xl font-bold text-white" id="stat-completed">0 pcs</div>
+                    <p class="text-[11px] text-slate-400 mt-1">Dispatched to clients</p>
+                </div>
 
-                    <div class="overflow-x-auto border border-slate-800 rounded-xl">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-900 text-[10px] uppercase font-bold text-slate-400">
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase">Pattern Catalog</span>
+                        <i data-lucide="database" class="w-4 h-4 text-purple-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-white" id="stat-patterns">0</div>
+                    <p class="text-[11px] text-slate-400 mt-1">Auto-memorized patterns</p>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800 role-admin-only">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase">Clients Registered</span>
+                        <i data-lucide="users" class="w-4 h-4 text-indigo-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-white" id="stat-clients">0</div>
+                    <p class="text-[11px] text-amber-400 mt-1" id="stat-pending-clients">0 Pending Approval</p>
+                </div>
+            </section>
+
+            <!-- Admin Action Bar & Client Approvals -->
+            <section class="role-admin-only space-y-4">
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-white">Admin System Management</h3>
+                        <p class="text-xs text-slate-400">Purge test database or clear cached dummy entries</p>
+                    </div>
+                    <button onclick="purgeAllData()" class="px-3 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 border border-rose-700/50 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Purge All Test Data
+                    </button>
+                </div>
+
+                <!-- Client Registrations Review Box -->
+                <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="user-check" class="w-4 h-4 text-indigo-400"></i> Client Registration Approvals
+                        </h3>
+                    </div>
+                    <div class="p-4 overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 uppercase text-[10px] border-b border-slate-800">
                                 <tr>
-                                    <th class="p-2.5">Pattern Name / Drawing No.</th>
-                                    <th class="p-2.5">Grade</th>
-                                    <th class="p-2.5 w-24">Qty (Pcs)</th>
-                                    <th class="p-2.5 w-10 text-center"></th>
+                                    <th class="pb-2">Company Name</th>
+                                    <th class="pb-2">Email</th>
+                                    <th class="pb-2">Status</th>
+                                    <th class="pb-2 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="matrix-items-body" class="divide-y divide-slate-800">
-                                <tr class="matrix-row">
-                                    <td class="p-2">
-                                        <input type="text" list="pattern-memory-list" placeholder="Pattern Name / Drawing No." required class="item-name w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500">
-                                    </td>
-                                    <td class="p-2">
-                                        <select required class="item-grade w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500">
-                                            <option value="" disabled selected>Select Grade...</option>
-                                            <optgroup label="C.I (Cast Iron)">
-                                                <option value="CI (General)">CI (General)</option>
-                                            </optgroup>
-                                            <optgroup label="C.I Grade">
-                                                <option value="C.I FG-200">C.I FG-200</option>
-                                                <option value="C.I FG-250">C.I FG-250</option>
-                                                <option value="C.I FG-260">C.I FG-260</option>
-                                                <option value="C.I FG-300">C.I FG-300</option>
-                                            </optgroup>
-                                            <optgroup label="SG Iron">
-                                                <option value="SG Iron SG 400/12">SG Iron SG 400/12</option>
-                                                <option value="SG Iron SG 400/15">SG Iron SG 400/15</option>
-                                                <option value="SG Iron SG 450/10">SG Iron SG 450/10</option>
-                                                <option value="SG Iron SG 500/7">SG Iron SG 500/7</option>
-                                                <option value="SG Iron SG 600/3">SG Iron SG 600/3</option>
-                                                <option value="SG Iron SG 700/2">SG Iron SG 700/2</option>
-                                            </optgroup>
-                                            <optgroup label="W.C.B Castings">
-                                                <option value="W.C.B Standard">W.C.B Standard</option>
-                                                <option value="W.C.B Grade A">W.C.B Grade A</option>
-                                                <option value="W.C.B Grade B">W.C.B Grade B</option>
-                                                <option value="W.C.B Grade C">W.C.B Grade C</option>
-                                                <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
-                                            </optgroup>
-                                        </select>
-                                    </td>
-                                    <td class="p-2"><input type="number" min="1" value="50" onkeydown="handleMatrixKeyDown(event, this)" required class="item-qty w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500"></td>
-                                    <td class="p-2 text-center"><button type="button" onclick="removeMatrixRow(this)" class="text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
-                                </tr>
+                            <tbody id="clients-approval-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+                                <!-- Populated dynamically -->
                             </tbody>
                         </table>
                     </div>
-                    <button type="button" onclick="addMatrixRow()" class="text-xs text-cyan-400 hover:underline flex items-center gap-1 mt-1">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Row
-                    </button>
+                </div>
+            </section>
+
+            <!-- Orders Table Section -->
+            <section class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+                <div class="p-4 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-semibold text-white">Live Orders Ledger</h2>
+                        <p class="text-xs text-slate-400">Production progress, target dates, and dispatch logs</p>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportCSV()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-300 flex items-center gap-1.5 transition">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+                        </button>
+                        <button onclick="openCreateOrderModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
+                        </button>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
-                    <button type="button" onclick="closeModal('modal-new-order')" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow">Save Order</button>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/60 text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-800">
+                            <tr>
+                                <th class="p-3.5">PO / Work Order</th>
+                                <th class="p-3.5 role-admin-only">Client Name</th>
+                                <th class="p-3.5">Pattern / Drawing No.</th>
+                                <th class="p-3.5">Grade</th>
+                                <th class="p-3.5">Ordered / Supplied</th>
+                                <th class="p-3.5">Target Date</th>
+                                <th class="p-3.5 role-admin-only">Foundry Partner</th>
+                                <th class="p-3.5">Status</th>
+                                <th class="p-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60 text-slate-300" id="orders-tbl-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
                 </div>
-            </form>
-        </div>
+            </section>
+        </main>
     </div>
 
-    <!-- Dynamic Datalist for Pattern Memory -->
-    <datalist id="pattern-memory-list">
-        <!-- JS Auto-Populated -->
-    </datalist>
-
-    <!-- MODAL 2: LOG PARTIAL DISPATCH -->
-    <div id="modal-dispatch" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="glass-modal w-full max-w-lg rounded-2xl border border-slate-800 p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="p-2 rounded-xl bg-vortex-emerald/20 text-vortex-emerald">
-                        <i data-lucide="truck" class="w-5 h-5"></i>
+    <!-- CREATE PURCHASE ORDER MODAL -->
+    <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-3xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                        <i data-lucide="file-plus" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white">Log Partial Dispatch</h3>
+                    <div>
+                        <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
+                        <p class="text-xs text-slate-400">Input order items or select auto-memorized patterns</p>
+                    </div>
                 </div>
-                <button onclick="closeModal('modal-dispatch')" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-900 border border-slate-800">
+                <button onclick="closeModal('modal-create-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <form id="form-dispatch" onsubmit="handleSaveDispatch(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Select Purchase Order</label>
-                    <select id="dispatch-wo-select" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                        <!-- JS Populated -->
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Quantity Dispatched (Pcs)</label>
-                        <input type="number" id="dispatch-qty" min="1" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            <div class="p-5 space-y-4 overflow-y-auto flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="role-admin-only">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Client</label>
+                        <select id="po-client-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <!-- Populated dynamically -->
+                        </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Challan / LR Number</label>
-                        <input type="text" id="dispatch-challan-no" placeholder="e.g. CH-9902" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+
+                    <div class="role-admin-only">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Foundry Partner Allocation</label>
+                        <select id="po-foundry-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="Sunshine Foundry (GIDC Rajkot)">Sunshine Foundry (GIDC Rajkot)</option>
+                            <option value="Apex Industrial Alloys (Anand)">Apex Industrial Alloys (Anand)</option>
+                            <option value="National Casting Works (Ahmedabad)">National Casting Works (Ahmedabad)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">
+                            Target Delivery Date <span id="delivery-date-note" class="text-[10px] text-indigo-400">(Locked to min +10 days for clients)</span>
+                        </label>
+                        <input type="date" id="po-target-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
-                    <button type="button" onclick="closeModal('modal-dispatch')" class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-vortex-emerald hover:bg-emerald-600 text-white text-xs font-semibold shadow">Save & Notify Client</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 3: COMMAND PALETTE -->
-    <div id="modal-command-palette" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-start justify-center pt-20 p-4">
-        <div class="glass-modal w-full max-w-xl rounded-2xl border border-slate-800 p-4 space-y-3 shadow-2xl">
-            <div class="relative">
-                <i data-lucide="search" class="w-5 h-5 text-cyan-400 absolute left-3 top-3"></i>
-                <input type="text" id="cmd-input" placeholder="Type a command..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
-            </div>
-
-            <div id="cmd-results" class="space-y-1 text-xs max-h-64 overflow-y-auto">
-                <div onclick="openNewOrderModal(); closeModal('modal-command-palette');" class="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 cursor-pointer flex justify-between items-center text-slate-200">
-                    <span>Create New Purchase Order</span>
-                    <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-400 text-[10px] rounded">Action</kbd>
-                </div>
-                <div onclick="exportOrdersToCSV(); closeModal('modal-command-palette');" class="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 cursor-pointer flex justify-between items-center text-slate-200">
-                    <span>Export Purchase Ledger (CSV)</span>
-                    <kbd class="px-1.5 py-0.5 bg-slate-800 text-slate-400 text-[10px] rounded">Export</kbd>
-                </div>
-                <div onclick="confirmPurgeAllData(); closeModal('modal-command-palette');" class="p-2.5 rounded-lg bg-slate-900 hover:bg-rose-900/40 cursor-pointer flex justify-between items-center text-rose-300">
-                    <span>Purge / Delete All Local Data</span>
-                    <kbd class="px-1.5 py-0.5 bg-rose-900/60 text-rose-300 text-[10px] rounded">Admin Reset</kbd>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PRINTABLE TEMPLATE (html2pdf engine) -->
-    <div class="hidden">
-        <div id="printable-work-order" class="p-8 bg-white text-slate-900 space-y-6 max-w-2xl mx-auto font-sans">
-            <div class="flex items-center justify-between border-b-2 border-indigo-600 pb-4">
+                <!-- Matrix Row -->
                 <div>
-                    <h1 class="text-2xl font-extrabold text-indigo-900 tracking-tight">PURCHASE ORDER</h1>
-                    <p class="text-xs text-slate-500 font-semibold">VortexFlow Order Execution Portal</p>
-                </div>
-                <div class="text-right">
-                    <p id="pdf-wo-no" class="text-sm font-bold text-indigo-600">WO-1024</p>
-                    <p id="pdf-date" class="text-xs text-slate-500">Date: 2026-10-07</p>
+                    <label class="block text-xs font-medium text-slate-300 mb-2">Pattern Details & Categorized Grade Selection</label>
+                    <div class="space-y-2" id="po-matrix-rows">
+                        <div class="grid grid-cols-12 gap-2 items-center matrix-row">
+                            <div class="col-span-5">
+                                <input type="text" list="pattern-suggestions" placeholder="Pattern Name / Drawing No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <datalist id="pattern-suggestions">
+                                    <!-- Populated dynamically from memorized database -->
+                                </datalist>
+                            </div>
+                            <div class="col-span-5">
+                                <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="" disabled selected>Select Grade Hierarchy...</option>
+                                    <optgroup label="C.I (Cast Iron)">
+                                        <option value="CI General">CI (General)</option>
+                                    </optgroup>
+                                    <optgroup label="C.I Grade">
+                                        <option value="C.I FG-200">C.I FG-200</option>
+                                        <option value="C.I FG-250">C.I FG-250</option>
+                                        <option value="C.I FG-260">C.I FG-260</option>
+                                        <option value="C.I FG-300">C.I FG-300</option>
+                                    </optgroup>
+                                    <optgroup label="SG Iron">
+                                        <option value="SG 400/12">SG Iron SG 400/12</option>
+                                        <option value="SG 400/15">SG Iron SG 400/15</option>
+                                        <option value="SG 450/10">SG Iron SG 450/10</option>
+                                        <option value="SG 500/7">SG Iron SG 500/7</option>
+                                        <option value="SG 600/3">SG Iron SG 600/3</option>
+                                        <option value="SG 700/2">SG Iron SG 700/2</option>
+                                    </optgroup>
+                                    <optgroup label="W.C.B Castings">
+                                        <option value="W.C.B Standard">W.C.B Standard</option>
+                                        <option value="W.C.B Grade A">W.C.B Grade A</option>
+                                        <option value="W.C.B Grade B">W.C.B Grade B</option>
+                                        <option value="W.C.B Grade C">W.C.B Grade C</option>
+                                        <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-lg border border-slate-200">
-                <div>
-                    <p class="text-slate-500">Client Name:</p>
-                    <p id="pdf-client-name" class="font-bold text-slate-800 text-sm">Uma Engineering Works</p>
-                </div>
-                <div id="pdf-foundry-block">
-                    <p class="text-slate-500">Target Foundry Partner:</p>
-                    <p id="pdf-foundry-name" class="font-bold text-slate-800 text-sm">Sunshine Foundry</p>
-                </div>
-            </div>
-
-            <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                    <tr class="bg-indigo-900 text-white font-bold">
-                        <th class="p-2.5">Pattern / Drawing No.</th>
-                        <th class="p-2.5">Grade</th>
-                        <th class="p-2.5 text-center">Ordered</th>
-                        <th class="p-2.5 text-center">Supplied</th>
-                        <th class="p-2.5 text-center">Pending</th>
-                    </tr>
-                </thead>
-                <tbody id="pdf-items-body" class="divide-y divide-slate-200 border-b border-slate-200">
-                    <!-- Dynamic PDF Rows -->
-                </tbody>
-            </table>
-
-            <div class="flex items-end justify-between pt-6 border-t border-slate-200 text-xs">
-                <div>
-                    <p class="font-bold text-slate-700">Authorized Signature</p>
-                    <div class="h-10"></div>
-                    <p class="text-slate-400">Order Operations Manager</p>
-                </div>
-                <div class="text-center">
-                    <div id="pdf-qrcode" class="w-20 h-20 mx-auto flex items-center justify-center border p-1 bg-white"></div>
-                    <p class="text-[9px] text-slate-400 mt-1">Scan to verify live status online</p>
-                </div>
+            <div class="p-4 border-t border-slate-800 bg-slate-900/40 flex items-center justify-end space-x-2">
+                <button onclick="closeModal('modal-create-order')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
+                <button onclick="submitOrder()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">Create Order</button>
             </div>
         </div>
     </div>
 
+    <!-- CLIENT REGISTRATION REQUEST MODAL -->
+    <div id="modal-register-client" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="building-2" class="w-5 h-5 text-indigo-400"></i> Request Client Account
+                </h3>
+                <button onclick="closeModal('modal-register-client')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Company / Client Name</label>
+                    <input type="text" id="reg-company" placeholder="e.g. Acme Industrial Alloys" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Email Address</label>
+                    <input type="email" id="reg-email" placeholder="client@company.com" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Set Password</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+                <button onclick="closeModal('modal-register-client')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
+                <button onclick="submitClientRegistration()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Submit Registration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG DISPATCH MODAL -->
+    <div id="modal-log-dispatch" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="truck" class="w-5 h-5 text-indigo-400"></i> Log Partial Supply
+                </h3>
+                <button onclick="closeModal('modal-log-dispatch')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <p id="dispatch-po-id" class="text-xs font-semibold text-indigo-400">PO ID: --</p>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Dispatched Quantity (pcs)</label>
+                    <input type="number" id="dispatch-qty-input" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="e.g. 20">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+                <button onclick="closeModal('modal-log-dispatch')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
+                <button onclick="confirmDispatch()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Save Dispatch</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT APPLICATION CONTROLLER -->
     <script>
-        // MASTER CREDENTIALS GUARDRAIL
-        const MASTER_ADMIN_EMAIL = "admin@vortexflow.com";
-        const MASTER_ADMIN_PASS = "admin123";
+        // Data States initialized with zero dummies
+        let currentUser = null;
+        let activeDispatchPo = null;
 
-        // ZERO PRE-LOADED DUMMIES - PERSISTENCE INITIALIZATION
-        window.orders = JSON.parse(localStorage.getItem('vf_orders') || '[]');
-        window.clientsList = JSON.parse(localStorage.getItem('vf_clients') || '[]');
-        
-        let currentUser = JSON.parse(localStorage.getItem('vf_session') || 'null');
-        let currentRole = currentUser ? currentUser.role : 'guest';
+        let dbOrders = JSON.parse(localStorage.getItem('vf_db_orders') || '[]');
+        let dbClients = JSON.parse(localStorage.getItem('vf_db_clients') || '[]');
+        let dbPatterns = JSON.parse(localStorage.getItem('vf_db_patterns') || '[]');
 
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            if (!currentUser) {
-                openAuthModal();
-            } else {
-                handleUserSessionActive(currentUser);
-            }
-            renderAll();
-            setupKeyboardShortcuts();
-        };
+            setupDateConstraints();
+            renderPatternSuggestions();
+        });
 
-        function saveStorage() {
-            localStorage.setItem('vf_orders', JSON.stringify(window.orders));
-            localStorage.setItem('vf_clients', JSON.stringify(window.clientsList));
-            localStorage.setItem('vf_session', JSON.stringify(currentUser));
+        // AUTHENTICATION LOGIC
+        function loginUser() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            if (!email) {
+                alert("Please enter an email address.");
+                return;
+            }
+
+            // Check if user is Gmail Admin
+            if (email.toLowerCase().endsWith('@gmail.com') || email === 'admin@vortexflow.com') {
+                currentUser = {
+                    email: email,
+                    role: 'admin',
+                    companyName: 'Operations Admin'
+                };
+                launchWorkspace();
+                return;
+            }
+
+            // Client authentication check
+            const matchedClient = dbClients.find(c => c.email.toLowerCase() === email.toLowerCase() && c.password === password);
+
+            if (!matchedClient) {
+                alert("Invalid email or password.");
+                return;
+            }
+
+            if (!matchedClient.approved) {
+                alert("ACCESS DENIED: Your account is currently pending Admin approval.");
+                return;
+            }
+
+            currentUser = {
+                email: matchedClient.email,
+                role: 'client',
+                companyName: matchedClient.companyName
+            };
+            launchWorkspace();
         }
 
-        window.renderAll = function() {
-            renderDashboard();
+        function quickAdminLogin() {
+            currentUser = {
+                email: 'shaluxengi@gmail.com',
+                role: 'admin',
+                companyName: 'Operations Admin'
+            };
+            launchWorkspace();
+        }
+
+        function launchWorkspace() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-workspace').classList.remove('hidden');
+            document.getElementById('user-display-email').innerText = currentUser.email;
+
+            const badge = document.getElementById('role-badge');
+            const adminElements = document.querySelectorAll('.role-admin-only');
+
+            if (currentUser.role === 'admin') {
+                badge.innerText = 'Admin Mode';
+                badge.className = 'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+                adminElements.forEach(el => el.classList.remove('hidden'));
+            } else {
+                badge.innerText = 'Client View';
+                badge.className = 'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                adminElements.forEach(el => el.classList.add('hidden'));
+            }
+
+            renderClientApprovals();
             renderOrdersTable();
-            renderDispatchHistory();
-            renderClientsTable();
-            populateClientDropdown();
-            populateDispatchSelectOptions();
-            updatePatternMemoryList();
-            applyPrivacyScope();
-        };
-
-        // AUTH & ACCESS CONTROLLERS WITH STRICT GUARDRAILS
-        function openAuthModal() {
-            document.getElementById('modal-auth').classList.remove('hidden');
+            renderClientDropdown();
+            updateStats();
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+        function logoutUser() {
+            currentUser = null;
+            document.getElementById('app-workspace').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
         }
 
-        function switchAuthRoleMode(mode) {
-            const loginForm = document.getElementById('form-login');
-            const regForm = document.getElementById('form-register');
-            const btnAdmin = document.getElementById('auth-tab-admin');
-            const btnClient = document.getElementById('auth-tab-client');
-            const btnReg = document.getElementById('auth-tab-register');
-            const roleTypeInput = document.getElementById('login-role-type');
-            const adminWarning = document.getElementById('admin-auth-warning');
-
-            if (mode === 'admin') {
-                loginForm.classList.remove('hidden');
-                regForm.classList.add('hidden');
-                roleTypeInput.value = 'admin';
-                adminWarning.classList.remove('hidden');
-                document.getElementById('login-email').value = MASTER_ADMIN_EMAIL;
-                btnAdmin.className = "py-2 rounded-lg bg-indigo-600 text-white transition";
-                btnClient.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
-                btnReg.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
-            } else if (mode === 'client') {
-                loginForm.classList.remove('hidden');
-                regForm.classList.add('hidden');
-                roleTypeInput.value = 'client';
-                adminWarning.classList.add('hidden');
-                document.getElementById('login-email').value = '';
-                btnClient.className = "py-2 rounded-lg bg-indigo-600 text-white transition";
-                btnAdmin.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
-                btnReg.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
-            } else {
-                regForm.classList.remove('hidden');
-                loginForm.classList.add('hidden');
-                btnReg.className = "py-2 rounded-lg bg-indigo-600 text-white transition";
-                btnAdmin.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
-                btnClient.className = "py-2 rounded-lg text-slate-400 hover:text-white transition";
-            }
+        // CLIENT REGISTRATION & APPROVAL
+        function openRegisterModal() {
+            document.getElementById('modal-register-client').classList.remove('hidden');
         }
 
-        function handleAuthLoginSubmit(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const pass = document.getElementById('login-password').value;
-            const roleType = document.getElementById('login-role-type').value;
-
-            // 1. HARDENED ADMIN GUARDRAIL CHECK
-            if (roleType === 'admin') {
-                if (email !== MASTER_ADMIN_EMAIL.toLowerCase() || pass !== MASTER_ADMIN_PASS) {
-                    alert("SECURITY REJECTION: Invalid Admin Credentials. Access denied.");
-                    return;
-                }
-                currentUser = { name: 'Operations Admin', email, role: 'admin' };
-            } 
-            // 2. CLIENT LOGIN GUARDRAIL CHECK
-            else {
-                const clientAcc = window.clientsList.find(c => c.email.toLowerCase() === email);
-                if (!clientAcc) {
-                    alert("Account Not Found: Please register your client account first.");
-                    return;
-                }
-                if (clientAcc.password && clientAcc.password !== pass) {
-                    alert("Invalid Password. Please try again.");
-                    return;
-                }
-                if (!clientAcc.approved) {
-                    alert("ACCESS DENIED: Your account is pending Admin approval. Please contact operations.");
-                    return;
-                }
-                currentUser = { name: clientAcc.name, email, role: 'client' };
-            }
-
-            saveStorage();
-            handleUserSessionActive(currentUser);
-            closeModal('modal-auth');
-        }
-
-        function handleRegisterSubmit(e) {
-            e.preventDefault();
+        function submitClientRegistration() {
             const company = document.getElementById('reg-company').value.trim();
-            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
 
-            if (window.clientsList.some(c => c.email === email)) {
-                alert("An account request with this email already exists.");
+            if (!company || !email || !password) {
+                alert("Please fill in all registration fields.");
                 return;
             }
 
-            const newClient = {
-                id: 'cli_' + Date.now(),
-                name: company,
-                email,
-                password,
-                role: 'client',
-                date: new Date().toISOString().split('T')[0],
-                approved: false // Explicitly unapproved on signup!
+            const newReg = {
+                id: 'client_' + Date.now(),
+                companyName: company,
+                email: email,
+                password: password,
+                approved: false
             };
 
-            window.clientsList.push(newClient);
-            saveStorage();
-            renderClientsTable();
-            alert(`Registration for "${company}" submitted! Admin authorization is required before login.`);
-            switchAuthRoleMode('client');
+            dbClients.push(newReg);
+            localStorage.setItem('vf_db_clients', JSON.stringify(dbClients));
+
+            closeModal('modal-register-client');
+            alert("Registration submitted! Your account is pending Admin approval.");
         }
 
-        function handleUserSessionActive(user) {
-            currentUser = user;
-            currentRole = user ? user.role : 'guest';
-
-            if (user) {
-                document.getElementById('guest-login-btn').classList.add('hidden');
-                const badge = document.getElementById('user-profile-badge');
-                badge.classList.remove('hidden');
-                document.getElementById('user-display-name').innerText = user.name || 'User';
-                document.getElementById('user-role-pill').innerText = currentRole;
-            } else {
-                document.getElementById('guest-login-btn').classList.remove('hidden');
-                document.getElementById('user-profile-badge').classList.add('hidden');
-            }
-
-            applyPrivacyScope();
-            renderAll();
-        }
-
-        function handleLogout() {
-            currentUser = null;
-            currentRole = 'guest';
-            localStorage.removeItem('vf_session');
-            document.getElementById('user-profile-badge').classList.add('hidden');
-            document.getElementById('guest-login-btn').classList.remove('hidden');
-            openAuthModal();
-        }
-
-        // PRIVACY & ADMIN RESET ENFORCER
-        function applyPrivacyScope() {
-            const adminElements = document.querySelectorAll('.admin-only');
-            const adminDispatchBtn = document.getElementById('admin-dispatch-btn');
-            const clientsTabBtn = document.getElementById('tab-btn-clients');
-            const purgeBtn = document.getElementById('admin-purge-btn');
-
-            if (currentRole === 'client') {
-                adminElements.forEach(el => el.classList.add('hidden'));
-                if (adminDispatchBtn) adminDispatchBtn.classList.add('hidden');
-                if (clientsTabBtn) clientsTabBtn.classList.add('hidden');
-                if (purgeBtn) purgeBtn.classList.add('hidden');
-                document.getElementById('stat-card4-title').innerText = 'My Company Account';
-                document.getElementById('stat-card4-value').innerText = currentUser ? currentUser.name : 'Client View';
-            } else {
-                adminElements.forEach(el => el.classList.remove('hidden'));
-                if (adminDispatchBtn) adminDispatchBtn.classList.remove('hidden');
-                if (clientsTabBtn) clientsTabBtn.classList.remove('hidden');
-                if (purgeBtn) purgeBtn.classList.remove('hidden');
-                document.getElementById('stat-card4-title').innerText = 'Registered Clients';
-                document.getElementById('stat-card4-value').innerText = `${window.clientsList.length} Companies`;
+        function approveClient(clientId) {
+            const client = dbClients.find(c => c.id === clientId);
+            if (client) {
+                client.approved = true;
+                localStorage.setItem('vf_db_clients', JSON.stringify(dbClients));
+                renderClientApprovals();
+                renderClientDropdown();
+                updateStats();
+                alert(`Account for ${client.companyName} APPROVED!`);
             }
         }
 
-        function confirmPurgeAllData() {
-            if (confirm("ADMIN RESET: Permanently delete all local orders, dispatches, and client registries?")) {
-                window.orders = [];
-                window.clientsList = [];
-                localStorage.removeItem('vf_orders');
-                localStorage.removeItem('vf_clients');
-                renderAll();
-                alert("Database purged successfully! Zero dummy records remain.");
-            }
+        function deleteClient(clientId) {
+            dbClients = dbClients.filter(c => c.id !== clientId);
+            localStorage.setItem('vf_db_clients', JSON.stringify(dbClients));
+            renderClientApprovals();
+            renderClientDropdown();
+            updateStats();
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
+        function renderClientApprovals() {
+            const tbody = document.getElementById('clients-approval-tbody');
+            tbody.innerHTML = '';
 
-            document.querySelectorAll('.nav-tab').forEach(btn => {
-                btn.classList.remove('bg-slate-900', 'border', 'border-slate-800', 'text-cyan-400');
-                btn.classList.add('text-slate-400');
+            if (dbClients.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">No client registrations found.</td></tr>`;
+                return;
+            }
+
+            dbClients.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2.5 font-semibold text-white">${c.companyName}</td>
+                    <td class="py-2.5 text-slate-400 font-mono">${c.email}</td>
+                    <td class="py-2.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${c.approved ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+                            ${c.approved ? 'Approved' : 'Pending Approval'}
+                        </span>
+                    </td>
+                    <td class="py-2.5 text-right space-x-1">
+                        ${!c.approved ? `<button onclick="approveClient('${c.id}')" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px]">Approve</button>` : ''}
+                        <button onclick="deleteClient('${c.id}')" class="px-2 py-1 bg-rose-900/40 text-rose-300 hover:bg-rose-900/60 rounded text-[10px]">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
-            
-            const activeBtn = document.getElementById(`btn-${tabId}`);
-            if (activeBtn) {
-                activeBtn.classList.add('bg-slate-900', 'border', 'border-slate-800', 'text-cyan-400');
-            }
         }
 
-        // DASHBOARD RENDERER
-        function renderDashboard() {
-            const displayOrders = currentRole === 'client' 
-                ? window.orders.filter(o => o.client === currentUser.name)
-                : window.orders;
+        function renderClientDropdown() {
+            const select = document.getElementById('po-client-select');
+            select.innerHTML = '';
+            const approvedList = dbClients.filter(c => c.approved);
 
-            const totalOrders = displayOrders.length;
-            let totalOrdered = 0;
-            let totalSupplied = 0;
+            if (approvedList.length === 0) {
+                select.innerHTML = '<option value="General Order">No Approved Clients Yet</option>';
+                return;
+            }
 
-            displayOrders.forEach(o => {
-                if (o.items) {
-                    o.items.forEach(i => {
-                        totalOrdered += parseInt(i.ordered || 0);
-                        totalSupplied += parseInt(i.supplied || 0);
-                    });
-                }
+            approvedList.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.companyName;
+                opt.innerText = c.companyName;
+                select.appendChild(opt);
             });
+        }
 
-            const pendingQty = totalOrdered - totalSupplied;
-            const fulfillRate = totalOrdered > 0 ? ((totalSupplied / totalOrdered) * 100).toFixed(1) : 0;
+        // ORDER MANAGEMENT
+        function renderOrdersTable() {
+            const tbody = document.getElementById('orders-tbl-body');
+            tbody.innerHTML = '';
 
-            document.getElementById('stat-active-orders').innerText = totalOrders;
-            document.getElementById('stat-fulfillment-rate').innerText = fulfillRate + '%';
-            document.getElementById('stat-fulfill-bar').style.width = fulfillRate + '%';
-            document.getElementById('stat-pending-qty').innerText = pendingQty + ' pcs';
-
-            const recentContainer = document.getElementById('dashboard-recent-orders');
-            recentContainer.innerHTML = '';
+            let displayOrders = dbOrders;
+            if (currentUser && currentUser.role === 'client') {
+                displayOrders = dbOrders.filter(o => o.client === currentUser.companyName);
+            }
 
             if (displayOrders.length === 0) {
-                recentContainer.innerHTML = `
-                    <div class="glass-card p-6 rounded-2xl text-center border border-slate-800 space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto">
-                            <i data-lucide="package-open" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">No Active Orders</h4>
-                            <p class="text-xs text-slate-400 mt-0.5">Start by creating a purchase order or approving registered clients.</p>
-                        </div>
-                        <button onclick="openNewOrderModal()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
-                        </button>
-                    </div>
-                `;
-            } else {
-                displayOrders.slice(0, 3).forEach(o => {
-                    const totalOrd = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.ordered), 0) : 0;
-                    const totalSup = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.supplied), 0) : 0;
-                    const pct = totalOrd > 0 ? Math.round((totalSup / totalOrd) * 100) : 0;
-
-                    recentContainer.innerHTML += `
-                        <div class="glass-card p-3.5 rounded-xl flex items-center justify-between border border-slate-800/80 hover:border-slate-700 transition">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-white">${o.id}</span>
-                                    <span class="text-xs text-slate-400">• ${o.client}</span>
-                                </div>
-                                <p class="text-xs text-slate-300 mt-0.5">${o.items && o.items[0] ? o.items[0].name : 'Pattern Item'}</p>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-xs font-bold text-cyan-400">${totalSup} / ${totalOrd} Pcs</span>
-                                <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
-                                    <div class="bg-cyan-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            const pPending = displayOrders.filter(o => o.status === 'PENDING').length;
-            const pProd = displayOrders.filter(o => o.status === 'IN_PRODUCTION').length;
-            const pPartial = displayOrders.filter(o => o.status === 'PARTIAL').length;
-            const pComp = displayOrders.filter(o => o.status === 'COMPLETED').length;
-
-            document.getElementById('pipeline-pending').innerText = `${pPending} Orders`;
-            document.getElementById('pipeline-production').innerText = `${pProd} Orders`;
-            document.getElementById('pipeline-partial').innerText = `${pPartial} Orders`;
-            document.getElementById('pipeline-completed').innerText = `${pComp} Orders`;
-
-            const maxPipeline = Math.max(pPending, pProd, pPartial, pComp, 1);
-            document.getElementById('pipeline-bar-pending').style.width = `${(pPending / maxPipeline) * 100}%`;
-            document.getElementById('pipeline-bar-production').style.width = `${(pProd / maxPipeline) * 100}%`;
-            document.getElementById('pipeline-bar-partial').style.width = `${(pPartial / maxPipeline) * 100}%`;
-            document.getElementById('pipeline-bar-completed').style.width = `${(pComp / maxPipeline) * 100}%`;
-
-            lucide.createIcons();
-        }
-
-        // ORDERS TABLE & INDIVIDUAL DELETIONS
-        function renderOrdersTable() {
-            const tbody = document.getElementById('orders-table-body');
-            const search = document.getElementById('order-search-input').value.toLowerCase();
-            const filter = document.getElementById('order-status-filter').value;
-            tbody.innerHTML = '';
-
-            let listToRender = currentRole === 'client' 
-                ? window.orders.filter(o => o.client === currentUser.name)
-                : window.orders;
-
-            const filtered = listToRender.filter(o => {
-                const matchSearch = o.id.toLowerCase().includes(search) || 
-                                    (o.client && o.client.toLowerCase().includes(search)) || 
-                                    (o.items && o.items.some(i => i.name.toLowerCase().includes(search) || (i.grade && i.grade.toLowerCase().includes(search))));
-                const matchFilter = (filter === 'ALL' || o.status === filter);
-                return matchSearch && matchFilter;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="p-8 text-center text-slate-500">
-                            <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
-                            <p class="text-xs">No active purchase orders found.</p>
-                        </td>
-                    </tr>
-                `;
-            } else {
-                filtered.forEach(o => {
-                    const totalOrd = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.ordered), 0) : 0;
-                    const totalSup = o.items ? o.items.reduce((acc, i) => acc + parseInt(i.supplied), 0) : 0;
-                    const pct = totalOrd > 0 ? Math.round((totalSup / totalOrd) * 100) : 0;
-
-                    let badgeClass = 'bg-vortex-amber/10 text-vortex-amber border-vortex-amber/30';
-                    if (o.status === 'COMPLETED') badgeClass = 'bg-vortex-emerald/10 text-vortex-emerald border-vortex-emerald/30';
-                    if (o.status === 'PENDING') badgeClass = 'bg-vortex-rose/10 text-vortex-rose border-vortex-rose/30';
-                    if (o.status === 'IN_PRODUCTION') badgeClass = 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-900/40 transition">
-                            <td class="p-4">
-                                <span class="font-bold text-white block">${o.id}</span>
-                                <span class="text-slate-400 text-[11px]">${o.client}</span>
-                            </td>
-                            <td class="p-4 admin-only font-semibold text-cyan-400">
-                                ${o.foundry || 'Unassigned'}
-                            </td>
-                            <td class="p-4 font-semibold text-slate-200">
-                                ${o.items && o.items[0] ? o.items[0].name : '-'}
-                            </td>
-                            <td class="p-4">
-                                <span class="px-2 py-0.5 rounded bg-slate-900 text-cyan-300 font-mono text-[11px] border border-slate-800">${o.items && o.items[0] ? o.items[0].grade : 'Standard'}</span>
-                            </td>
-                            <td class="p-4">
-                                <span class="font-medium text-slate-200">${totalSup} / ${totalOrd} Pcs</span>
-                                <span class="block text-[10px] text-slate-400">Target: ${o.targetDate || 'Flexible'}</span>
-                            </td>
-                            <td class="p-4 w-36">
-                                <div class="flex items-center gap-2">
-                                    <div class="flex-1 bg-slate-800 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-gradient-to-r from-cyan-500 to-indigo-400 h-2 rounded-full" style="width: ${pct}%"></div>
-                                    </div>
-                                    <span class="text-[10px] text-slate-400 font-bold">${pct}%</span>
-                                </div>
-                            </td>
-                            <td class="p-4">
-                                <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold ${badgeClass}">
-                                    ${(o.status || 'PENDING').replace('_', ' ')}
-                                </span>
-                            </td>
-                            <td class="p-4 text-right space-x-1.5">
-                                <button onclick="downloadWorkOrderPDF('${o.id}')" title="Export PDF" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-cyan-400 hover:text-white hover:bg-cyan-600 transition">
-                                    <i data-lucide="file-text" class="w-4 h-4"></i>
-                                </button>
-                                ${currentRole === 'admin' ? `
-                                    <button onclick="openDispatchForWO('${o.id}')" title="Log Dispatch" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-vortex-emerald hover:text-white hover:bg-vortex-emerald transition">
-                                        <i data-lucide="truck" class="w-4 h-4"></i>
-                                    </button>
-                                    <button onclick="deleteSingleOrder('${o.id}')" title="Delete Order" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-rose-400 hover:text-white hover:bg-rose-600 transition">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    </button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-            applyPrivacyScope();
-            lucide.createIcons();
-        }
-
-        function deleteSingleOrder(woId) {
-            if (confirm(`Delete Order ${woId}? This action cannot be undone.`)) {
-                window.orders = window.orders.filter(o => o.id !== woId);
-                saveStorage();
-                renderAll();
-            }
-        }
-
-        // MATRIX ROW LOGIC
-        function addMatrixRow() {
-            const tbody = document.getElementById('matrix-items-body');
-            const tr = document.createElement('tr');
-            tr.className = 'matrix-row';
-            tr.innerHTML = `
-                <td class="p-2"><input type="text" list="pattern-memory-list" placeholder="Pattern Name / Drawing No." required class="item-name w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500"></td>
-                <td class="p-2">
-                    <select required class="item-grade w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500">
-                        <option value="" disabled selected>Select Grade...</option>
-                        <optgroup label="C.I (Cast Iron)"><option value="CI (General)">CI (General)</option></optgroup>
-                        <optgroup label="C.I Grade">
-                            <option value="C.I FG-200">C.I FG-200</option>
-                            <option value="C.I FG-250">C.I FG-250</option>
-                            <option value="C.I FG-260">C.I FG-260</option>
-                            <option value="C.I FG-300">C.I FG-300</option>
-                        </optgroup>
-                        <optgroup label="SG Iron">
-                            <option value="SG Iron SG 400/12">SG Iron SG 400/12</option>
-                            <option value="SG Iron SG 400/15">SG Iron SG 400/15</option>
-                            <option value="SG Iron SG 450/10">SG Iron SG 450/10</option>
-                            <option value="SG Iron SG 500/7">SG Iron SG 500/7</option>
-                            <option value="SG Iron SG 600/3">SG Iron SG 600/3</option>
-                            <option value="SG Iron SG 700/2">SG Iron SG 700/2</option>
-                        </optgroup>
-                        <optgroup label="W.C.B Castings">
-                            <option value="W.C.B Standard">W.C.B Standard</option>
-                            <option value="W.C.B Grade A">W.C.B Grade A</option>
-                            <option value="W.C.B Grade B">W.C.B Grade B</option>
-                            <option value="W.C.B Grade C">W.C.B Grade C</option>
-                            <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
-                        </optgroup>
-                    </select>
-                </td>
-                <td class="p-2"><input type="number" min="1" value="25" onkeydown="handleMatrixKeyDown(event, this)" required class="item-qty w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:border-cyan-500"></td>
-                <td class="p-2 text-center"><button type="button" onclick="removeMatrixRow(this)" class="text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
-            `;
-            tbody.appendChild(tr);
-            lucide.createIcons();
-        }
-
-        function removeMatrixRow(btn) {
-            btn.closest('.matrix-row').remove();
-        }
-
-        function handleMatrixKeyDown(e, input) {
-            if (e.key === 'Tab' || e.key === 'Enter') {
-                const rows = document.querySelectorAll('.matrix-row');
-                if (input.closest('.matrix-row') === rows[rows.length - 1]) {
-                    addMatrixRow();
-                }
-            }
-        }
-
-        function updatePatternMemoryList() {
-            const datalist = document.getElementById('pattern-memory-list');
-            if (!datalist) return;
-            
-            const patterns = new Set();
-            window.orders.forEach(o => {
-                if (o.items) o.items.forEach(i => patterns.add(i.name));
-            });
-
-            datalist.innerHTML = '';
-            patterns.forEach(p => {
-                datalist.innerHTML += `<option value="${p}"></option>`;
-            });
-        }
-
-        function handleCreateOrder(e) {
-            e.preventDefault();
-            const client = document.getElementById('new-order-client').value || (currentUser ? currentUser.name : 'Uma Engineering Works');
-            const foundry = document.getElementById('new-order-foundry').value || 'Unassigned Foundry';
-            const due = document.getElementById('new-order-due').value;
-
-            const items = [];
-            document.querySelectorAll('.matrix-row').forEach(row => {
-                items.push({
-                    name: row.querySelector('.item-name').value,
-                    grade: row.querySelector('.item-grade').value || 'Standard',
-                    ordered: parseInt(row.querySelector('.item-qty').value),
-                    supplied: 0
-                });
-            });
-
-            const newWO = {
-                id: 'PO-' + Math.floor(1000 + Math.random() * 9000),
-                client,
-                foundry,
-                targetDate: due,
-                status: 'PENDING',
-                items,
-                dispatches: [],
-                createdAt: new Date().toISOString()
-            };
-
-            window.orders.unshift(newWO);
-            saveStorage();
-            closeModal('modal-new-order');
-            renderAll();
-            alert(`Purchase Order ${newWO.id} saved successfully!`);
-        }
-
-        // DISPATCH & DISPATCH HISTORY
-        function openDispatchForWO(woId) {
-            populateDispatchSelectOptions();
-            document.getElementById('dispatch-wo-select').value = woId;
-            document.getElementById('modal-dispatch').classList.remove('hidden');
-        }
-
-        function openDispatchModal() {
-            populateDispatchSelectOptions();
-            document.getElementById('modal-dispatch').classList.remove('hidden');
-        }
-
-        function handleSaveDispatch(e) {
-            e.preventDefault();
-            const woId = document.getElementById('dispatch-wo-select').value;
-            const qty = parseInt(document.getElementById('dispatch-qty').value);
-            const challanNo = document.getElementById('dispatch-challan-no').value;
-
-            const targetOrder = window.orders.find(o => o.id === woId);
-            if (!targetOrder) return;
-
-            if (!targetOrder.dispatches) targetOrder.dispatches = [];
-            targetOrder.dispatches.push({
-                date: new Date().toISOString().split('T')[0],
-                qty,
-                challanNo
-            });
-
-            let totalOrd = 0;
-            let totalSup = 0;
-            if (targetOrder.items) {
-                targetOrder.items.forEach(i => {
-                    i.supplied = Math.min(i.ordered, (i.supplied || 0) + qty);
-                    totalOrd += i.ordered;
-                    totalSup += i.supplied;
-                });
-            }
-
-            if (totalSup >= totalOrd) targetOrder.status = 'COMPLETED';
-            else targetOrder.status = 'PARTIAL';
-
-            saveStorage();
-            closeModal('modal-dispatch');
-            renderAll();
-            alert(`Partial dispatch logged for ${woId}. Client record updated!`);
-        }
-
-        function renderDispatchHistory() {
-            const tbody = document.getElementById('dispatch-history-body');
-            tbody.innerHTML = '';
-
-            let hasDispatches = false;
-            window.orders.forEach(o => {
-                if (o.dispatches && o.dispatches.length > 0) {
-                    hasDispatches = true;
-                    o.dispatches.forEach(d => {
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-slate-900/40 transition">
-                                <td class="p-3.5 font-medium text-slate-200">${d.date}</td>
-                                <td class="p-3.5 font-bold text-cyan-400">${o.id}</td>
-                                <td class="p-3.5">
-                                    <span class="font-bold text-white block">${o.client}</span>
-                                    <span class="text-slate-400 text-[11px]">${o.items && o.items[0] ? o.items[0].name : ''}</span>
-                                </td>
-                                <td class="p-3.5 font-semibold text-vortex-emerald">+${d.qty} pcs</td>
-                                <td class="p-3.5 font-mono text-slate-300">${d.challanNo}</td>
-                                <td class="p-3.5 text-right">
-                                    <button onclick="shareWhatsApp('${o.id}', '${d.challanNo}', ${d.qty})" class="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold hover:bg-emerald-600 hover:text-white transition">
-                                        Notify WhatsApp
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-            });
-
-            if (!hasDispatches) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="p-6 text-center text-slate-500 text-xs">
-                            No dispatch or partial supply records logged yet.
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-        // CLIENT ROSTER & APPROVAL ENGINE
-        function renderClientsTable() {
-            const tbody = document.getElementById('clients-table-body');
-            tbody.innerHTML = '';
-
-            document.getElementById('client-count-badge').innerText = window.clientsList.length;
-
-            if (window.clientsList.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="p-6 text-center text-slate-500 text-xs">
-                            No client accounts registered yet.
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500">No active purchase orders found. Click "Create Purchase Order" to get started.</td></tr>`;
                 return;
             }
 
-            window.clientsList.forEach((c) => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-900/40 transition">
-                        <td class="p-3.5 font-bold text-white">${c.name}</td>
-                        <td class="p-3.5 text-slate-300">${c.email}</td>
-                        <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-indigo-300 font-mono text-[10px] uppercase">${c.role}</span></td>
-                        <td class="p-3.5">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.approved ? 'bg-vortex-emerald/20 text-vortex-emerald border border-vortex-emerald/30' : 'bg-vortex-rose/20 text-vortex-rose border border-vortex-rose/30'}">
-                                ${c.approved ? 'Approved Active' : 'Pending Review'}
-                            </span>
-                        </td>
-                        <td class="p-3.5 text-right space-x-2">
-                            <button onclick="toggleClientApprovalStatus('${c.email}')" class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-cyan-400 hover:text-white transition">
-                                ${c.approved ? 'Revoke Access' : 'Approve Client'}
-                            </button>
-                            <button onclick="deleteClientAccount('${c.email}')" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-rose-400 hover:text-white hover:bg-rose-600 transition">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </td>
-                    </tr>
+            displayOrders.forEach(o => {
+                const pct = o.ordered > 0 ? Math.round((o.supplied / o.ordered) * 100) : 0;
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/40 transition';
+
+                tr.innerHTML = `
+                    <td class="p-3.5 font-semibold text-indigo-400">${o.po}</td>
+                    <td class="p-3.5 role-admin-only font-medium text-slate-200 ${currentUser.role === 'client' ? 'hidden' : ''}">${o.client}</td>
+                    <td class="p-3.5"><div class="font-medium text-slate-200">${o.pattern}</div></td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] border border-slate-700">${o.grade}</span></td>
+                    <td class="p-3.5">
+                        <div class="font-semibold text-white">${o.supplied} / ${o.ordered} pcs</div>
+                        <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
+                            <div class="bg-amber-500 h-full rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </td>
+                    <td class="p-3.5 text-slate-400">${o.targetDate}</td>
+                    <td class="p-3.5 role-admin-only text-slate-400 ${currentUser.role === 'client' ? 'hidden' : ''}">${o.foundry || 'Unassigned'}</td>
+                    <td class="p-3.5">
+                        <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-medium flex items-center w-max gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="p-3.5 text-right space-x-1">
+                        ${currentUser.role === 'admin' ? `<button onclick="logDispatch('${o.po}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] border border-slate-700">Dispatch</button>` : ''}
+                        ${currentUser.role === 'admin' ? `<button onclick="deleteOrder('${o.po}')" class="p-1 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 rounded border border-rose-800"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+                    </td>
                 `;
+                tbody.appendChild(tr);
             });
             lucide.createIcons();
         }
 
-        function toggleClientApprovalStatus(email) {
-            const client = window.clientsList.find(c => c.email === email);
-            if (client) {
-                client.approved = !client.approved;
-                saveStorage();
-                renderClientsTable();
-                populateClientDropdown();
-                alert(`Account status for ${client.name} updated to: ${client.approved ? 'APPROVED' : 'PENDING'}`);
-            }
+        function openCreateOrderModal() {
+            document.getElementById('modal-create-order').classList.remove('hidden');
         }
 
-        function deleteClientAccount(email) {
-            if (confirm(`Delete client record for ${email}?`)) {
-                window.clientsList = window.clientsList.filter(c => c.email !== email);
-                saveStorage();
-                renderClientsTable();
-                populateClientDropdown();
-            }
-        }
+        function submitOrder() {
+            const targetClient = currentUser.role === 'admin' ? (document.getElementById('po-client-select').value || 'Direct Client') : currentUser.companyName;
+            const targetFoundry = document.getElementById('po-foundry-select').value;
+            const targetDate = document.getElementById('po-target-date').value;
 
-        function populateClientDropdown() {
-            const select = document.getElementById('new-order-client');
-            if (!select) return;
-            select.innerHTML = '';
-            
-            const approvedClients = window.clientsList.filter(c => c.approved);
-            if (approvedClients.length === 0) {
-                select.innerHTML = `<option value="Uma Engineering Works">Uma Engineering Works (Default)</option>`;
-            } else {
-                approvedClients.forEach(c => {
-                    select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                });
-            }
-        }
+            const row = document.querySelector('.matrix-row');
+            const pattern = row.querySelector('.input-pattern').value || 'Standard Casting Part';
+            const grade = row.querySelector('.input-grade').value || 'C.I FG-250';
+            const qty = parseInt(row.querySelector('.input-qty').value) || 10;
 
-        function populateDispatchSelectOptions() {
-            const select = document.getElementById('dispatch-wo-select');
-            select.innerHTML = '';
-            window.orders.forEach(o => {
-                select.innerHTML += `<option value="${o.id}">${o.id} - ${o.client} (${o.items && o.items[0] ? o.items[0].name : 'Order'})</option>`;
-            });
-        }
-
-        function downloadWorkOrderPDF(woId) {
-            const wo = window.orders.find(o => o.id === woId);
-            if (!wo) return;
-
-            document.getElementById('pdf-wo-no').innerText = wo.id;
-            document.getElementById('pdf-date').innerText = 'Date: ' + new Date().toISOString().slice(0, 10);
-            document.getElementById('pdf-client-name').innerText = wo.client;
-
-            const foundryBlock = document.getElementById('pdf-foundry-block');
-            if (currentRole === 'client') {
-                foundryBlock.style.display = 'none';
-            } else {
-                foundryBlock.style.display = 'block';
-                document.getElementById('pdf-foundry-name').innerText = wo.foundry || 'Internal Allocation';
-            }
-
-            const itemsBody = document.getElementById('pdf-items-body');
-            itemsBody.innerHTML = '';
-            if (wo.items) {
-                wo.items.forEach(item => {
-                    const pending = item.ordered - item.supplied;
-                    itemsBody.innerHTML += `
-                        <tr>
-                            <td class="p-2.5 font-bold">${item.name}</td>
-                            <td class="p-2.5 font-semibold text-indigo-700">${item.grade || 'Standard'}</td>
-                            <td class="p-2.5 text-center font-semibold">${item.ordered}</td>
-                            <td class="p-2.5 text-center text-emerald-700 font-semibold">${item.supplied}</td>
-                            <td class="p-2.5 text-center text-amber-700 font-semibold">${pending}</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            const qrContainer = document.getElementById('pdf-qrcode');
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, {
-                text: `https://vortexflow.vercel.app/verify/${wo.id}`,
-                width: 70,
-                height: 70
-            });
-
-            const element = document.getElementById('printable-work-order');
-            element.parentElement.classList.remove('hidden');
-
-            const opt = {
-                margin:       0.4,
-                filename:     `PurchaseOrder_${wo.id}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            const newPo = {
+                po: `PO-2026-${Math.floor(100 + Math.random() * 900)}`,
+                client: targetClient,
+                pattern: pattern,
+                grade: grade,
+                ordered: qty,
+                supplied: 0,
+                targetDate: targetDate,
+                foundry: targetFoundry,
+                status: 'In Production'
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.parentElement.classList.add('hidden');
+            dbOrders.unshift(newPo);
+            localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
+
+            // Pattern Auto-Memory
+            if (!dbPatterns.includes(pattern)) {
+                dbPatterns.push(pattern);
+                localStorage.setItem('vf_db_patterns', JSON.stringify(dbPatterns));
+                renderPatternSuggestions();
+            }
+
+            renderOrdersTable();
+            updateStats();
+            closeModal('modal-create-order');
+            alert(`Order ${newPo.po} created successfully!`);
+        }
+
+        function deleteOrder(po) {
+            dbOrders = dbOrders.filter(o => o.po !== po);
+            localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
+            renderOrdersTable();
+            updateStats();
+        }
+
+        function logDispatch(po) {
+            activeDispatchPo = po;
+            document.getElementById('dispatch-po-id').innerText = `PO ID: ${po}`;
+            document.getElementById('modal-log-dispatch').classList.remove('hidden');
+        }
+
+        function confirmDispatch() {
+            const qty = parseInt(document.getElementById('dispatch-qty-input').value) || 0;
+            const item = dbOrders.find(o => o.po === activeDispatchPo);
+
+            if (item) {
+                item.supplied = Math.min(item.ordered, item.supplied + qty);
+                if (item.supplied === item.ordered) item.status = 'Completed';
+                else item.status = 'Partially Supplied';
+            }
+
+            localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
+            renderOrdersTable();
+            updateStats();
+            closeModal('modal-log-dispatch');
+        }
+
+        function renderPatternSuggestions() {
+            const datalist = document.getElementById('pattern-suggestions');
+            datalist.innerHTML = '';
+            dbPatterns.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                datalist.appendChild(opt);
             });
         }
 
-        function exportOrdersToCSV() {
-            let csv = currentRole === 'admin' 
-                ? 'PO_ID,Client,Foundry,Pattern_Name,Grade,Ordered_Qty,Supplied_Qty,Status\n'
-                : 'PO_ID,Client,Pattern_Name,Grade,Ordered_Qty,Supplied_Qty,Status\n';
+        function purgeAllData() {
+            if (confirm("Are you sure you want to purge all orders, pattern memory, and client registrations?")) {
+                localStorage.removeItem('vf_db_orders');
+                localStorage.removeItem('vf_db_clients');
+                localStorage.removeItem('vf_db_patterns');
+                dbOrders = [];
+                dbClients = [];
+                dbPatterns = [];
+                renderOrdersTable();
+                renderClientApprovals();
+                renderClientDropdown();
+                updateStats();
+                alert("Database purged clean.");
+            }
+        }
 
-            window.orders.forEach(o => {
-                if (o.items) {
-                    o.items.forEach(i => {
-                        if (currentRole === 'admin') {
-                            csv += `"${o.id}","${o.client}","${o.foundry || ''}","${i.name}","${i.grade || ''}",${i.ordered},${i.supplied},"${o.status}"\n`;
-                        } else {
-                            csv += `"${o.id}","${o.client}","${i.name}","${i.grade || ''}",${i.ordered},${i.supplied},"${o.status}"\n`;
-                        }
-                    });
-                }
+        function updateStats() {
+            document.getElementById('stat-active-orders').innerText = dbOrders.length;
+            const completedSum = dbOrders.reduce((sum, o) => sum + o.supplied, 0);
+            document.getElementById('stat-completed').innerText = `${completedSum} pcs`;
+            document.getElementById('stat-patterns').innerText = dbPatterns.length;
+            document.getElementById('stat-clients').innerText = dbClients.length;
+            const pendingCount = dbClients.filter(c => !c.approved).length;
+            document.getElementById('stat-pending-clients').innerText = `${pendingCount} Pending Approval`;
+        }
+
+        function setupDateConstraints() {
+            const dateInput = document.getElementById('po-target-date');
+            const today = new Date();
+            const minDate = new Date(today);
+            minDate.setDate(minDate.getDate() + 10);
+            const minStr = minDate.toISOString().split('T')[0];
+            dateInput.min = minStr;
+            dateInput.value = minStr;
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function exportCSV() {
+            let csv = "PO Number,Client Name,Pattern Spec,Grade,Ordered,Supplied,Target Date\n";
+            dbOrders.forEach(o => {
+                csv += `${o.po},${o.client},"${o.pattern}",${o.grade},${o.ordered},${o.supplied},${o.targetDate}\n`;
             });
-
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `VortexFlow_Ledger_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `VortexFlow_Orders.csv`;
             a.click();
         }
 
-        function openNewOrderModal() {
-            const dateInput = document.getElementById('new-order-due');
-            const restrictionLabel = document.getElementById('due-restriction-label');
-            
-            const minDate = new Date();
-            minDate.setDate(minDate.getDate() + 10);
-            const minDateStr = minDate.toISOString().split('T')[0];
-
-            if (currentRole === 'client') {
-                dateInput.min = minDateStr;
-                dateInput.value = minDateStr;
-                restrictionLabel.innerText = '(Min +10 days required)';
-            } else {
-                dateInput.removeAttribute('min');
-                dateInput.value = minDateStr;
-                restrictionLabel.innerText = '(Admin override available)';
-            }
-
-            document.getElementById('modal-new-order').classList.remove('hidden');
-        }
-
-        function shareWhatsApp(woId, challan, qty) {
-            const msg = `Hi! Quick dispatch update for order ${woId}: ${qty} pcs shipped via Delivery Challan #${challan}. Track live status on VortexFlow portal.`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', e => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    openCommandPalette();
-                }
-            });
-        }
-
-        function openCommandPalette() {
-            document.getElementById('modal-command-palette').classList.remove('hidden');
+        function toggleNotifications() {
+            alert("VortexFlow System Notifications:\n• Multi-tenant security active\n• Dynamic pattern database live");
         }
     </script>
 </body>
 </html>
-```
