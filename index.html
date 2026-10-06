@@ -27,9 +27,6 @@
     </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- html2pdf for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
     <style>
         .glass-panel {
             background: rgba(17, 24, 39, 0.75);
@@ -84,7 +81,6 @@
 
     <!-- MAIN WORKSPACE -->
     <div id="app-workspace" class="hidden">
-        <!-- Top Navigation Header -->
         <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -113,10 +109,8 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-            <!-- Stats Bar -->
             <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="glass-panel p-4 rounded-2xl border border-slate-800">
                     <div class="flex items-center justify-between text-slate-400 mb-2">
@@ -157,7 +151,6 @@
                 </div>
             </section>
 
-            <!-- Admin Approvals & Client Password Management -->
             <section class="role-admin-only space-y-4">
                 <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
                     <div>
@@ -186,14 +179,12 @@
                                 </tr>
                             </thead>
                             <tbody id="clients-approval-tbody" class="divide-y divide-slate-800/60 text-slate-300">
-                                <!-- Populated dynamically -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- Live Orders Ledger -->
             <section class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
                 <div class="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -213,7 +204,6 @@
 
                 <div class="p-4">
                     <div id="orders-card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
-                        <!-- Card View for Mobile/Tablet -->
                     </div>
 
                     <div class="hidden lg:block overflow-x-auto">
@@ -232,7 +222,6 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800/60 text-slate-300" id="orders-tbl-body">
-                                <!-- Populated dynamically -->
                             </tbody>
                         </table>
                     </div>
@@ -241,7 +230,107 @@
         </main>
     </div>
 
-    <!-- FORGOT / RESET PASSWORD MODAL -->
+    <!-- CREATE ORDER MODAL WITH AUTO-SPAWNING MATRIX -->
+    <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-3xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                        <i data-lucide="file-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
+                        <p class="text-xs text-slate-400">Line items automatically spawn as you type</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-create-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 overflow-y-auto flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="role-admin-only">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Client</label>
+                        <select id="po-client-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        </select>
+                    </div>
+
+                    <div class="role-admin-only">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Foundry Partner Name</label>
+                        <input type="text" id="po-foundry-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">
+                            Target Delivery Date <span id="delivery-date-note" class="text-[10px] text-indigo-400">(Min +10 days constraint active)</span>
+                        </label>
+                        <input type="date" id="po-target-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- AUTO-SPAWNING MATRIX CONTAINER -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-2">Pattern Details & Line Items</label>
+                    <div class="space-y-3" id="po-matrix-rows">
+                        <div class="grid grid-cols-12 gap-2 items-center matrix-row bg-slate-900/50 p-2.5 rounded-xl border border-slate-800">
+                            <div class="col-span-12 sm:col-span-5">
+                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Pattern / Drawing No.</label>
+                                <input type="text" list="pattern-suggestions" placeholder="Pattern / Drawing No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <datalist id="pattern-suggestions"></datalist>
+                            </div>
+                            <div class="col-span-7 sm:col-span-4">
+                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Grade</label>
+                                <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="" disabled selected>Select Grade...</option>
+                                    <optgroup label="C.I (Cast Iron)">
+                                        <option value="CI General">CI (General)</option>
+                                    </optgroup>
+                                    <optgroup label="C.I Grade">
+                                        <option value="C.I FG-200">C.I FG-200</option>
+                                        <option value="C.I FG-250">C.I FG-250</option>
+                                        <option value="C.I FG-260">C.I FG-260</option>
+                                        <option value="C.I FG-300">C.I FG-300</option>
+                                    </optgroup>
+                                    <optgroup label="SG Iron">
+                                        <option value="SG 400/12">SG Iron SG 400/12</option>
+                                        <option value="SG 400/15">SG Iron SG 400/15</option>
+                                        <option value="SG 450/10">SG Iron SG 450/10</option>
+                                        <option value="SG 500/7">SG Iron SG 500/7</option>
+                                        <option value="SG 600/3">SG Iron SG 600/3</option>
+                                        <option value="SG 700/2">SG Iron SG 700/2</option>
+                                    </optgroup>
+                                    <optgroup label="W.C.B Castings">
+                                        <option value="W.C.B Standard">W.C.B Standard</option>
+                                        <option value="W.C.B Grade A">W.C.B Grade A</option>
+                                        <option value="W.C.B Grade B">W.C.B Grade B</option>
+                                        <option value="W.C.B Grade C">W.C.B Grade C</option>
+                                        <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="col-span-3 sm:col-span-2">
+                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Qty</label>
+                                <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div class="col-span-2 sm:col-span-1 text-right">
+                                <button onclick="removeMatrixRow(this)" class="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-900/40 flex items-center justify-end space-x-2">
+                <button onclick="closeModal('modal-create-order')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
+                <button onclick="submitOrder()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">Submit Purchase Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
     <div id="modal-forgot-password" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -277,104 +366,7 @@
         </div>
     </div>
 
-    <!-- CREATE ORDER MODAL -->
-    <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-        <div class="glass-modal w-full max-w-2xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
-                        <i data-lucide="file-plus" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
-                        <p class="text-xs text-slate-400">Input order specs or select from memorized patterns</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('modal-create-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="p-5 space-y-4 overflow-y-auto flex-1">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="role-admin-only">
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Client</label>
-                        <select id="po-client-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                            <!-- Populated dynamically -->
-                        </select>
-                    </div>
-
-                    <div class="role-admin-only">
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Foundry Partner Name</label>
-                        <input type="text" id="po-foundry-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-xs font-medium text-slate-300 mb-1">
-                            Target Delivery Date <span id="delivery-date-note" class="text-[10px] text-indigo-400">(Min +10 days constraint active)</span>
-                        </label>
-                        <input type="date" id="po-target-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-2">Pattern Details & Grade Selection</label>
-                    <div class="space-y-3" id="po-matrix-rows">
-                        <div class="grid grid-cols-12 gap-2 items-center matrix-row">
-                            <div class="col-span-12 sm:col-span-5">
-                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Pattern / Drawing No.</label>
-                                <input type="text" list="pattern-suggestions" class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                                <datalist id="pattern-suggestions">
-                                    <!-- Populated dynamically -->
-                                </datalist>
-                            </div>
-                            <div class="col-span-8 sm:col-span-5">
-                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Grade Hierarchy</label>
-                                <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                                    <option value="" disabled selected>Select Grade...</option>
-                                    <optgroup label="C.I (Cast Iron)">
-                                        <option value="CI General">CI (General)</option>
-                                    </optgroup>
-                                    <optgroup label="C.I Grade">
-                                        <option value="C.I FG-200">C.I FG-200</option>
-                                        <option value="C.I FG-250">C.I FG-250</option>
-                                        <option value="C.I FG-260">C.I FG-260</option>
-                                        <option value="C.I FG-300">C.I FG-300</option>
-                                    </optgroup>
-                                    <optgroup label="SG Iron">
-                                        <option value="SG 400/12">SG Iron SG 400/12</option>
-                                        <option value="SG 400/15">SG Iron SG 400/15</option>
-                                        <option value="SG 450/10">SG Iron SG 450/10</option>
-                                        <option value="SG 500/7">SG Iron SG 500/7</option>
-                                        <option value="SG 600/3">SG Iron SG 600/3</option>
-                                        <option value="SG 700/2">SG Iron SG 700/2</option>
-                                    </optgroup>
-                                    <optgroup label="W.C.B Castings">
-                                        <option value="W.C.B Standard">W.C.B Standard</option>
-                                        <option value="W.C.B Grade A">W.C.B Grade A</option>
-                                        <option value="W.C.B Grade B">W.C.B Grade B</option>
-                                        <option value="W.C.B Grade C">W.C.B Grade C</option>
-                                        <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="col-span-4 sm:col-span-2">
-                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Qty</label>
-                                <input type="number" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4 border-t border-slate-800 bg-slate-900/40 flex items-center justify-end space-x-2">
-                <button onclick="closeModal('modal-create-order')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
-                <button onclick="submitOrder()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">Create Order</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- CLIENT REGISTRATION MODAL -->
+    <!-- REGISTRATION MODAL -->
     <div id="modal-register-client" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -435,10 +427,10 @@
         </div>
     </div>
 
-    <!-- SCRIPT APPLICATION CONTROLLER -->
+    <!-- APPLICATION CONTROLLER SCRIPT -->
     <script>
         const MASTER_ADMIN_EMAIL = 'shalu@x-engi.in';
-        const MASTER_RECOVERY_PIN = '2026-XENGI-RESET'; // Recovery key to reset admin password
+        const MASTER_RECOVERY_PIN = '2026-XENGI-RESET';
 
         let adminPassword = localStorage.getItem('vf_admin_pass') || 'admin123';
         let currentUser = null;
@@ -453,7 +445,6 @@
             setupDateConstraints();
             renderPatternSuggestions();
 
-            // Check if reset email field matches admin
             const resetEmailInput = document.getElementById('reset-email');
             if (resetEmailInput) {
                 resetEmailInput.addEventListener('input', (e) => {
@@ -467,6 +458,87 @@
             }
         });
 
+        // AUTOMATIC MATRIX ROW SPAWNING ON INPUT
+        document.addEventListener('input', (e) => {
+            if (e.target.classList.contains('input-pattern') || e.target.classList.contains('input-qty')) {
+                const rows = document.querySelectorAll('.matrix-row');
+                const lastRow = rows[rows.length - 1];
+
+                const patternVal = lastRow.querySelector('.input-pattern').value.trim();
+                const qtyVal = lastRow.querySelector('.input-qty').value;
+
+                if (patternVal !== '' || qtyVal !== '') {
+                    spawnAutoMatrixRow();
+                }
+            }
+        });
+
+        function spawnAutoMatrixRow() {
+            const container = document.getElementById('po-matrix-rows');
+            const rows = document.querySelectorAll('.matrix-row');
+            const lastRow = rows[rows.length - 1];
+
+            const lastPattern = lastRow.querySelector('.input-pattern').value.trim();
+            const lastQty = lastRow.querySelector('.input-qty').value;
+            if (lastPattern === '' && lastQty === '') return;
+
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-12 gap-2 items-center matrix-row bg-slate-900/50 p-2.5 rounded-xl border border-slate-800 transition-all';
+            row.innerHTML = `
+                <div class="col-span-12 sm:col-span-5">
+                    <input type="text" list="pattern-suggestions" placeholder="Pattern / Drawing No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="col-span-7 sm:col-span-4">
+                    <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="" disabled selected>Select Grade...</option>
+                        <optgroup label="C.I (Cast Iron)">
+                            <option value="CI General">CI (General)</option>
+                        </optgroup>
+                        <optgroup label="C.I Grade">
+                            <option value="C.I FG-200">C.I FG-200</option>
+                            <option value="C.I FG-250">C.I FG-250</option>
+                            <option value="C.I FG-260">C.I FG-260</option>
+                            <option value="C.I FG-300">C.I FG-300</option>
+                        </optgroup>
+                        <optgroup label="SG Iron">
+                            <option value="SG 400/12">SG Iron SG 400/12</option>
+                            <option value="SG 400/15">SG Iron SG 400/15</option>
+                            <option value="SG 450/10">SG Iron SG 450/10</option>
+                            <option value="SG 500/7">SG Iron SG 500/7</option>
+                            <option value="SG 600/3">SG Iron SG 600/3</option>
+                            <option value="SG 700/2">SG Iron SG 700/2</option>
+                        </optgroup>
+                        <optgroup label="W.C.B Castings">
+                            <option value="W.C.B Standard">W.C.B Standard</option>
+                            <option value="W.C.B Grade A">W.C.B Grade A</option>
+                            <option value="W.C.B Grade B">W.C.B Grade B</option>
+                            <option value="W.C.B Grade C">W.C.B Grade C</option>
+                            <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-span-3 sm:col-span-2">
+                    <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="col-span-2 sm:col-span-1 text-right">
+                    <button onclick="removeMatrixRow(this)" class="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
+            lucide.createIcons();
+        }
+
+        function removeMatrixRow(btn) {
+            const rows = document.querySelectorAll('.matrix-row');
+            if (rows.length > 1) {
+                btn.closest('.matrix-row').remove();
+            } else {
+                alert("At least one line item is required.");
+            }
+        }
+
         // AUTHENTICATION LOGIC
         function loginUser() {
             const email = document.getElementById('login-email').value.trim().toLowerCase();
@@ -477,7 +549,6 @@
                 return;
             }
 
-            // Master Admin Password Validation
             if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
                 if (password === adminPassword) {
                     currentUser = {
@@ -493,7 +564,6 @@
                 }
             }
 
-            // Client Validation
             const matchedClient = dbClients.find(c => c.email.toLowerCase() === email && c.password === password);
 
             if (!matchedClient) {
@@ -544,6 +614,57 @@
             document.getElementById('auth-screen').classList.remove('hidden');
         }
 
+        // SUBMIT MULTI-ITEM ORDERS
+        function submitOrder() {
+            const targetClient = currentUser.role === 'admin' ? (document.getElementById('po-client-select').value || 'Direct Client') : currentUser.companyName;
+            const targetFoundry = document.getElementById('po-foundry-select').value;
+            const targetDate = document.getElementById('po-target-date').value;
+
+            const rows = document.querySelectorAll('.matrix-row');
+            let createdCount = 0;
+
+            rows.forEach((row, idx) => {
+                const pattern = row.querySelector('.input-pattern').value.trim();
+                const grade = row.querySelector('.input-grade').value;
+                const qty = parseInt(row.querySelector('.input-qty').value) || 0;
+
+                if (pattern && qty > 0) {
+                    const newPo = {
+                        po: `PO-2026-${Math.floor(100 + Math.random() * 900)}${rows.length > 1 ? `-${idx+1}` : ''}`,
+                        client: targetClient,
+                        pattern: pattern,
+                        grade: grade || 'C.I FG-250',
+                        ordered: qty,
+                        supplied: 0,
+                        targetDate: targetDate,
+                        foundry: targetFoundry,
+                        status: 'In Production'
+                    };
+
+                    dbOrders.unshift(newPo);
+                    createdCount++;
+
+                    if (!dbPatterns.includes(pattern)) {
+                        dbPatterns.push(pattern);
+                    }
+                }
+            });
+
+            if (createdCount === 0) {
+                alert("Please fill in at least one valid pattern name and quantity.");
+                return;
+            }
+
+            localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
+            localStorage.setItem('vf_db_patterns', JSON.stringify(dbPatterns));
+
+            renderPatternSuggestions();
+            renderOrdersDisplay();
+            updateStats();
+            closeModal('modal-create-order');
+            alert(`Successfully submitted ${createdCount} order item(s)!`);
+        }
+
         // PASSWORD RESET SYSTEM
         function openForgotPasswordModal() {
             document.getElementById('modal-forgot-password').classList.remove('hidden');
@@ -559,7 +680,6 @@
                 return;
             }
 
-            // Admin Reset Request
             if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
                 if (pin !== MASTER_RECOVERY_PIN) {
                     alert("SECURITY REJECTION: Invalid Recovery PIN for Admin reset.");
@@ -572,7 +692,6 @@
                 return;
             }
 
-            // Client Reset Request
             const client = dbClients.find(c => c.email.toLowerCase() === email);
             if (client) {
                 client.password = newPass;
@@ -693,7 +812,6 @@
             });
         }
 
-        // RESPONSIVE ORDERS RENDERER
         function renderOrdersDisplay() {
             const tbody = document.getElementById('orders-tbl-body');
             const cardGrid = document.getElementById('orders-card-grid');
@@ -786,43 +904,6 @@
 
         function openCreateOrderModal() {
             document.getElementById('modal-create-order').classList.remove('hidden');
-        }
-
-        function submitOrder() {
-            const targetClient = currentUser.role === 'admin' ? (document.getElementById('po-client-select').value || 'Direct Client') : currentUser.companyName;
-            const targetFoundry = document.getElementById('po-foundry-select').value;
-            const targetDate = document.getElementById('po-target-date').value;
-
-            const row = document.querySelector('.matrix-row');
-            const pattern = row.querySelector('.input-pattern').value || 'Standard Casting Part';
-            const grade = row.querySelector('.input-grade').value || 'C.I FG-250';
-            const qty = parseInt(row.querySelector('.input-qty').value) || 10;
-
-            const newPo = {
-                po: `PO-2026-${Math.floor(100 + Math.random() * 900)}`,
-                client: targetClient,
-                pattern: pattern,
-                grade: grade,
-                ordered: qty,
-                supplied: 0,
-                targetDate: targetDate,
-                foundry: targetFoundry,
-                status: 'In Production'
-            };
-
-            dbOrders.unshift(newPo);
-            localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
-
-            if (!dbPatterns.includes(pattern)) {
-                dbPatterns.push(pattern);
-                localStorage.setItem('vf_db_patterns', JSON.stringify(dbPatterns));
-                renderPatternSuggestions();
-            }
-
-            renderOrdersDisplay();
-            updateStats();
-            closeModal('modal-create-order');
-            alert(`Order ${newPo.po} created successfully!`);
         }
 
         function deleteOrder(po) {
@@ -918,7 +999,7 @@
         }
 
         function toggleNotifications() {
-            alert("VortexFlow System Notifications:\n• Master Admin locked to shalu@x-engi.in\n• Real-time database sync active");
+            alert("VortexFlow System Notifications:\n• Master Admin locked to shalu@x-engi.in\n• Auto-spawning matrix line items enabled");
         }
     </script>
 </body>
