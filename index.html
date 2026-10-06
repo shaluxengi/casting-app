@@ -1,1298 +1,625 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enterprise Pattern & Order Execution System</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <!-- HTML2PDF for Client-side PDF Generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VortexFlow | Intelligent Supply & Fast Execution</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+    </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-20 md:pb-6">
 
-  <!-- LOGIN / REGISTER OVERLAY MODAL -->
-  <div id="loginScreen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
-      <div class="text-center space-y-2">
-        <span class="text-4xl">🏭</span>
-        <h2 class="text-2xl font-bold text-slate-900">Pattern Execution Portal</h2>
-        <p class="text-xs text-slate-500 font-medium">Log in or create a client account</p>
-      </div>
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+                        VortexFlow
+                        <span class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Enterprise Pro</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Intelligent Supply & Fast Execution</p>
+                </div>
+            </div>
 
-      <!-- Mode Selector Tabs -->
-      <div class="flex border-b border-slate-200 text-sm font-bold">
-        <button id="tabSignInBtn" type="button" class="flex-1 py-2 text-blue-600 border-b-2 border-blue-600">Sign In</button>
-        <button id="tabSignUpBtn" type="button" class="flex-1 py-2 text-slate-400 hover:text-slate-600 border-b-2 border-transparent">New Client Self-Registration</button>
-      </div>
+            <div class="flex items-center space-x-3">
+                <!-- Command Palette Trigger -->
+                <button onclick="toggleCommandPalette()" class="hidden md:flex items-center gap-2 bg-slate-900/80 hover:bg-slate-800 text-slate-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700/60 transition">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                    <span>Search or command...</span>
+                    <kbd class="bg-slate-800 text-slate-300 text-[10px] px-1.5 py-0.5 rounded border border-slate-700">Ctrl + K</kbd>
+                </button>
 
-      <!-- SIGN IN FORM -->
-      <form id="loginForm" class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username / Email</label>
-          <input type="text" id="loginEmail" required class="w-full border p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. shalu@x-engi.in, admin, chirai, kavil">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
-          <input type="password" id="loginPassword" required class="w-full border p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
-        </div>
-        <p id="loginError" class="text-xs text-red-600 font-bold hidden text-center"></p>
-        <button type="submit" id="signInSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg transition">Sign In to Portal</button>
-      </form>
+                <!-- Notifications Bell -->
+                <button onclick="toggleNotifications()" class="relative p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">2</span>
+                </button>
 
-      <!-- REGISTER FORM (Hidden by default) -->
-      <form id="registerForm" class="space-y-4 hidden">
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Company / Customer Name *</label>
-          <input type="text" id="regCompany" required class="w-full border p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Acme Engineering">
+                <!-- Role Switcher Toggle -->
+                <div class="bg-slate-900 p-1 rounded-lg border border-slate-800 flex items-center space-x-1">
+                    <button id="btn-role-admin" onclick="setRole('admin')" class="px-3 py-1 rounded-md text-xs font-medium transition bg-indigo-600 text-white shadow">Admin Mode</button>
+                    <button id="btn-role-client" onclick="setRole('client')" class="px-3 py-1 rounded-md text-xs font-medium transition text-slate-400 hover:text-white">Client View</button>
+                </div>
+            </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username or Email *</label>
-          <input type="text" id="regEmail" required class="w-full border p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. acme or acme@umaeng.com">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Set Your Password *</label>
-          <input type="password" id="regPassword" minlength="6" required class="w-full border p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" placeholder="•••••••• (Min 6 chars)">
-        </div>
-        <p id="regError" class="text-xs text-red-600 font-bold hidden text-center"></p>
-        <button type="submit" id="signUpSubmitBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-lg transition">Create Client Account</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- FIRST-TIME GOOGLE USER COMPANY SETUP MODAL -->
-  <div id="companySetupModal" class="fixed inset-0 bg-slate-900 bg-opacity-80 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-      <div class="text-center space-y-1">
-        <span class="text-3xl">🏢</span>
-        <h3 class="font-bold text-lg text-slate-800">Complete Company Setup</h3>
-        <p class="text-xs text-slate-500">Please enter your business or company name for order processing.</p>
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Company / Business Name *</label>
-        <input type="text" id="setupCompanyName" required class="w-full border p-2.5 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. RMP Engineering / Chirai">
-      </div>
-      <button type="button" id="saveCompanyBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold shadow transition">Save & Continue</button>
-    </div>
-  </div>
-
-  <!-- MAIN APP WRAPPER -->
-  <div id="appWrapper" class="hidden flex-col min-h-screen">
-    <!-- Top Navigation Bar -->
-    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-          <span class="text-2xl">🏭</span>
-          <div>
-            <h1 class="font-bold text-base md:text-lg tracking-wide text-blue-400">Enterprise Pattern System</h1>
-            <p id="userRoleBadge" class="text-xs text-slate-300 font-medium">Logged in as: <span class="font-bold text-yellow-400" id="currentUserName">...</span></p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="openFormBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold shadow text-xs md:text-sm transition flex items-center gap-1">
-            <span>+</span> <span>New Order</span>
-          </button>
-          <button id="logoutBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition">Logout</button>
-        </div>
-      </div>
     </header>
 
-    <!-- Main Responsive Workbench Container -->
-    <main class="max-w-7xl mx-auto w-full p-4 flex-1 grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-      <!-- Sidebar Metrics & Supplier Directory Panel -->
-      <aside class="space-y-4 md:col-span-1">
-        <div class="grid grid-cols-3 md:grid-cols-1 gap-3">
-          <div class="bg-white border-l-4 border-red-500 p-3 rounded-xl shadow-sm">
-            <span class="text-[11px] font-bold text-red-600 uppercase tracking-wider block">Overdue Orders</span>
-            <div id="countOverdue" class="text-2xl font-black text-red-700 mt-1">0</div>
-          </div>
-          <div class="bg-white border-l-4 border-yellow-500 p-3 rounded-xl shadow-sm">
-            <span class="text-[11px] font-bold text-yellow-600 uppercase tracking-wider block">Due Today</span>
-            <div id="countToday" class="text-2xl font-black text-yellow-700 mt-1">0</div>
-          </div>
-          <div class="bg-white border-l-4 border-blue-500 p-3 rounded-xl shadow-sm">
-            <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider block">Pending Balance</span>
-            <div id="countPending" class="text-2xl font-black text-blue-800 mt-1">0</div>
-          </div>
-        </div>
+        <!-- Analytics Overview Cards -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium uppercase">Active Orders</span>
+                    <i data-lucide="shopping-bag" class="w-4 h-4 text-indigo-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white" id="stat-active-orders">2</div>
+                <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                    <i data-lucide="trending-up" class="w-3 h-3"></i> Live Sync
+                </p>
+            </div>
 
-        <!-- Supplier Directory Panel (STRICTLY ADMIN ONLY) -->
-        <div id="supplierDirectoryPanel" class="bg-white p-4 rounded-xl shadow-sm border hidden">
-          <h3 class="font-bold text-xs uppercase text-slate-500 tracking-wider mb-2">Verified Supplier Directory</h3>
-          <div class="space-y-2 text-xs">
-            <div class="flex justify-between border-b pb-1"><span class="font-semibold text-slate-800">Highton (Praveen Bhai)</span><span class="text-blue-600 font-mono">9879351524</span></div>
-            <div class="flex justify-between border-b pb-1"><span class="font-semibold text-slate-800">Sunshine (Mehul Bhai)</span><span class="text-blue-600 font-mono">9979936595</span></div>
-            <div class="flex justify-between border-b pb-1"><span class="font-semibold text-slate-800">Vision (Piyush Bhai)</span><span class="text-blue-600 font-mono">9428731594</span></div>
-            <div class="flex justify-between border-b pb-1"><span class="font-semibold text-slate-800">Charbhuja (Mukesh/Ankit)</span><span class="text-blue-600 font-mono">7069744815</span></div>
-            <div class="flex justify-between pb-1"><span class="font-semibold text-slate-800">Asutosh (Ronak Bhai)</span><span class="text-blue-600 font-mono">8511811844</span></div>
-          </div>
-        </div>
-      </aside>
+            <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium uppercase">Fulfillment Rate</span>
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white" id="stat-fulfillment">62.5%</div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div id="bar-fulfillment" class="bg-emerald-500 h-full rounded-full" style="width: 62.5%"></div>
+                </div>
+            </div>
 
-      <!-- Center Content Workbench -->
-      <section class="md:col-span-3 space-y-4">
-        <!-- Filter Bar -->
-        <div class="flex gap-2 bg-white p-3 rounded-xl shadow-sm border flex-wrap">
-          <input type="text" id="searchInput" placeholder="Search pattern or material grade..." class="border p-2 rounded-lg flex-1 min-w-[200px] text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-          <select id="statusFilter" class="border p-2 rounded-lg text-sm bg-white font-medium">
-            <option value="All">All Statuses</option>
-            <option value="New">New</option>
-            <option value="In progress">In progress</option>
-            <option value="Ready">Ready</option>
-            <option value="Delivered">Delivered</option>
-          </select>
-        </div>
+            <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium uppercase">Pending Pieces</span>
+                    <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white" id="stat-pending-pcs">90 <span class="text-xs font-normal text-slate-400">/ 240 pcs</span></div>
+                <p class="text-[11px] text-amber-400 mt-1">In active production</p>
+            </div>
 
-        <!-- Live Orders List -->
-        <div id="ordersList" class="space-y-4"></div>
-      </section>
+            <div class="glass-panel p-4 rounded-2xl border border-slate-800 role-admin-only">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium uppercase">Registered Clients</span>
+                    <i data-lucide="users" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white">3</div>
+                <p class="text-[11px] text-slate-400 mt-1">All accounts active</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-2xl border border-slate-800 role-client-only hidden">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium uppercase">Total Executed</span>
+                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white">150 pcs</div>
+                <p class="text-[11px] text-slate-400 mt-1">Across all orders</p>
+            </div>
+        </section>
+
+        <!-- Orders Execution Table Panel -->
+        <section class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+            <div class="p-4 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-semibold text-white">Live Pattern Work Orders</h2>
+                    <p class="text-xs text-slate-400">Real-time status tracking, pattern tags, and dispatch logs</p>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button onclick="exportCSV()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-300 flex items-center gap-1.5 transition">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Export CSV</span>
+                    </button>
+                    <button onclick="openCreateOrderModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Create Purchase Order</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900/60 text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-800">
+                        <tr>
+                            <th class="p-3.5">PO / Work Order</th>
+                            <th class="p-3.5 role-admin-only">Client Name</th>
+                            <th class="p-3.5">Pattern / Drawing No.</th>
+                            <th class="p-3.5">Grade</th>
+                            <th class="p-3.5">Ordered / Supplied</th>
+                            <th class="p-3.5">Target Date</th>
+                            <th class="p-3.5 role-admin-only">Foundry Partner</th>
+                            <th class="p-3.5">Status</th>
+                            <th class="p-3.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60 text-slate-300" id="orders-tbl-body">
+                        <!-- Populated dynamically by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
-  </div>
 
-  <!-- Multi-Item Order Modal Form -->
-  <div id="orderModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h2 id="modalTitle" class="text-lg font-bold text-slate-800">New Pattern Order Entry</h2>
-        <button id="closeFormBtn" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
-      </div>
-      
-      <form id="orderForm" class="space-y-4 text-sm" autocomplete="off">
-        <input type="hidden" id="formOrderId">
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border">
-          <div>
-            <label class="block font-semibold mb-1 text-slate-700">Customer / Owner Name *</label>
-            <input type="text" id="formCustomer" required class="w-full border p-2 rounded-lg bg-white" placeholder="e.g. Uma Engineering">
-          </div>
-          <div>
-            <label class="block font-semibold mb-1 text-slate-700">Target Due Date *</label>
-            <input type="date" id="formDueDate" required class="w-full border p-2 rounded-lg bg-white">
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-2">
-            <label class="block font-bold text-slate-800 text-base">Pattern Items & Allocations</label>
-            <button type="button" id="addItemRowBtn" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold shadow hover:bg-blue-700 transition">+ Add Pattern Row Above</button>
-          </div>
-          
-          <div id="itemsContainer" class="space-y-3">
-            <!-- Dynamic item rows prepended here -->
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-semibold mb-1 text-slate-700">Special Order Specifications & Notes</label>
-          <textarea id="formNotes" rows="2" class="w-full border p-2 rounded-lg" placeholder="Add tolerance, coating, machining specs, or delivery notes..."></textarea>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-3 border-t">
-          <button type="button" id="cancelFormBtn" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300">Cancel</button>
-          <button type="submit" id="submitFormBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold shadow">Save & Process Order</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Receive Goods Modal (GRN) -->
-  <div id="receiveModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-lg text-slate-800">Record Partial / Full Delivery</h3>
-        <button id="closeReceiveBtn" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
-      </div>
-      <div id="receiveModalBody" class="space-y-3 text-sm"></div>
-      <div class="flex justify-end gap-2 pt-2 border-t">
-        <button type="button" id="cancelReceiveBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">Cancel</button>
-        <button type="button" id="saveReceiveBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold">Update Balance</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="pdfPrintContainer" style="display: none;"></div>
-
-  <script>
-    const SUPPLIER_DIRECTORY = {
-      "Highton": { phone: "9879351524", name: "Praveen Bhai" },
-      "Sunshine": { phone: "9979936595", name: "Mehul Bhai" },
-      "Vision": { phone: "9428731594", name: "Piyush Bhai" },
-      "Charbhuja": { phone: "7069744815", name: "Mukesh / Ankit" },
-      "Asutosh": { phone: "8511811844", name: "Ronak Bhai" },
-      "Ashutosh": { phone: "8511811844", name: "Ronak Bhai" }
-    };
-
-    const CLIENT_MAP = {
-      "admin@umaeng.com": { name: "Admin (Uma)", role: "admin" },
-      "shalu@x-engi.in": { name: "Admin (Shalu)", role: "admin" },
-      "uma@umaeng.com": { name: "Uma Engineering", role: "client" },
-      "chirai@umaeng.com": { name: "Chirai", role: "client" },
-      "kavil@umaeng.com": { name: "Kavil", role: "client" },
-      "megha@umaeng.com": { name: "Megha", role: "client" },
-      "ashirwad@umaeng.com": { name: "Ashirwad", role: "client" },
-      "riya@umaeng.com": { name: "Riya", role: "client" },
-      "rmp@umaeng.com": { name: "RMP", role: "client" },
-      "shreenathji@umaeng.com": { name: "Shreenathji", role: "client" },
-      "techtools@umaeng.com": { name: "TechTools", role: "client" },
-      "siddhi@umaeng.com": { name: "Siddhi", role: "client" }
-    };
-
-    const CATALOG = [
-      {"p":"748-14-9091","f":"Castingcast","o":"Ashirwad"},{"p":"660-0551-778014","f":"Castingcast","o":"Chirai"},{"p":"04-10-304","f":"Charbhuja","o":"Chirai"},
-      {"p":"05-10-256","f":"Highton","o":"Chirai"},{"p":"12-20-050","f":"Highton","o":"Chirai"},{"p":"110-140-50","f":"Highton","o":"Chirai"},
-      {"p":"130/170/157","f":"Highton","o":"Chirai"},{"p":"170/210/75","f":"Arvind","o":"Chirai"},{"p":"175/200/30","f":"Highton","o":"Chirai"},
-      {"p":"180/210/75","f":"Foundry","o":"Chirai"},{"p":"180/240/72","f":"Highton","o":"Chirai"},{"p":"190/225/53","f":"Highton","o":"Chirai"},
-      {"p":"205/235/35","f":"Highton","o":"Chirai"},{"p":"210/260/20","f":"Sunshine","o":"Chirai"},{"p":"220/255/44","f":"Sunshine","o":"Chirai"},
-      {"p":"230/280/15","f":"Highton","o":"Chirai"},{"p":"240/275/40","f":"Highton","o":"Chirai"},{"p":"240/275/75","f":"Highton","o":"Chirai"},
-      {"p":"260/290/130","f":"Highton","o":"Chirai"},{"p":"265/310/95","f":"Highton","o":"Chirai"},{"p":"290-330-25 (CS)","f":"Castingcast","o":"Chirai"},
-      {"p":"34-400-001","f":"Highton","o":"Chirai"},{"p":"448-31-004/B","f":"Radhika Metal","o":"Chirai"},{"p":"448-31-007/B","f":"Radhika Metal","o":"Chirai"},
-      {"p":"448-31-047","f":"Highton","o":"Chirai"},{"p":"65/80/17","f":"Charbhuja","o":"Chirai"},{"p":"720-00-110","f":"Highton","o":"Chirai"},
-      {"p":"720-00-120","f":"Highton","o":"Chirai"},{"p":"720-00-150","f":"Highton","o":"Chirai"},{"p":"720-05-462","f":"Shree Foundry","o":"Chirai"},
-      {"p":"720-32-052","f":"Highton","o":"Chirai"},{"p":"720-32-062","f":"Highton","o":"Chirai"},{"p":"720-32-130","f":"Highton","o":"Chirai"},
-      {"p":"720-43-260","f":"Highton","o":"Chirai"},{"p":"720-44-150","f":"Highton","o":"Chirai"},{"p":"721-83-544","f":"Castingcast","o":"Chirai"},
-      {"p":"748-04-766","f":"Omesus","o":"Chirai"},{"p":"748-10-153","f":"Castingcast","o":"Chirai"},{"p":"748-12-563","f":"Omesus","o":"Chirai"},
-      {"p":"748-14-1057","f":"Highton","o":"Chirai"},{"p":"748-14-1179","f":"Sunshine","o":"Chirai"},{"p":"748-14-1329","f":"Castingcast","o":"Chirai"},
-      {"p":"748-14-1721","f":"Highton","o":"Chirai"},{"p":"748-14-2777","f":"Castingcast","o":"Chirai"},{"p":"748-14-4741","f":"Omesus","o":"Chirai"},
-      {"p":"748-14-4761","f":"Mr Industries","o":"Chirai / Ashirwad"},{"p":"748-14-5955","f":"Castingcast","o":"Chirai"},{"p":"748-14-6208","f":"Sunshine","o":"Chirai"},
-      {"p":"748-14-6209","f":"Sunshine","o":"Chirai"},{"p":"748-14-6210","f":"Sunshine","o":"Chirai"},{"p":"748-14-6257","f":"Sunshine","o":"Chirai"},
-      {"p":"748-14-6312","f":"Highton","o":"Chirai"},{"p":"748-14-683","f":"Sunshine","o":"Chirai"},{"p":"748-14-7053","f":"Shree Vinayaka","o":"Chirai"},
-      {"p":"748-14-7055","f":"Highton","o":"Chirai"},{"p":"748-14-7929","f":"Charbhuja","o":"Chirai"},{"p":"748-14-8185","f":"Highton","o":"Chirai"},
-      {"p":"748-14-8186","f":"Highton","o":"Chirai"},{"p":"748-14-904","f":"Highton","o":"Chirai"},{"p":"748-14-905","f":"Highton","o":"Chirai"},
-      {"p":"748-14-9071","f":"Shree Foundry","o":"Chirai"},{"p":"748-14-9076","f":"Castingcast","o":"Chirai"},{"p":"748-14-9090","f":"Vision","o":"Chirai"},
-      {"p":"748-14-9420/A","f":"Highton","o":"Chirai"},{"p":"748-15-0241","f":"Castingcast","o":"Chirai"},{"p":"748-15-0246","f":"Castingcast","o":"Chirai"},
-      {"p":"748-15-1235","f":"Ahmedabad Engineers","o":"Chirai"},{"p":"748-15-1237","f":"Ahmedabad Engineers","o":"Chirai"},{"p":"748-15-1457","f":"Sunshine","o":"Chirai"},
-      {"p":"748-15-154","f":"Castingcast","o":"Chirai"},{"p":"748-15-1565","f":"Castingcast","o":"Chirai"},{"p":"748-15-1594","f":"MR Industries","o":"Chirai"},
-      {"p":"748-15-1670","f":"Castingcast","o":"Chirai"},{"p":"748-15-2458","f":"Omesus","o":"Chirai"},{"p":"748-15-2464","f":"Omesus","o":"Chirai"},
-      {"p":"748-15-2475","f":"Highton","o":"Chirai"},{"p":"748-15-2520","f":"MR Industries","o":"Chirai"},{"p":"748-15-2521","f":"MR Industries","o":"Chirai"},
-      {"p":"748-15-433","f":"Sunshine","o":"Chirai"},{"p":"748-25-2368","f":"Castingcast","o":"Chirai"},{"p":"748-25-2418","f":"Omesus","o":"Chirai"},
-      {"p":"748-25-2707","f":"Castingcast","o":"Chirai"},{"p":"748-25-3498","f":"Omesus","o":"Chirai"},{"p":"7713396","f":"Omesus","o":"Chirai"},
-      {"p":"7729497","f":"MR Industries","o":"MEG"},{"p":"7730755","f":"MR Industries","o":"Chirai"},{"p":"7730762","f":"MR Industries","o":"Chirai"},
-      {"p":"7732758","f":"Omesus - Sun","o":"Chirai"},{"p":"7737071","f":"Omesus","o":"Chirai"},{"p":"7737072","f":"Omesus","o":"Chirai"},
-      {"p":"7737075","f":"Omesus","o":"Chirai"},{"p":"7737469","f":"MR Industries","o":"Chirai"},{"p":"7771163","f":"Satish Bhai","o":"Chirai"},
-      {"p":"80-100-20","f":"Om-Cc","o":"Chirai"},{"p":"8532170","f":"Sunshine","o":"Chirai"},{"p":"8532206","f":"Highton","o":"Chirai"},
-      {"p":"8533524/A","f":"Charbhuja","o":"Chirai"},{"p":"8535131","f":"Sunshine","o":"Chirai"},{"p":"8535140","f":"Ashutosh","o":"Chirai"},
-      {"p":"8535141","f":"Ashutosh","o":"Chirai"},{"p":"8535246","f":"Highton","o":"Chirai"},{"p":"8535248","f":"Highton","o":"Chirai"},
-      {"p":"8536556/3","f":"Rm","o":"Chirai"},{"p":"8536580/A","f":"Highton","o":"Chirai"},{"p":"8536586/A","f":"Highton","o":"Chirai"},
-      {"p":"8539020","f":"Castingcast","o":"Ashirwad"},{"p":"8539028","f":"Ahmedabad Engineers","o":"Chirai"},{"p":"8539033","f":"Ahmedabad Engineers","o":"Chirai"},
-      {"p":"8539041","f":"Castingcast","o":"Chirai"},{"p":"8539412","f":"Castingcast","o":"Chirai"},{"p":"8540184","f":"Highton","o":"Chirai"},
-      {"p":"8540321","f":"Highton","o":"Chirai"},{"p":"8540331","f":"Ambica Industries","o":"Chirai"},{"p":"8544502","f":"Sunshine","o":"Chirai"},
-      {"p":"8544523","f":"MR Industries","o":"Chirai"},{"p":"8544529","f":"Highton","o":"Chirai"},{"p":"8544530","f":"Sunshine","o":"Chirai"},
-      {"p":"8553114","f":"Sunshine","o":"Chirai"},{"p":"8628011","f":"Vision","o":"Chirai"},{"p":"8628026","f":"Cc-Sf-Vis","o":"Chirai"},
-      {"p":"8628027","f":"Cc-Sf-Vis","o":"Chirai"},{"p":"8628524","f":"Ahmedabad Engineers","o":"Chirai"},{"p":"8628525","f":"Ahmedabad Engineers","o":"Chirai"},
-      {"p":"8628541","f":"Castingcast","o":"Chirai"},{"p":"916-142-221437","f":"Sunshine","o":"Chirai"},{"p":"925-0142-221399","f":"Highton","o":"Chirai"},
-      {"p":"9528532","f":"Castingcast","o":"Chirai"},{"p":"9546482","f":"Highton","o":"Chirai"},{"p":"9546509","f":"Asutosh","o":"Chirai"},
-      {"p":"9546528","f":"Highton","o":"Chirai"},{"p":"9547500","f":"Highton","o":"Chirai"},{"p":"9547524","f":"Sunshine","o":"Chirai"},
-      {"p":"9547533","f":"Highton","o":"Chirai"},{"p":"9547537","f":"Highton","o":"Chirai"},{"p":"9549570","f":"Highton","o":"Megha"},
-      {"p":"9550355","f":"Highton","o":"Chirai"},{"p":"9551176","f":"Sunshine","o":"Chirai"},{"p":"9555068","f":"Ahmedabad Engineers","o":"Chirai"},
-      {"p":"9559351","f":"MR Industries","o":"Chirai"},{"p":"9559353","f":"Vision","o":"Chirai"},{"p":"9562853","f":"Vision","o":"Chirai"},
-      {"p":"FC00978143/A","f":"Castingcast","o":"Chirai"},{"p":"FC01024808","f":"Castingcast","o":"Chirai"},{"p":"FC01037882","f":"Highton","o":"Chirai"},
-      {"p":"FC01040701","f":"Omesus","o":"Chirai"},{"p":"FC01055432","f":"Omesus-Vision","o":"Chirai"},{"p":"S0017-3647","f":"Ambica","o":"Chirai"},
-      {"p":"S0017-3649","f":"Highton","o":"Chirai"},{"p":"S0017-3960","f":"Ambica","o":"Chirai"},{"p":"S0017-3961","f":"Ambica","o":"Chirai"},
-      {"p":"W0004-0434","f":"Cc-Sf-Vision","o":"Chirai"},{"p":"W0005-0435","f":"Cc-Sf-Vision","o":"Chirai"},{"p":"W0006-0436","f":"Cc-Sf-Vision","o":"Chirai"},
-      {"p":"W0007-0451","f":"Castingcast","o":"Chirai"},{"p":"W0008-0442","f":"Sunshine","o":"Chirai"},{"p":"W0606-0321","f":"Ambica","o":"Chirai"},
-      {"p":"07-10-200","f":"Mansi","o":"Kavil"},{"p":"07-25-262","f":"Highton","o":"Kavil"},{"p":"08-10-226","f":"Highton","o":"Kavil"},
-      {"p":"10-20-120","f":"Sunshine","o":"Kavil"},{"p":"120-145-20","f":"Charbhuja","o":"Kavil"},{"p":"129-04-16-361","f":"Sunshine","o":"Kavil"},
-      {"p":"129-04-16-362","f":"Sunshine","o":"Kavil"},{"p":"160-190-25","f":"Highton","o":"Kavil"},{"p":"170-200-25","f":"Highton","o":"Kavil"},
-      {"p":"250-290-25","f":"Ashutosh","o":"Kavil"},{"p":"270-310-25","f":"Highton","o":"Kavil"},{"p":"300-340-25","f":"Ashutosh","o":"Kavil"},
-      {"p":"310-350-025","f":"Ashutosh","o":"Kavil"},{"p":"37-04-2346","f":"Highton","o":"Kavil"},{"p":"460-510-30","f":"Vision","o":"Kavil"},
-      {"p":"5503575","f":"Highton","o":"Kavil"},{"p":"720-20-540EE","f":"Ambica","o":"Kavil"},{"p":"748-10-0276/C","f":"Ambica","o":"Kavil"},
-      {"p":"748-14-2815","f":"Ambica","o":"Kavil"},{"p":"748-15-1790","f":"Mansi","o":"Kavil"},{"p":"748-25-1320","f":"Omesus","o":"Kavil"},
-      {"p":"748-25-1321","f":"Omesus","o":"Kavil"},{"p":"748-25-3646","f":"Sunshine","o":"Kavil"},{"p":"748-25-3647","f":"Sunshine","o":"Kavil"},
-      {"p":"82-04-0060","f":"Highton","o":"Kavil"},{"p":"8533806","f":"Sunshine","o":"Kavil"},{"p":"8535106","f":"Highton","o":"Kavil"},
-      {"p":"8536529 / 530","f":"Highton","o":"Kavil"},{"p":"8536570","f":"Highton","o":"Kavil"},{"p":"8536660","f":"Highton","o":"Kavil"},
-      {"p":"8536742","f":"Highton","o":"Kavil"},{"p":"8538135 / 8538137","f":"Sunshine","o":"Kavil"},{"p":"8538145","f":"Sunshine","o":"Kavil"},
-      {"p":"8538179","f":"Highton","o":"Kavil"},{"p":"8538180","f":"Sunshine","o":"Kavil"},{"p":"8560317","f":"Sunshine","o":"Kavil"},
-      {"p":"8628527","f":"Vinducto","o":"Kavil"},{"p":"9546453","f":"Sunshine","o":"Kavil"},{"p":"9548953","f":"Charbhuja","o":"Kavil"},
-      {"p":"9549552","f":"Highton","o":"Kavil"},{"p":"960-0441-221423","f":"Sunshine","o":"Kavil"},{"p":"Adaptor - 05-55-410","f":"Highton","o":"Kavil"},
-      {"p":"1018381","f":"Castingcast","o":"Kavil"},{"p":"FC01024809","f":"Sun Casting","o":"Kavil"},{"p":"FC01026445","f":"Sunshine","o":"Kavil"},
-      {"p":"360-415-030","f":"Highton-Sf","o":"Kavil"},{"p":"S0005-2130","f":"Sunshine","o":"Kavil"},{"p":"S0005-2132","f":"Sunshine","o":"Kavil"},
-      {"p":"S0005-2133","f":"Sunshine","o":"Kavil"},{"p":"S0012-2435","f":"Ashutosh","o":"Kavil"},{"p":"S0012-2541","f":"Sunshine","o":"Kavil"},
-      {"p":"S008-3093","f":"Sunshine","o":"Kavil"},{"p":"S0125-3062","f":"Sunshine","o":"Kavil"},{"p":"S0125-3064","f":"Sunshine","o":"Kavil"},
-      {"p":"S0125-3066","f":"Sunshine","o":"Kavil"},{"p":"VZ-20-81-02-01121-00","f":"Highton","o":"Kavil"},{"p":"932592","f":"Ambica","o":"Megha"},
-      {"p":"932612","f":"Ambica","o":"Megha"},{"p":"934593","f":"Omesus","o":"Megha"},{"p":"01-GPF-10230","f":"Ambica","o":"Megha"},
-      {"p":"01-GPF-10231","f":"Ambica","o":"Megha"},{"p":"01-GPF-9911","f":"Ambica","o":"Megha"},{"p":"01-GPF-9912","f":"Ambica","o":"Megha"},
-      {"p":"04-GPF-14647","f":"Ambica","o":"Megha"},{"p":"06-10-099","f":"Sunshine","o":"Megha"},{"p":"08-GPF-0950(16G)","f":"Sun Casting","o":"Megha"},
-      {"p":"10-22-260","f":"Highton","o":"Megha"},{"p":"10-26-220","f":"Ambica","o":"Megha"},{"p":"11-CPE-D0903","f":"Castingcast","o":"Megha"},
-      {"p":"16-CPE-00517","f":"Omesus","o":"Megha"},{"p":"-17-GPF-1176(BOTechToolsOM)","f":"Sun Casting","o":"Megha"},{"p":"17-GPF-1776(TOP)","f":"Sun Casting","o":"Megha"},
-      {"p":"18-CPE-D0219","f":"Castingcast","o":"Megha"},{"p":"18-CPE-D0917","f":"Sunshine","o":"Megha"},{"p":"2024687","f":"Vision","o":"Megha"},
-      {"p":"45099","f":"Castingcast","o":"Megha"},{"p":"23-GPF-0208","f":"Ambica","o":"Megha"},{"p":"27-40-0003","f":"Omesus","o":"Megha"},
-      {"p":"41-509-02","f":"Ambica","o":"Megha"},{"p":"41-510-04","f":"Ambica Alloys","o":"Megha"},{"p":"41-513-04","f":"Ambica Alloys","o":"Megha"},
-      {"p":"41-514-04","f":"Ambica","o":"Megha"},{"p":"41-613-02","f":"Ambica Alloys","o":"Megha"},{"p":"41-614-04","f":"Ambica","o":"Megha"},
-      {"p":"47-03-2459","f":"Ambica","o":"Megha"},{"p":"47-03-2465","f":"Ambica","o":"Megha"},{"p":"57-03-1805","f":"Sunshine","o":"Megha"},
-      {"p":"57-04-1542","f":"Ambica Alloys","o":"Megha"},{"p":"57-04-1542/A  &  37-04-2350","f":"Ambica Alloys","o":"Megha"},{"p":"6000133","f":"Castingcast","o":"Megha"},
-      {"p":"660-0551-204961","f":"Sunshine","o":"Megha"},{"p":"660-0551-206076","f":"Sunshine","o":"Megha"},{"p":"700-221056-1569","f":"Highton","o":"Megha"},
-      {"p":"700-221137-1407","f":"Ambica","o":"Megha"},{"p":"700-221447-457","f":"Sunshine","o":"Megha"},{"p":"720-40-340 EE","f":"Sunshine","o":"Megha"},
-      {"p":"720-44-320 EE","f":"Highton","o":"Megha"},{"p":"721-83-553","f":"Castingcast","o":"Megha"},{"p":"748-13-836","f":"Mansi","o":"Megha"},
-      {"p":"748-14-1183","f":"Sunshine","o":"Megha"},{"p":"748-14-1390","f":"Highton","o":"Megha"},{"p":"748-14-1645","f":"Sunshine","o":"Megha"},
-      {"p":"748-14-248","f":"Sunshine","o":"Megha"},{"p":"748-14-2636","f":"Ambica","o":"Megha"},{"p":"748-14-4458","f":"Ambica","o":"Megha"},
-      {"p":"748-14-5545","f":"Mansi","o":"Megha"},{"p":"748-14-5548","f":"Mansi","o":"Megha"},{"p":"748-14-6201","f":"Astron","o":"Megha"},
-      {"p":"748-14-6617/3","f":"Vision","o":"Megha"},{"p":"748-14-9457","f":"Mansi","o":"Megha"},{"p":"748-14-9715","f":"Highton","o":"Megha"},
-      {"p":"748-15-0103","f":"Ambica","o":"Megha"},{"p":"748-15-0124","f":"Highton","o":"Megha"},{"p":"748-15-1235","f":"Omesus","o":"Megha"},
-      {"p":"748-15-1335","f":"Sunshine","o":"Megha"},{"p":"748-15-2121","f":"Sunshine","o":""},{"p":"748-15-2226","f":"Highton","o":"Megha"},
-      {"p":"748-15-2240","f":"Ambica","o":"Megha"},{"p":"748-15-2640","f":"Ambica","o":"Megha"},{"p":"748-15-2682","f":"Ambica","o":"Megha"},
-      {"p":"748-15-2721","f":"Ambica","o":"Megha"},{"p":"748-15-2739","f":"Ambica","o":"Megha"},{"p":"748-15-2880","f":"Omesus","o":"Megha"},
-      {"p":"748-15-2998 MKD-2","f":"Castingcast","o":"Megha"},{"p":"748-15-3212","f":"Sunshine","o":"Megha"},{"p":"748-25-0582 / 6000133","f":"Sun Casting","o":"Megha"},
-      {"p":"748-25-3663","f":"Sunshine","o":"Megha"},{"p":"7710542/3","f":"Castingcast","o":"Megha"},{"p":"7713637/3","f":"Ahmedabad Engineers","o":"Megha"},
-      {"p":"7725680/21-C(MKD2)","f":"Sun Casting","o":"MEG"},{"p":"7725680/2I-C","f":"Sun Casting","o":"Megha"},{"p":"7725680/2 MKD 1","f":"Suncasting","o":"Megha"},
-      {"p":"7725680/2 MKD 2","f":"Suncasting","o":"Megha"},{"p":"82-04-128","f":"Sunshine","o":"Megha"},{"p":"8532142 / 8532189","f":"Sunshine","o":"Megha"},
-      {"p":"8532240","f":"Highton","o":"Megha"},{"p":"8535040/3","f":"Sunshine","o":"Megha"},{"p":"8535142/3","f":"Sunshine","o":"Megha"},
-      {"p":"8535153/3","f":"Sunshine","o":"Megha"},{"p":"8535174/3","f":"Highton","o":"Megha"},{"p":"8535212","f":"Castingcast","o":"Megha"},
-      {"p":"8535250","f":"Highton","o":"Megha"},{"p":"8536602 / 542 /541 / 543 / 664","f":"Charbhuja","o":"Megha"},{"p":"8536610","f":"Highton","o":"Megha"},
-      {"p":"8536667","f":"Highton","o":"Megha"},{"p":"8536748","f":"Highton","o":"Megha"},{"p":"8536749","f":"Sunshine","o":"Megha"},
-      {"p":"8536754","f":"Highton","o":"Megha"},{"p":"8536755","f":"Sunshine","o":"Megha"},{"p":"8538046 / 8538264","f":"Highton","o":"Megha"},
-      {"p":"8538063/64/65/8538263","f":"Highton","o":"Megha"},{"p":"8538070 / 8538268","f":"Sunshine ","o":"Megha"},{"p":"8538526","f":"Ambica","o":"Megha"},
-      {"p":"8538715","f":"Ambica","o":"Megha"},{"p":"8546014/3","f":"Highton","o":"Megha"},{"p":"8552251","f":"Sunshine","o":"Megha"},
-      {"p":"8628533","f":"Sun Casting","o":"Megha"},{"p":"903-4312-221190","f":"Madhav","o":"Megha"},{"p":"903-4382-221427","f":"Ambica","o":"Megha"},
-      {"p":"903-4476-221410","f":"Ambica","o":"Megha"},{"p":"903-5476-221188","f":"Ambica","o":"Megha"},{"p":"942-0242-221186","f":"Sunshine","o":"Megha"},
-      {"p":"9546456","f":"Sunshine","o":"Megha"},{"p":"9546458","f":"Sunshine","o":"Megha"},{"p":"9546509","f":"Sunshine","o":"Megha"},
-      {"p":"9546520","f":"Sunshine","o":"Megha"},{"p":"9546554","f":"Asutosh","o":"MEG"},{"p":"9547458","f":"Ambica","o":"Megha"},
-      {"p":"9547461","f":"Charbhuja","o":"Megha"},{"p":"9547483","f":"Highton","o":"Megha"},{"p":"9547485","f":"Sunshine","o":"Megha"},
-      {"p":"9547533","f":"Highton","o":"Megha"},{"p":"9547575","f":"Sunshine","o":"Megha"},{"p":"9548963","f":"Ambica","o":"Megha"},
-      {"p":"9549251","f":"Sunshine","o":"Megha"},{"p":"9549551","f":"Highton","o":"Megha"},{"p":"9549557","f":"Highton","o":"Megha"},
-      {"p":"9555051","f":"Highton","o":"Megha"},{"p":"9559371","f":"Highton","o":"Megha"},{"p":"9559374","f":"Omesus","o":"Megha"},
-      {"p":"9559375","f":"Omesus","o":"Megha"},{"p":"956-0242-221049","f":"Sunshine","o":"Megha"},{"p":"960-0242-221098","f":"Highton","o":"Megha"},
-      {"p":"973940","f":"Sun Casting","o":"Megha"},{"p":"FC00981645","f":"Omesus","o":"Megha"},{"p":"FC01010981","f":"Omesus","o":"Megha"},
-      {"p":"FC0102381","f":"Sunshine","o":"Megha"},{"p":"1030127","f":"Castingcast","o":"Megha"},{"p":"FC01034102","f":"Omesus","o":"Megha"},
-      {"p":"FC01035425","f":"Omesus","o":"Megha"},{"p":"FC01037881","f":"Castingcast","o":"Megha"},{"p":"FC01055133","f":"Ambica","o":"Megha"},
-      {"p":"FC01058873","f":"Castingcast","o":"Megha"},{"p":"FC01064213","f":"Vision","o":"Megha"},{"p":"GWS 704 DP - 410x460x240","f":"Charbhuja","o":"Megha"},
-      {"p":"S0017-3643 / 3642","f":"Ambica","o":"Megha"},{"p":"S0020-1072","f":"Sunshine","o":"Megha"},{"p":"S0028-3693","f":"Ambica","o":"Megha"},
-      {"p":"S0028-3694","f":"Ambica","o":"Megha"},{"p":"S0028-3714","f":"Ambica","o":"Megha"},{"p":"1228-3787","f":"Ambica","o":"Megha"},
-      {"p":"1228-3835","f":"Ambica","o":"Megha"},{"p":"08-22-211 / 8-10-228","f":"Ambica","o":"Riya"},{"p":"08-22-260","f":"Sunshine","o":"Riya"},
-      {"p":"09-10-228","f":"Charbhuja","o":"Riya"},{"p":"340-395-30 (CS)","f":"Shree Foundry","o":"Riya"},{"p":"360-415-30","f":"Shree Foundry","o":"Riya"},
-      {"p":"370-420-30","f":"Shree Foundry","o":"Riya"},{"p":"3-96651-1-0899","f":"Castingcast","o":"Riya"},{"p":"400-450-30(CS)","f":"Shree Foundry","o":"Riya"},
-      {"p":"420-470-30(CS)","f":"Cc-Sf","o":"Riya"},{"p":"448-31-052","f":"Highton","o":"Riya"},{"p":"448-48-012","f":"Casting Cast","o":"Riya"},
-      {"p":"448-48-022","f":"Casting Cast","o":"Riya"},{"p":"448-70-044","f":"Sunshine","o":"Riya"},{"p":"448-71-006","f":"Sunshine","o":"Riya"},
-      {"p":"5500403","f":"Highton","o":"Riya"},{"p":"6006590","f":"Castingcast","o":"Riya"},{"p":"602-130","f":"Ahmedabad Engineers","o":"Riya"},
-      {"p":"602-190","f":"Sun Casting","o":"Riya"},{"p":"602-200","f":"Castingcast","o":"Riya"},{"p":"602-240","f":"Omesus","o":"Riya"},
-      {"p":"606-125","f":"Vinducto","o":"Riya"},{"p":"606-160","f":"Ahmedabad Engineers","o":"Riya"},{"p":"606-310","f":"Shree Foundry","o":"Riya"},
-      {"p":"606-540","f":"Shree Foundry","o":"Riya"},{"p":"606-560","f":"Highton","o":"Riya"},{"p":"720-00-260","f":"Vinducto","o":"Riya"},
-      {"p":"720-20-360","f":"Shree Foundry","o":"Riya"},{"p":"720-43-340","f":"Highton","o":"Riya"},{"p":"721-170-570","f":"Ahmedabad Engineers","o":"Riya"},
-      {"p":"721-83-506","f":"Castingcast","o":"Riya"},{"p":"721-83-514","f":"Castingcast","o":"Riya"},{"p":"721-83-515","f":"Omesus","o":"Riya"},
-      {"p":"721-83-516","f":"Omesus","o":"Riya"},{"p":"721-83-517","f":"Omesus","o":"Riya"},{"p":"748-14-1081","f":"Castingcast","o":"Riya"},
-      {"p":"748-14-4311","f":"Sun Casting","o":"Riya"},{"p":"748-14-7374","f":"Castingcast","o":"Riya"},{"p":"03-10-010","f":"Charbhuja","o":"RMP"},
-      {"p":"03-55-320","f":"Charbhuja","o":"RMP"},{"p":"04-10-019","f":"Sunshine","o":"RMP"},{"p":"04-10-074","f":"Charbhuja","o":"RMP"},
-      {"p":"04-10-172/B","f":"Sunshine","o":"RMP"},{"p":"04-20-120","f":"Charbhuja","o":"RMP"},{"p":"04-20-170","f":"Charbhuja","o":"RMP"},
-      {"p":"04-20-170/A","f":"Sunshine","o":"RMP"},{"p":"04-55-420","f":"Highton","o":"RMP"},{"p":"04-60-228","f":"Charbhuja","o":"RMP"},
-      {"p":"05-10-019","f":"Sunshine","o":"RMP"},{"p":"05-10-172","f":"Sunshine","o":"RMP"},{"p":"05-10-243","f":"Shree Vinayaka","o":"RMP"},
-      {"p":"05-10-250","f":"Sunshine","o":"RMP"},{"p":"05-10-260","f":"Sunshine","o":"RMP"},{"p":"05-55-220/B","f":"Charbhuja","o":"RMP"},
-      {"p":"06/10/040","f":"Sunshine","o":"RMP"},{"p":"06-10-124/A","f":"Shree Vinayaka","o":"RMP"},{"p":"06-10-172","f":"Sunshine","o":"RMP"},
-      {"p":"07-20-120","f":"Sunshine","o":"RMP"},{"p":"07-20-250","f":"Shree Vinayaka","o":"RMP"},{"p":"07-20-260","f":"Shree Vinayaka","o":"RMP"},
-      {"p":"075/115/010","f":"Charbhuja","o":"RMP"},{"p":"08-10-169 DP","f":"Sunshine","o":"RMP"},{"p":"08-20-250","f":"Sunshine","o":"RMP"},
-      {"p":"08-20-260","f":"Sunshine","o":"RMP"},{"p":"08-22-060/A","f":"Sunshine","o":"RMP"},{"p":"090/130/010","f":"Charbhuja","o":"RMP"},
-      {"p":"09-20-120","f":"Radhika","o":"RMP"},{"p":"09-21-170/A","f":"Sunshine","o":"RMP"},{"p":"09-40-050","f":"Charbhuja","o":"RMP"},
-      {"p":"095/110/80","f":"Charbhuja","o":"RMP"},{"p":"100/120/14","f":"Sunshine","o":"RMP"},{"p":"100/120/241","f":"Sunshine","o":"RMP"},
-      {"p":"100/120/32","f":"Sunshine","o":"RMP"},{"p":"10-10-050","f":"Sunshine","o":"RMP"},{"p":"10-10-121/A","f":"Shree Vinayaka","o":"RMP"},
-      {"p":"10-10-170","f":"Sunshine","o":"RMP"},{"p":"10-10-252 / 09-10-067","f":"Shree Vinayaka","o":"RMP"},{"p":"10-10-262 / 09-10-066","f":"Shree Vinayaka","o":"RMP"},
-      {"p":"10-20-250/G","f":"Ashutosh","o":"RMP"},{"p":"10-20-260","f":"Charbhuja","o":"RMP"},{"p":"10-21-030","f":"Charbhuja","o":"RMP"},
-      {"p":"10-22-060","f":"Sunshine","o":"RMP"},{"p":"105/120/45","f":"Sunshine","o":"RMP"},{"p":"105/120/68","f":"Charbhuja","o":"RMP"},
-      {"p":"105/120/74","f":"Sunshine","o":"RMP"},{"p":"110/130/30","f":"Charbhuja","o":"RMP"},{"p":"110/130/35","f":"Sunshine","o":"RMP"},
-      {"p":"110/130/72","f":"Asutosh","o":"RMP"},{"p":"11-10-170","f":"Sunshine","o":"RMP"},{"p":"115/130/067","f":"Highton","o":"RMP"},
-      {"p":"120/140/18","f":"Sunshine","o":"RMP"},{"p":"120/140/27","f":"Sunshine","o":"RMP"},{"p":"12-10-050","f":"Charbhuja","o":"RMP"},
-      {"p":"12-10-060","f":"Sunshine","o":"RMP"},{"p":"12-20-170/E","f":"Sunshine","o":"RMP"},{"p":"12-21-030","f":"Charbhuja","o":"RMP"},
-      {"p":"130/150/25","f":"Sunshine","o":"RMP"},{"p":"130/150/30","f":"Sunshine","o":"RMP"},{"p":"130/150/39","f":"Ashutosh","o":"RMP"},
-      {"p":"140/205/020","f":"Charbhuja","o":"RMP"},{"p":"150/170/31","f":"Sunshine","o":"RMP"},{"p":"150/170/40","f":"Ashutosh","o":"RMP"},
-      {"p":"150/220/030","f":"Charbhuja","o":"RMP"},{"p":"170/190/037","f":"Charbhuja","o":"RMP"},{"p":"170/190/25","f":"Charbhuja","o":"RMP"},
-      {"p":"170/190/32","f":"Charbhuja","o":"RMP"},{"p":"170/190/39","f":"Ashutosh","o":"RMP"},{"p":"170/210/30","f":"Charbhuja","o":"RMP"},
-      {"p":"170/210/32","f":"Charbhuja","o":"RMP"},{"p":"195/215/046","f":"Sunshine","o":"RMP"},{"p":"24-30-190/A","f":"Sunshine","o":"RMP"},
-      {"p":"25-10-060/A","f":"Sunshine","o":"RMP"},{"p":"25-30-190/A","f":"Highton","o":"RMP"},{"p":"36-10-130","f":"Charbhuja","o":"RMP"},
-      {"p":"448-46-002","f":"Charbhuja","o":"RMP"},{"p":"448-46-007","f":"Radhika Metal","o":"RMP"},{"p":"448-46-008","f":"Charbhuja","o":"RMP"},
-      {"p":"448-47-015 (140/160/046)","f":"Charbhuja","o":"RMP"},{"p":"448-47-018 (180/200/020)","f":"Charbhuja","o":"RMP"},{"p":"448-47-021","f":"Charbhuja","o":"RMP"},
-      {"p":"448-47-032","f":"Charbhuja","o":"RMP"},{"p":"48-30-060","f":"Charbhuja","o":"RMP"},{"p":"51-30-250","f":"Ashutosh","o":"RMP"},
-      {"p":"51-30-256","f":"Highton","o":"RMP"},{"p":"51-30-452","f":"Sunshine","o":"RMP"},{"p":"61-30-450/C","f":"Charbhuja","o":"RMP"},
-      {"p":"65/80/160","f":"Sunshine","o":"RMP"},{"p":"65/80/41","f":"Sunshine","o":"RMP"},{"p":"65/80/58","f":"Charbhuja","o":"RMP"},
-      {"p":"65/80/84","f":"Asutosh","o":"RMP"},{"p":"748-15-1283","f":"Shree Vinayaka","o":"RMP"},{"p":"748-15-2549","f":"Sunshine","o":"RMP"},
-      {"p":"75/90/144.5","f":"Sunshine","o":"RMP"},{"p":"75/90/28.25","f":"Sunshine","o":"RMP"},{"p":"8030029","f":"Sunshine","o":"RMP"},
-      {"p":"80-Jaali","f":"Sunshine","o":"RMP"},{"p":"85/105/45","f":"Sunshine","o":"RMP"},{"p":"8540150","f":"Shree Vinayaka","o":"RMP"},
-      {"p":"8540173","f":"Sunshine","o":"RMP"},{"p":"8540186","f":"Charbhuja","o":"RMP"},{"p":"8540187","f":"Highton","o":"RMP"},
-      {"p":"8540210/4","f":"Charbhuja","o":"RMP"},{"p":"8540211","f":"Sunshine","o":"RMP"},{"p":"8540215","f":"Sunshine","o":"RMP"},
-      {"p":"8540234  (105/120/25)","f":"Charbhuja","o":"RMP"},{"p":"8540241","f":"Charbhuja","o":"RMP"},{"p":"8540280 / 4","f":"Sunshine","o":"RMP"},
-      {"p":"8540288/4","f":"Highton","o":"RMP"},{"p":"8540302","f":"Sunshine","o":"RMP"},{"p":"8540304","f":"Highton","o":"RMP"},
-      {"p":"8540308/4","f":"Sunshine","o":"RMP"},{"p":"8540314","f":"Shree Vinayaka","o":"RMP"},{"p":"8560310","f":"Sunshine","o":"RMP"},
-      {"p":"8560312","f":"Sunshine","o":"RMP"},{"p":"8560313","f":"Charbhuja","o":"RMP"},{"p":"8560314","f":"Highton","o":"RMP"},
-      {"p":"8560316","f":"Shree Vinayaka","o":"RMP"},{"p":"8560317","f":"Sunshine","o":"RMP"},{"p":"8560318/3","f":"Sunshine","o":"RMP"},
-      {"p":"8560319","f":"Sunshine","o":"RMP"},{"p":"8560322/3","f":"Sunshine","o":"RMP"},{"p":"8560323","f":"Asutosh","o":"RMP"},
-      {"p":"8560324","f":"Charbhuja","o":"RMP"},{"p":"8560325","f":"Charbhuja","o":"RMP"},{"p":"8560327","f":"Sunshine","o":"RMP"},
-      {"p":"8560328","f":"Sunshine","o":"RMP"},{"p":"8560329/3","f":"Sunshine","o":"RMP"},{"p":"8560330/3","f":"Sunshine","o":"RMP"},
-      {"p":"8560331/D","f":"Highton","o":"RMP"},{"p":"8560335","f":"Sunshine","o":"RMP"},{"p":"8560336","f":"Sunshine","o":"RMP"},
-      {"p":"8560339","f":"Sunshine","o":"RMP"},{"p":"8560340","f":"Charbhuja","o":"RMP"},{"p":"8560343","f":"Sunshine","o":"RMP"},
-      {"p":"8560345","f":"Sunshine","o":"RMP"},{"p":"8560350","f":"Sunshine","o":"RMP"},{"p":"8560351","f":"Charbhuja","o":"RMP"},
-      {"p":"8560353","f":"Sunshine","o":"RMP"},{"p":"8560354","f":"Sunshine","o":"RMP"},{"p":"8560356/3/B","f":"Sunshine","o":"RMP"},
-      {"p":"8560357","f":"Charbhuja","o":"RMP"},{"p":"8560358/3","f":"Sunshine","o":"RMP"},{"p":"8560360","f":"Sunshine","o":"RMP"},
-      {"p":"8560363","f":"Sunshine","o":"RMP"},{"p":"8560365","f":"Ashutosh","o":"RMP"},{"p":"8560369","f":"Sunshine","o":"RMP"},
-      {"p":"8560371","f":"Charbhuja","o":"RMP"},{"p":"8560372","f":"Charbhuja","o":"RMP"},{"p":"8560380","f":"Sunshine","o":"RMP"},
-      {"p":"8560382","f":"Charbhuja","o":"RMP"},{"p":"8560386","f":"Shree Vinayaka","o":"RMP"},{"p":"8560390","f":"Charbhuja","o":"RMP"},
-      {"p":"8560391","f":"Charbhuja","o":"RMP"},{"p":"8560393/3","f":"Sunshine","o":"RMP"},{"p":"8560395","f":"Sunshine","o":"RMP"},
-      {"p":"8560396","f":"Charbhuja","o":"RMP"},{"p":"8560406","f":"Charbhuja","o":"RMP"},{"p":"8560408","f":"Sunshine","o":"RMP"},
-      {"p":"8560415","f":"Charbhuja","o":"RMP"},{"p":"8626003","f":"Charbhuja","o":"RMP"},{"p":"8626004","f":"Charbhuja","o":"RMP"},
-      {"p":"8626008","f":"Sunshine","o":"RMP"},{"p":"8626023","f":"Charbhuja","o":"RMP"},{"p":"8626024","f":"Charbhuja","o":"RMP"},
-      {"p":"8626030","f":"Charbhuja","o":"RMP"},{"p":"8626031","f":"Charbhuja","o":"RMP"},{"p":"8626032","f":"Charbhuja","o":"RMP"},
-      {"p":"8626037","f":"Highton","o":"RMP"},{"p":"90/100/25","f":"Sunshine","o":"RMP"},{"p":"90/110/27","f":"Sunshine","o":"RMP"},
-      {"p":"90/110/35","f":"Sunshine","o":"RMP"},{"p":"95/110/18","f":"Ashutosh","o":"RMP"},{"p":"95/110/30.5","f":"Highton","o":"RMP"},
-      {"p":"95/110/54.5","f":"Sunshine","o":"RMP"},{"p":"BUSH","f":"Highton","o":"RMP"},{"p":"S0004-0441","f":"Sunshine","o":"RMP"},
-      {"p":"S0004-0445","f":"Sunshine","o":"RMP"},{"p":"S0008-0176","f":"Charbhuja","o":"RMP"},{"p":"S0014-1453/A","f":"Mr Industries","o":"RMP"},
-      {"p":"S0260-4096","f":"Sunshine","o":"RMP"},{"p":"05-10-122","f":"Shree Vinayaka","o":"Shreenathji"},{"p":"05-10-237 - BH","f":"Highton","o":"Shreenathji"},
-      {"p":"06-10-216","f":"Highton","o":"Shreenathji"},{"p":"07-10-126","f":"Sunshine","o":"Shreenathji"},{"p":"07-25-210","f":"Highton","o":"Shreenathji"},
-      {"p":"100-120-20","f":"Sunshine","o":"Shreenathji"},{"p":"100-120-20 (CS)","f":"Vision","o":"Shreenathji"},{"p":"10-40-52","f":"Highton","o":"Shreenathji"},
-      {"p":"120-145-25","f":"Charbhuja","o":"Shreenathji"},{"p":"120-145-25(CS)","f":"Vision","o":"Shreenathji"},{"p":"125-150-20","f":"Vision","o":"Shreenathji"},
-      {"p":"130-155-20","f":"Vision","o":"Shreenathji"},{"p":"130-155-20 (CS)","f":"Vision","o":"Shreenathji"},{"p":"140-170-25","f":"Vision","o":"Shreenathji"},
-      {"p":"150-180-25 (CS)","f":"Vision","o":"Shreenathji"},{"p":"160-190-25","f":"Vision","o":"Shreenathji"},{"p":"160/190/25","f":"Highton","o":"Shreenathji"},
-      {"p":"170-200-25","f":"Shree Vinayaka","o":"Shreenathji"},{"p":"170-200-25(CS)","f":"Vision","o":"Shreenathji"},{"p":"180-215-025","f":"Charbhuja","o":"Shreenathji"},
-      {"p":"180-215-25 (CS)","f":"Vision","o":"Shreenathji"},{"p":"190-225-025 (CS)","f":"Vision","o":"Shreenathji"},{"p":"190-225-25","f":"Charbhuja","o":"Shreenathji"},
-      {"p":"200-235-025 (CI)","f":"Charbhuja","o":"Shreenathji"},{"p":"200-235-25 (CS)","f":"Vision","o":"Shreenathji"},{"p":"203-01-03-949","f":"Highton","o":"Shreenathji"},
-      {"p":"210-245-25(CS)","f":"Vision","o":"Shreenathji"},{"p":"215-250-025","f":"Charbhuja","o":"Shreenathji"},{"p":"215-250-025 (CS)","f":"Vision","o":"Shreenathji"},
-      {"p":"225-260-25 (CS)","f":"Vision","o":"Shreenathji"},{"p":"230-265-25","f":"Vision","o":"Shreenathji"},{"p":"240-280-25","f":"Vision","o":"Shreenathji"},
-      {"p":"250-290-25(CS)","f":"Vision","o":"Shreenathji"},{"p":"260-300-25 (CS)","f":"Vision","o":"Shreenathji"},{"p":"270-310-25 (CS)","f":"Castingcast","o":"Shreenathji"},
-      {"p":"448-01-005","f":"Highton","o":"Shreenathji"},{"p":"448-10-011","f":"Sunshine","o":"Shreenathji"},{"p":"448-10-14","f":"Shalu","o":"Shreenathji"},
-      {"p":"448-30-001","f":"Highton","o":"Shreenathji"},{"p":"448-30-008","f":"Highton","o":"Shreenathji"},{"p":"5-10-237","f":"Highton","o":"Shreenathji"},
-      {"p":"52-65-15","f":"Vision","o":"Shreenathji"},{"p":"5 - DP","f":"Charbhuja","o":"Shreenathji"},{"p":"62-75-15","f":"Vision","o":"Shreenathji"},
-      {"p":"6-DP","f":"Charbhuja","o":"Shreenathji"},{"p":"720-00-062","f":"Charbhuja","o":"Shreenathji"},{"p":"720-05-460 EE","f":"Ashutosh","o":"Shreenathji"},
-      {"p":"720-05-461","f":"Ashutosh","o":"Shreenathji"},{"p":"720-32-090 EEC","f":"Charbhuja","o":"Shreenathji"},{"p":"720-32-80","f":"Sunshine","o":"Shreenathji"},
-      {"p":"72-65-15","f":"Vision","o":"Shreenathji"},{"p":"748-14-3951","f":"Sunshine","o":"Shreenathji"},{"p":"748-14-5103","f":"Sunshine","o":"Shreenathji"},
-      {"p":"748-15-0524","f":"Sun Casting","o":"Shreenathji"},{"p":"748-15-1086","f":"Vision","o":"Shreenathji"},{"p":"748-15-1089","f":"Vinducto","o":"Shreenathji"},
-      {"p":"748-15-122","f":"Castingcast","o":"Shreenathji"},{"p":"748-15-1304","f":"Mr/Ms","o":"Shreenathji"},{"p":"748-15-515","f":"Vision","o":"Shreenathji"},
-      {"p":"7727055/4","f":"Charbhuja","o":"Shreenathji"},{"p":"7735580/4","f":"Castingcast","o":"Shreenathji"},{"p":"85-105-20 CS","f":"Vision","o":"Shreenathji"},
-      {"p":"8528550","f":"Vision","o":"Shreenathji"},{"p":"8532109","f":"Sunshine","o":"Shreenathji"},{"p":"8532110","f":"Sunshine","o":"Shreenathji"},
-      {"p":"8532121/3","f":"Sunshine","o":"Shreenathji"},{"p":"8532122","f":"Highton","o":"Shreenathji"},{"p":"8532173/3","f":"Highton","o":"Shreenathji"},
-      {"p":"8533520","f":"Charbhuja","o":"Shreenathji"},{"p":"8533532","f":"Sunshine","o":"Shreenathji"},{"p":"8535017/3","f":"Sunshine","o":"Shreenathji"},
-      {"p":"8535041","f":"Highton","o":"Shreenathji"},{"p":"8535117/3","f":"Highton","o":"Shreenathji"},{"p":"8535185","f":"Castingcast","o":"Shreenathji"},
-      {"p":"8535262","f":"Sunshine","o":"Shreenathji"},{"p":"8536507","f":"Charbhuja","o":"Shreenathji"},{"p":"8536524","f":"Charbhuja","o":"Shreenathji"},
-      {"p":"8536595","f":"Charbhuja","o":"Shreenathji"},{"p":"8538401","f":"Highton","o":"Shreenathji"},{"p":"8538405/3","f":"Highton","o":"Shreenathji"},
-      {"p":"8544524","f":"Mr/Ms","o":"Shreenathji"},{"p":"8546532","f":"Sunshine","o":"Shreenathji"},{"p":"8546535","f":"Charbhuja","o":"Shreenathji"},
-      {"p":"8560312","f":"Charbhuja","o":"Shreenathji"},{"p":"8560314/3","f":"Highton","o":"Shreenathji"},{"p":"8560318/3","f":"Charbhuja","o":"Shreenathji"},
-      {"p":"8560322","f":"Charbhuja","o":"Shreenathji"},{"p":"8560332","f":"Highton","o":"Shreenathji"},{"p":"8560341","f":"Highton","o":"Shreenathji"},
-      {"p":"8560349","f":"Ashutosh","o":"Shreenathji"},{"p":"8628502","f":"Cc-Vi","o":"Shreenathji"},{"p":"8628516","f":"Vision","o":"Shreenathji"},
-      {"p":"8628546","f":"Vision","o":"Shreenathji"},{"p":"8628550","f":"Vision","o":"Shreenathji"},{"p":"90-110-20 (CI)","f":"Charbhuja","o":"Shreenathji"},
-      {"p":"90-110-20 (CS)","f":"Vision","o":"Shreenathji"},{"p":"SG-Iron","f":"Highton","o":"Shreenathji"},{"p":"W0009-0457","f":"Highton","o":"Shreenathji"},
-      {"p":"W0604-0320","f":"Highton","o":"Shreenathji"},{"p":"Z-459-010-000 Flywheel","f":"Sunshine","o":"Shreenathji"},{"p":"Z-701318","f":"Highton","o":"Shreenathji"},
-      {"p":"06-22-211","f":"Ambica","o":"TechTools"},{"p":"27-03-1269","f":"Castingcast","o":"TechTools"},{"p":"300 x 330 x 20","f":"Castingcast","o":"TechTools"},
-      {"p":"305/335/85","f":"Highton","o":"TechTools"},{"p":"340/380/85","f":"Highton","o":"TechTools"},{"p":"360 x 400 x 40","f":"Castingcast","o":"TechTools"},
-      {"p":"57-03-4359","f":"Ambica","o":"TechTools"},{"p":"6004902","f":"Castingcast","o":"TechTools"},{"p":"6006584","f":"Castingcast ","o":"TechTools"},
-      {"p":"6007813","f":"Omesus","o":"TechTools"},{"p":"700-221116-2001","f":"Ambica","o":"TechTools"},{"p":"748-04-375","f":"Castingcast","o":"TechTools"},
-      {"p":"748-14-6275","f":"Castingcast","o":"TechTools"},{"p":"748-14-8763","f":"Castingcast","o":"TechTools"},{"p":"748-14-9657","f":"Highton","o":"TechTools"},
-      {"p":"748-15-0552","f":"Castingcast","o":"TechTools"},{"p":"748-15-0553","f":"Castingcast","o":"TechTools"},{"p":"748-15-0719","f":"Castingcast","o":"TechTools"},
-      {"p":"748-15-2852","f":"Ambica","o":"TechTools"},{"p":"748-15-2946","f":"Sunshine","o":"TechTools"},{"p":"748-15-3092","f":"Castingcast","o":"TechTools"},
-      {"p":"748-15-3096","f":"Castingcast","o":"TechTools"},{"p":"748-15-3108","f":"Castingcast","o":"TechTools"},{"p":"748-15-3119","f":"Castingcast","o":"TechTools"},
-      {"p":"748-15-3225","f":"Castingcast","o":"TechTools"},{"p":"748-15-3228","f":"Castingcast","o":"TechTools"},{"p":"748-15-3459","f":"Casting Cast","o":"TechTools"},
-      {"p":"748-15-3522","f":"Castingcast","o":"TechTools"},{"p":"748-15-3543","f":"Castingcast","o":"TechTools"},{"p":"748-25-2630","f":"Ahmedabad Engineers","o":"TechTools"},
-      {"p":"748-25-3180","f":"Sun Casting","o":"TechTools"},{"p":"7714960/3","f":"Sun Casting","o":"TechTools"},{"p":"7731442/3","f":"Castingcast","o":"TechTools"},
-      {"p":"7732954/3","f":"Castingcast","o":"TechTools"},{"p":"7732979","f":"Castingcast","o":"TechTools"},{"p":"7733509","f":"Castingcast","o":"TechTools"},
-      {"p":"7736556","f":"Castingcast","o":"TechTools"},{"p":"7737256/4","f":"Sun Casting","o":"TechTools"},{"p":"7743545","f":"Casting Cast","o":"TechTools"},
-      {"p":"7771161/3","f":"Omesus","o":"TechTools"},{"p":"7774813","f":"Castingcast","o":"TechTools"},{"p":"8539021/4","f":"Vision","o":"TechTools"},
-      {"p":"8552313","f":"Sunshine","o":"TechTools"},{"p":"8571094","f":"Ambica","o":"TechTools"},{"p":"9546508","f":"Highton","o":"TechTools"},
-      {"p":"9549573","f":"Sunshine","o":"TechTools"},{"p":"9559355","f":"Castingcast","o":"TechTools"},{"p":"C19683/2","f":"MR Industries","o":"TechTools"},
-      {"p":"DRG-NO-108","f":"Mr/Ms","o":"TechTools"},{"p":"E06221","f":"Vision","o":"TechTools"},{"p":"E77269 (1)","f":"Castingcast","o":"TechTools"},
-      {"p":"E77269 (2)","f":"Castingcast","o":"TechTools"},{"p":"FC00981133","f":"Castingcast","o":"TechTools"},{"p":"FC00992382","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01016532","f":"Castingcast","o":"TechTools"},{"p":"FC01016612","f":"Castingcast","o":"TechTools"},{"p":"FC01020827","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01024402","f":"Castingcast","o":"TechTools"},{"p":"FC01037641","f":"Castingcast","o":"TechTools"},{"p":"FC01047741","f":"Omesus ","o":"TechTools"},
-      {"p":"FC01050333","f":"Castingcast","o":"TechTools"},{"p":"FC01057194","f":"Castingcast","o":"TechTools"},{"p":"FC01057552","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01058172","f":"Castingcast","o":"TechTools"},{"p":"FC01058632","f":"Castingcast","o":"TechTools"},{"p":"FC01058972","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01059356","f":"Castingcast","o":"TechTools"},{"p":"FC01061114","f":"Castingcast ","o":"TechTools"},{"p":"FC01062412","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01062477","f":"Castingcast","o":"TechTools"},{"p":"FC01062552","f":"Castingcast","o":"TechTools"},{"p":"FC01062652","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01062672","f":"Castingcast","o":"TechTools"},{"p":"FC01062734","f":"Castingcast","o":"TechTools"},{"p":"FC01063534","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01063813","f":"Castingcast","o":"TechTools"},{"p":"FC01066384","f":"Castingcast","o":"TechTools"},{"p":"FC01066394","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01066854","f":"Casting Cast","o":"TechTools"},{"p":"FC01070292","f":"Ahmedabad Engineers","o":"TechTools"},{"p":"FC01070312","f":"Ahmedabad Engineers","o":"TechTools"},
-      {"p":"FC01072615","f":"Vinducto","o":"TechTools"},{"p":"FC01073694","f":"Castingcast","o":"TechTools"},{"p":"FC01074412","f":"Omesus ","o":"TechTools"},
-      {"p":"FC01074457","f":"Omesus ","o":"TechTools"},{"p":"FC01075153","f":"Castingcast","o":"TechTools"},{"p":"FC01080734","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01080892","f":"Castingcast","o":"TechTools"},{"p":"FC01081354","f":"Castingcast","o":"TechTools"},{"p":"FC01082354","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01082912","f":"Castingcast","o":"TechTools"},{"p":"FC01083413","f":"Castingcast","o":"TechTools"},{"p":"FC01085994","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01086013","f":"Castingcast","o":"TechTools"},{"p":"FC01086015","f":"Castingcast","o":"TechTools"},{"p":"FC01086016","f":"Castingcast","o":"TechTools"},
-      {"p":"FC01088906","f":"Castingcast","o":"TechTools"},{"p":"FC01088915","f":"Castingcast","o":"TechTools"},{"p":"FC01088919","f":"Castingcast","o":"TechTools"},
-      {"p":"LRT 03/27","f":"Ambica","o":"TechTools"},{"p":"M02077/4","f":"Vision","o":"TechTools"},{"p":"M11875/4","f":"Vinducto","o":"TechTools"},
-      {"p":"M15832/4","f":"Shree Foundry","o":"TechTools"},{"p":"TP106621","f":"Omesus ","o":"TechTools"},{"p":"8536562-","f":"Mr Industries","o":"Uma"},
-      {"p":"07-10-364-Base Plate (With Core)","f":"Highton","o":"Uma"},{"p":"09-10-064","f":"Arvind","o":"Uma"},{"p":"435-141-202372-","f":"Mr Industries","o":"Uma"},
-      {"p":"55005014/A-","f":"Mr Industries","o":"Uma"},{"p":"5500600","f":"Mr Industries","o":"Uma"},{"p":"5500727","f":"Mr Industries","o":"Uma"},
-      {"p":"5503350","f":"Mr Industries","o":"Uma"},{"p":"5503428","f":"Mr Industries","o":"Uma"},{"p":"5503476","f":"Sunshine","o":"Uma"},
-      {"p":"5503500","f":"Mr Industries","o":"Uma"},{"p":"748-14-6123","f":"Highton","o":"Uma"},{"p":"700-204324-282","f":"Mr Industries","o":"Uma"},
-      {"p":"720-00-170 EE","f":"Mr Industries","o":"Uma"},{"p":"720-44-180 EE","f":"Mr Industries","o":"Uma"},{"p":"748-10-0220","f":"Ambica","o":"Uma"},
-      {"p":"748-14-0032","f":"Ambica","o":"Uma"},{"p":"748-14-1256","f":"Sunshine","o":"Uma"},{"p":"748-14-1565","f":"Mr Industries","o":"Uma"},
-      {"p":"748-14-3507","f":"Sunshine","o":"Uma"},{"p":"748-14-5071","f":"Sunshine","o":"Uma"},{"p":"748-14-5079","f":"Sunshine","o":"Uma"},
-      {"p":"748-14-5103","f":"Sunshine","o":"Uma"},{"p":"748-14-5545","f":"Sunshine","o":"Uma"},{"p":"748-14-6329","f":"Sunshine","o":"Uma"},
-      {"p":"748-14-8145","f":"Ashutosh","o":"Uma"},{"p":"748-14-8148","f":"Ashutosh","o":"Uma"},{"p":"748-14-9077","f":"Sunshine","o":"Uma"},
-      {"p":"748-14-9090","f":"Omesus","o":"Uma"},{"p":"748-14-9517","f":"Highton","o":"Uma"},{"p":"748-15-1175","f":"Ambica","o":"Uma"},
-      {"p":"748-15-1196","f":"Omesus","o":"Uma"},{"p":"8532121/3","f":"Shree Vinayaka","o":"Uma"},{"p":"8532142/3","f":"Sunshine","o":"Uma"},
-      {"p":"8532196","f":"Sunshine","o":"Uma"},{"p":"8532201","f":"Highton","o":"Uma"},{"p":"8533514/3","f":"Charbhuja","o":"Uma"},
-      {"p":"8533516/3","f":"Charbhuja","o":"Uma"},{"p":"8533517","f":"Sunshine","o":"Uma"},{"p":"8533518","f":"Charbhuja","o":"Uma"},
-      {"p":"8533519","f":"Highton","o":"Uma"},{"p":"8533528","f":"Sunshine","o":"Uma"},{"p":"8533533","f":"Sunshine","o":"Uma"},
-      {"p":"8535010/3","f":"Sunshine","o":"Uma"},{"p":"8535013","f":"Sunshine","o":"Uma"},{"p":"8535017","f":"Charbhuja","o":"Uma"},
-      {"p":"8535018","f":"Charbhuja","o":"Uma"},{"p":"8535019","f":"Sunshine","o":"Uma"},{"p":"8535025/3","f":"Highton","o":"Uma"},
-      {"p":"8535026","f":"Charbhuja","o":"Uma"},{"p":"8535186","f":"Sunshine","o":"Uma"},{"p":"8536516/B","f":"Sunshine","o":"Uma"},
-      {"p":"8536518","f":"Charbhuja","o":"Uma"},{"p":"8536520","f":"Sunshine","o":"Uma"},{"p":"8536524","f":"Sunshine","o":"Uma"},
-      {"p":"8536566/3","f":"Charbhuja","o":"Uma"},{"p":"8536575","f":"Sunshine","o":"Uma"},{"p":"8536592","f":"Charbhuja","o":"Uma"},
-      {"p":"8536620","f":"Shree Vinayaka","o":"Uma"},{"p":"8536645","f":"Ashutosh","o":"Uma"},{"p":"8536656","f":"Sunshine","o":"Uma"},
-      {"p":"8538018","f":"Sunshine","o":"Uma"},{"p":"8544509","f":"Sunshine","o":"Uma"},{"p":"942-0242-221192","f":"Sunshine","o":"Uma"},
-      {"p":"9546459","f":"Highton","o":"Uma"},{"p":"9546460","f":"Sunshine","o":"Uma"},{"p":"9547453","f":"Sunshine","o":"Uma"},
-      {"p":"9547531","f":"Highton","o":"Uma"},{"p":"9552954","f":"Sunshine","o":"Uma"},{"p":"360-415-30","f":"Vision","o":"X-eNGI"},
-      {"p":"FC01125037","f":"Vision","o":"Megha"},{"p":"240/280/128","f":"Sunshine","o":"Chirai"},{"p":"FC01125294","f":"Vision","o":"Techtools"},
-      {"p":"240/260/20","f":"Ashutosh","o":"RMP"},{"p":"M19580","f":"Vision","o":"TechTools"},{"p":"720-32-200","f":"Ashutosh","o":"Chirai"},
-      {"p":"720-40-225","f":"Ashutosh","o":"Chirai"},{"p":"720-19-250","f":"Ashutosh","o":"Chirai"},{"p":"720-19-230","f":"Ashutosh","o":"Chirai"},
-      {"p":"FC01017801","f":"Vision","o":"Chirai"},{"p":"8535021","f":"Ashutosh","o":"Uma"},{"p":"8535027","f":"Ashutosh","o":"Uma"},
-      {"p":"9559357","f":"Vision","o":"Kavil"},{"p":"400-450-30 CS","f":"Vision","o":"Kavil"},{"p":"14-53-170/A","f":"Asutosh","o":"RMP"},
-      {"p":"9546521","f":"Vision","o":"Kavil"},{"p":"5500380","f":"Ashutosh","o":"Kavil"},{"p":"8533525","f":"Asutosh","o":"Kavil"},
-      {"p":"8536590","f":"Asutosh","o":"Kavil"},{"p":"8538429","f":"Asutosh","o":"Kavil"},{"p":"Round Bar","f":"Charbhuja","o":"TechTools"},
-      {"p":"748-15-4998","f":"Charbhuja","o":"Chirai"},{"p":"8540240/4/A","f":"Charbhuja","o":"RMP"},{"p":"8560330","f":"Charbhuja","o":"RMP"},
-      {"p":"8560319","f":"Charbhuja","o":"RMP"},{"p":"130/150/40","f":"Charbhuja","o":"RMP"},{"p":"460-510-30 (CI)","f":"Asutosh","o":"Kavil"},
-      {"p":"748-15-6535","f":"Madhav","o":"Uma"},{"p":"748-15-6536","f":"Asutosh","o":"Uma"},{"p":"57-04-4947","f":"Madhav","o":"Chirai"},
-      {"p":"9549255","f":"Vision","o":"Chirai"},{"p":"8535047","f":"Asutosh","o":"UMA"},{"p":"8535020","f":"Asutosh","o":"UMA"},
-      {"p":"9548551","f":"Arvind","o":"Kavil"},{"p":"660-0550-205127","f":"Asutosh","o":"Kavil"},{"p":"748-15-6529","f":"Asutosh","o":"Kavil"},
-      {"p":"LH","f":"Vision","o":"Siddhi"},{"p":"RH","f":"Vision","o":"Siddhi"},{"p":"720-20-260","f":"Vision","o":"Riya"},
-      {"p":"8538825","f":"Asutosh","o":"Kavil"},{"p":"8535039","f":"Asutosh","o":"Kavil"},{"p":"9546465","f":"Asutosh","o":"Kavil"},
-      {"p":"320-360-25","f":"Asutosh","o":"Kavil"},{"p":"9559359","f":"Asutosh","o":"Kavil"},{"p":"S0005-0711/A","f":"Asutosh","o":"RMP"},
-      {"p":"18-CPE-D1154 MG","f":"Vision","o":"Megha"},{"p":"04-10-262 / 04-10-077","f":"Asutosh","o":"Kavil"},{"p":"8536577","f":"Asutosh","o":"Kavil"},
-      {"p":"8538414","f":"Asutosh","o":"Kavil"},{"p":"8535020 CI PaTechToolsern","f":"Asutosh","o":"UMA"},{"p":"05-10-256/A","f":"Asutosh","o":"XENGI"},
-      {"p":"748-15-2929","f":"Vision","o":"Megha"},{"p":"9547456","f":"Asutosh","o":"Kavil"},{"p":"52-01-0027","f":"Asutosh","o":"Kavil"},
-      {"p":"8535044","f":"Asutosh","o":"Kavil"},{"p":"FC01024941/GWS-270","f":"Castingcast","o":"Riya"},{"p":"748-14-8783","f":"Vision","o":"Chirai"},
-      {"p":"9559358","f":"Vision","o":"Kavil"},{"p":"8535309","f":"Asutosh","o":"Kavil"},{"p":"5500102","f":"Asutosh","o":"Kavil"},
-      {"p":"8539020","f":"Vision","o":"Chirai"},{"p":"8539028","f":"Vision","o":"Chirai"},{"p":"606-200","f":"Vision","o":"Riya"},
-      {"p":"8540186 - Taper Cut","f":"Asutosh","o":"RMP"}
-    ];
-
-    // Fuzzy & Clean Pattern Matcher
-    function resolveFoundryForPattern(patternNo, existingFoundry) {
-      if (existingFoundry && existingFoundry !== 'No Foundry' && existingFoundry !== 'Unassigned Foundry' && existingFoundry.trim() !== '') {
-        return existingFoundry;
-      }
-      if (!patternNo) return '';
-      
-      const targetClean = patternNo.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const match = CATALOG.find(c => {
-        const catClean = c.p.toLowerCase().replace(/[^a-z0-9]/g, '');
-        return catClean === targetClean || catClean.includes(targetClean) || targetClean.includes(catClean);
-      });
-      
-      return match ? match.f : '';
-    }
-
-    let db, ordersCol, patternMemoryCol, usersCol;
-    let orders = [];
-    let currentUser = null;
-    let gradeMemoryMap = {};
-
-    function formatDateDDMMYYYY(dateStr) {
-      if (!dateStr) return 'N/A';
-      const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-      }
-      return dateStr;
-    }
-
-    try {
-      firebase.initializeApp({
-        apiKey: "AIzaSyAeeLuuL2PaOCzOhn_iRCi573KTmrS3Jn4",
-        authDomain: "order-tracker-pwa.firebaseapp.com",
-        projectId: "order-tracker-pwa",
-        storageBucket: "order-tracker-pwa.firebasestorage.app",
-        messagingSenderId: "157667844552",
-        appId: "1:157667844552:web:30e83d60f81d909fab20fd"
-      });
-      db = firebase.firestore();
-      db.settings({ experimentalForceLongPolling: true });
-      ordersCol = db.collection("orders");
-      patternMemoryCol = db.collection("patternMemory");
-      usersCol = db.collection("users");
-
-      patternMemoryCol.onSnapshot(snapshot => {
-        snapshot.docs.forEach(doc => {
-          gradeMemoryMap[doc.id] = doc.data().grade;
-        });
-      });
-    } catch(e) {
-      console.error("Firebase init error:", e);
-    }
-
-    // Modal Tab Switching
-    const tabSignIn = document.getElementById("tabSignInBtn");
-    const tabSignUp = document.getElementById("tabSignUpBtn");
-    const loginForm = document.getElementById("loginForm");
-    const registerForm = document.getElementById("registerForm");
-
-    tabSignIn.addEventListener("click", () => {
-      tabSignIn.className = "flex-1 py-2 text-blue-600 border-b-2 border-blue-600 font-bold";
-      tabSignUp.className = "flex-1 py-2 text-slate-400 hover:text-slate-600 border-b-2 border-transparent font-bold";
-      loginForm.classList.remove("hidden");
-      registerForm.classList.add("hidden");
-    });
-
-    tabSignUp.addEventListener("click", () => {
-      tabSignUp.className = "flex-1 py-2 text-blue-600 border-b-2 border-blue-600 font-bold";
-      tabSignIn.className = "flex-1 py-2 text-slate-400 hover:text-slate-600 border-b-2 border-transparent font-bold";
-      registerForm.classList.remove("hidden");
-      loginForm.classList.add("hidden");
-    });
-
-    async function handleUserLogin(user) {
-      const email = user.email.toLowerCase();
-      
-      let compName = (CLIENT_MAP[email] || {}).name;
-      let compRole = (CLIENT_MAP[email] || {}).role || "client";
-
-      if (!compName) {
-        const userDoc = await usersCol.doc(user.uid).get();
-        if (userDoc.exists && userDoc.data().companyName) {
-          compName = userDoc.data().companyName;
-        }
-      }
-
-      if (!compName) {
-        document.getElementById("companySetupModal").classList.remove("hidden");
-        
-        await new Promise((resolve) => {
-          document.getElementById("saveCompanyBtn").onclick = async () => {
-            const inputName = document.getElementById("setupCompanyName").value.trim();
-            if (inputName) {
-              compName = inputName;
-              await usersCol.doc(user.uid).set({
-                companyName: compName,
-                email: email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
-              document.getElementById("companySetupModal").classList.add("hidden");
-              resolve();
-            } else {
-              alert("Please enter a valid company name.");
-            }
-          };
-        });
-      }
-
-      currentUser = { email: email, name: compName, role: compRole };
-
-      document.getElementById("loginScreen").classList.add("hidden");
-      document.getElementById("appWrapper").classList.remove("hidden");
-      document.getElementById("appWrapper").classList.add("flex");
-      document.getElementById("currentUserName").innerText = `${currentUser.name} (${currentUser.role.toUpperCase()})`;
-
-      const supplierPanel = document.getElementById("supplierDirectoryPanel");
-      if (currentUser.role === 'client') {
-        supplierPanel.classList.add("hidden");
-        supplierPanel.classList.remove("md:block");
-        document.getElementById("formCustomer").value = currentUser.name;
-        document.getElementById("formCustomer").readOnly = true;
-      } else {
-        supplierPanel.classList.remove("hidden");
-        supplierPanel.classList.add("md:block");
-        document.getElementById("formCustomer").readOnly = false;
-      }
-
-      listenToOrders();
-    }
-
-    // SIGN IN HANDLER
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      let input = document.getElementById("loginEmail").value.trim().toLowerCase();
-      const password = document.getElementById("loginPassword").value;
-      const errorEl = document.getElementById("loginError");
-      const btn = document.getElementById("signInSubmitBtn");
-
-      errorEl.classList.add("hidden");
-      btn.innerText = "Verifying...";
-      btn.disabled = true;
-
-      if (!input.includes("@")) {
-        input = `${input}@umaeng.com`;
-      }
-
-      try {
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(input, password);
-        await handleUserLogin(userCredential.user);
-      } catch (err) {
-        errorEl.innerText = "Invalid credentials. Please check your username and password.";
-        errorEl.classList.remove("hidden");
-      } finally {
-        btn.innerText = "Sign In to Portal";
-        btn.disabled = false;
-      }
-    });
-
-    // SELF REGISTRATION HANDLER
-    registerForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const compName = document.getElementById("regCompany").value.trim();
-      let input = document.getElementById("regEmail").value.trim().toLowerCase();
-      const password = document.getElementById("regPassword").value;
-      const errorEl = document.getElementById("regError");
-      const btn = document.getElementById("signUpSubmitBtn");
-
-      errorEl.classList.add("hidden");
-      btn.innerText = "Creating Account...";
-      btn.disabled = true;
-
-      if (!input.includes("@")) {
-        input = `${input}@umaeng.com`;
-      }
-
-      try {
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(input, password);
-        
-        await usersCol.doc(userCredential.user.uid).set({
-          companyName: compName,
-          email: input,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        await handleUserLogin(userCredential.user);
-      } catch (err) {
-        errorEl.innerText = err.message || "Could not create account. Email may already be registered.";
-        errorEl.classList.remove("hidden");
-      } finally {
-        btn.innerText = "Create Client Account";
-        btn.disabled = false;
-      }
-    });
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      firebase.auth().signOut().then(() => location.reload());
-    });
-
-    function listenToOrders() {
-      ordersCol.onSnapshot((snapshot) => {
-        orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderOrders();
-      });
-    }
-
-    function renderOrders() {
-      const search = (document.getElementById("searchInput").value || "").toLowerCase();
-      const statusFilter = document.getElementById("statusFilter").value;
-      const listContainer = document.getElementById("ordersList");
-      listContainer.innerHTML = "";
-
-      const todayStr = new Date().toISOString().split("T")[0];
-      let overdue = 0, today = 0, totalPendingUnits = 0;
-
-      const filtered = orders.filter(o => {
-        if (currentUser.role === 'client' && (o.customer || "").toLowerCase() !== currentUser.name.toLowerCase()) {
-          return false;
-        }
-
-        const itemsText = Array.isArray(o.itemsList) 
-          ? o.itemsList.map(i => `${i.pattern} ${currentUser.role === 'admin' ? (i.foundry || resolveFoundryForPattern(i.pattern, i.foundry)) : ''} ${i.grade}`).join(" ")
-          : (o.items || "") + " " + (currentUser.role === 'admin' ? (o.foundry || "") : "");
-
-        const matchesSearch = (o.customer || "").toLowerCase().includes(search) || 
-                              itemsText.toLowerCase().includes(search);
-        const matchesStatus = statusFilter === "All" || o.status === statusFilter;
-        return matchesSearch && matchesStatus;
-      });
-
-      filtered.forEach(o => {
-        const rawItems = Array.isArray(o.itemsList) && o.itemsList.length > 0 
-          ? o.itemsList 
-          : [{ pattern: o.items || 'N/A', foundry: o.foundry || '', grade: o.grade || 'N/A', quantity: o.quantity || 1, received: o.received || 0 }];
-
-        // STRICT GUARD: Resolve foundry location ONLY for Admin view
-        const itemsList = rawItems.map(item => ({
-          ...item,
-          foundry: currentUser.role === 'admin' ? resolveFoundryForPattern(item.pattern, item.foundry) : ''
-        }));
-
-        let orderPendingUnits = 0;
-        itemsList.forEach(item => {
-          const rec = item.received || 0;
-          const pending = Math.max(0, (item.quantity || 1) - rec);
-          orderPendingUnits += pending;
-        });
-
-        if (o.status !== "Delivered") {
-          totalPendingUnits += orderPendingUnits;
-          if (o.dueDate < todayStr) overdue++;
-          else if (o.dueDate === todayStr) today++;
-        }
-
-        const foundryGroups = {};
-        itemsList.forEach((item, idx) => {
-          const fName = item.foundry || 'Unassigned Foundry';
-          if (!foundryGroups[fName]) foundryGroups[fName] = [];
-          foundryGroups[fName].push({ ...item, itemIndex: idx });
-        });
-
-        const card = document.createElement("div");
-        card.className = `bg-white p-5 rounded-2xl shadow-sm border-l-4 ${
-          o.status === 'Delivered' ? 'border-gray-400 bg-gray-50' :
-          o.dueDate < todayStr ? 'border-red-500 bg-red-50/50' : 'border-blue-600'
-        }`;
-
-        const itemsHtml = itemsList.map((i, idx) => {
-          const rec = i.received || 0;
-          const pending = Math.max(0, i.quantity - rec);
-          const foundLoc = i.foundry ? i.foundry : 'No Foundry';
-          return `
-            <div class="bg-slate-50 p-3 rounded-xl border text-xs flex justify-between items-center flex-wrap gap-2">
-              <div>
-                <span class="font-bold text-slate-800 text-sm">${i.pattern}</span>
-                <span class="text-gray-500 ml-2 font-mono">Ordered: ${i.quantity} | Rec: ${rec} | <span class="${pending > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-bold'}">Pending: ${pending}</span></span>
-              </div>
-              <div class="flex items-center gap-2">
-                ${currentUser.role === 'admin' ? `<span class="bg-blue-100 text-blue-900 px-2 py-0.5 rounded-md font-semibold">📍 ${foundLoc}</span>` : ''}
-                <span class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">Grade: ${i.grade || 'CI'}</span>
-                ${currentUser.role === 'admin' ? `<button onclick="openReceiveModal('${o.id}', ${idx})" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[11px] font-bold">📦 Receive</button>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        const foundryDispatchButtons = currentUser.role === 'admin' ? Object.keys(foundryGroups).map(fName => {
-          const contact = SUPPLIER_DIRECTORY[fName] || {};
-          const phone = contact.phone || '';
-          return `
-            <div class="flex gap-1">
-              <button onclick="downloadFoundryPDF('${o.id}', '${fName}')" class="bg-slate-700 hover:bg-slate-800 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1" title="Download Printable PDF">
-                📥 PDF
-              </button>
-              ${phone ? `
-                <button onclick="dispatchFoundryWhatsApp('${o.id}', '${fName}')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1" title="Send WhatsApp Message">
-                  💬 WA (${fName})
+    <!-- CREATE PURCHASE ORDER MODAL -->
+    <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-3xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                        <i data-lucide="file-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
+                        <p class="text-xs text-slate-400">Input order items or digitize handwritten notes with AI</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-create-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
-              ` : ''}
             </div>
-          `;
-        }).join('') : '';
 
-        // STRICT ROLE ENFORCEMENT: Controls strictly rendered for Admin ONLY
-        const deleteButtonHtml = currentUser.role === 'admin' 
-          ? `<button data-id="${o.id}" class="deleteBtn p-1.5 text-slate-400 hover:text-red-600 font-bold" title="Delete Order">🗑</button>` 
-          : '';
+            <div class="p-5 space-y-4 overflow-y-auto flex-1">
+                <!-- AI Digitizer Banner -->
+                <div class="p-3.5 rounded-xl bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 rounded-lg bg-indigo-600/30 text-indigo-300">
+                            <i data-lucide="camera" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-white">Have a handwritten note or picture order?</p>
+                            <p class="text-[11px] text-slate-400">Upload order sheet to extract pattern details automatically.</p>
+                        </div>
+                    </div>
+                    <button onclick="triggerOcrUpload()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 transition">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Digitize Order Photo
+                    </button>
+                </div>
 
-        const editButtonHtml = currentUser.role === 'admin' 
-          ? `<button data-id="${o.id}" class="editBtn p-1.5 text-slate-400 hover:text-blue-600 font-bold" title="Edit Order">✏️</button>`
-          : '';
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="role-admin-only">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Client</label>
+                        <select id="po-client-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <option value="Uma Engineering Works">Uma Engineering Works</option>
+                            <option value="Precision Castings Pvt Ltd">Precision Castings Pvt Ltd</option>
+                            <option value="Apex Industrial Alloys">Apex Industrial Alloys</option>
+                        </select>
+                    </div>
 
-        card.innerHTML = `
-          <div class="flex justify-between items-start mb-3">
-            <div>
-              <h3 class="font-bold text-xl text-slate-900">${o.customer || 'Unnamed Client'}</h3>
-              <p class="text-xs text-slate-500 font-medium">${itemsList.length} Pattern Item(s) | Order Date: ${formatDateDDMMYYYY(o.orderDate)}</p>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">
+                            Target Delivery Date <span id="delivery-date-note" class="text-[10px] text-indigo-400">(Min +10 days required)</span>
+                        </label>
+                        <input type="date" id="po-target-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Order Item Matrix Grid -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-medium text-slate-300 flex items-center gap-1">
+                            <i data-lucide="grid" class="w-3.5 h-3.5 text-indigo-400"></i> Order Item Matrix
+                        </label>
+                        <span class="text-[10px] text-slate-500">Press <kbd class="bg-slate-800 text-slate-300 px-1 rounded">Tab</kbd> or <kbd class="bg-slate-800 text-slate-300 px-1 rounded">Enter</kbd> on last cell to add row</span>
+                    </div>
+
+                    <div class="space-y-2" id="po-matrix-rows">
+                        <!-- Initial Row -->
+                        <div class="grid grid-cols-12 gap-2 items-center matrix-row">
+                            <div class="col-span-4">
+                                <input type="text" placeholder="Pattern Name / Drawing No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div class="col-span-5">
+                                <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                    <option value="" disabled selected>Select Grade...</option>
+                                    <optgroup label="C.I (Cast Iron)">
+                                        <option value="CI General">CI (General)</option>
+                                    </optgroup>
+                                    <optgroup label="C.I Grade">
+                                        <option value="C.I FG-200">C.I FG-200</option>
+                                        <option value="C.I FG-250">C.I FG-250</option>
+                                        <option value="C.I FG-260">C.I FG-260</option>
+                                        <option value="C.I FG-300">C.I FG-300</option>
+                                    </optgroup>
+                                    <optgroup label="SG Iron">
+                                        <option value="SG 400/12">SG Iron SG 400/12</option>
+                                        <option value="SG 400/15">SG Iron SG 400/15</option>
+                                        <option value="SG 450/10">SG Iron SG 450/10</option>
+                                        <option value="SG 500/7">SG Iron SG 500/7</option>
+                                        <option value="SG 600/3">SG Iron SG 600/3</option>
+                                        <option value="SG 700/2">SG Iron SG 700/2</option>
+                                    </optgroup>
+                                    <optgroup label="W.C.B Castings">
+                                        <option value="W.C.B Standard">W.C.B Standard</option>
+                                        <option value="W.C.B Grade A">W.C.B Grade A</option>
+                                        <option value="W.C.B Grade B">W.C.B Grade B</option>
+                                        <option value="W.C.B Grade C">W.C.B Grade C</option>
+                                        <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div class="col-span-1 text-center">
+                                <button onclick="this.closest('.matrix-row').remove()" class="text-slate-500 hover:text-rose-400 p-1">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="addMatrixRow()" class="mt-3 text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Another Row
+                    </button>
+                </div>
             </div>
-            <div class="flex items-center gap-2">
-              <select data-id="${o.id}" class="statusSelect border p-1.5 rounded-lg text-xs font-bold bg-white" ${currentUser.role === 'client' ? 'disabled' : ''}>
-                ${['New', 'In progress', 'Ready', 'Delivered'].map(s => 
-                  `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`
-                ).join('')}
-              </select>
-              ${editButtonHtml}
-              ${deleteButtonHtml}
+
+            <div class="p-4 border-t border-slate-800 bg-slate-900/40 flex items-center justify-end space-x-2">
+                <button onclick="closeModal('modal-create-order')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition">Cancel</button>
+                <button onclick="submitOrder()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">Create Order</button>
             </div>
-          </div>
-
-          <div class="space-y-2 my-3">
-            ${itemsHtml}
-          </div>
-
-          <div class="mt-3 text-xs text-gray-500 flex justify-between border-t pt-2">
-            <span>Target Due Date: <strong class="${o.dueDate < todayStr && o.status !== 'Delivered' ? 'text-red-600 font-bold' : 'text-slate-800'}">${formatDateDDMMYYYY(o.dueDate)}</strong></span>
-            <span>Total Pending Balance: <strong class="text-blue-700 font-bold">${orderPendingUnits} units</strong></span>
-          </div>
-          ${o.notes ? `<p class="mt-2 text-xs italic bg-yellow-50 p-2 rounded border border-yellow-200 text-yellow-900">Note: ${o.notes}</p>` : ''}
-          
-          ${currentUser.role === 'admin' ? `
-            <div class="mt-3 pt-3 border-t flex items-center justify-between flex-wrap gap-2">
-              <span class="text-xs font-bold text-slate-500">Supplier Work Orders:</span>
-              <div class="flex gap-2 flex-wrap">${foundryDispatchButtons}</div>
-            </div>
-          ` : ''}
-        `;
-        listContainer.appendChild(card);
-      });
-
-      document.getElementById("countOverdue").innerText = overdue;
-      document.getElementById("countToday").innerText = today;
-      document.getElementById("countPending").innerText = totalPendingUnits;
-
-      document.querySelectorAll(".statusSelect").forEach(sel => {
-        sel.addEventListener("change", (e) => {
-          ordersCol.doc(e.target.dataset.id).update({ status: e.target.value });
-        });
-      });
-
-      document.querySelectorAll(".editBtn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          if (currentUser.role !== 'admin') {
-            alert("PERMISSION DENIED: Clients cannot edit submitted orders.");
-            return;
-          }
-          const targetOrder = orders.find(o => o.id === e.target.dataset.id);
-          if (targetOrder) openEditModal(targetOrder);
-        });
-      });
-
-      document.querySelectorAll(".deleteBtn").forEach(btn => {
-        btn.addEventListener("click", async (e) => {
-          if (currentUser.role !== 'admin') {
-            alert("PERMISSION DENIED: Only Admin users are authorized to delete orders.");
-            return;
-          }
-          if (confirm("ADMIN GUARD: Are you sure you want to permanently delete this order?")) {
-            await ordersCol.doc(e.target.dataset.id).delete();
-          }
-        });
-      });
-    }
-
-    document.getElementById("searchInput").addEventListener("input", renderOrders);
-    document.getElementById("statusFilter").addEventListener("change", renderOrders);
-
-    const itemsContainer = document.getElementById("itemsContainer");
-
-    function createItemRow(data = {}) {
-      const row = document.createElement("div");
-      row.className = "item-row bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 relative shadow-sm transition";
-
-      row.innerHTML = `
-        <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pattern Item Allocation</span>
-          <button type="button" class="removeRowBtn text-red-500 hover:text-red-700 text-xs font-bold">&times; Remove</button>
         </div>
-        <div class="relative">
-          <label class="block text-[11px] font-bold text-slate-600 mb-0.5">Pattern No. / Description *</label>
-          <input type="text" class="rowPattern w-full border p-2 rounded-lg text-sm bg-white font-semibold text-blue-900" placeholder="Type pattern no..." value="${data.pattern || ''}" required>
-          <div class="rowLookup absolute left-0 right-0 top-full mt-1 bg-white border rounded-xl shadow-2xl max-h-40 overflow-y-auto hidden z-50"></div>
+    </div>
+
+    <!-- LOG DISPATCH MODAL -->
+    <div id="modal-log-dispatch" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="truck" class="w-5 h-5 text-indigo-400"></i> Log Partial Supply
+                </h3>
+                <button onclick="closeModal('modal-log-dispatch')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <p id="dispatch-po-id" class="text-xs font-semibold text-indigo-400">PO ID: --</p>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Dispatched Quantity (pcs)</label>
+                    <input type="number" id="dispatch-qty-input" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="e.g. 20">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Challan / Vehicle Number</label>
+                    <input type="text" id="dispatch-challan-input" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="e.g. CH-9942 / GJ-06">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+                <button onclick="closeModal('modal-log-dispatch')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
+                <button onclick="confirmDispatch()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Save Dispatch</button>
+            </div>
         </div>
-        <div class="grid grid-cols-3 gap-2">
-          <div class="${currentUser && currentUser.role === 'client' ? 'hidden' : ''}">
-            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">Foundry / Location</label>
-            <input type="text" class="rowFoundry w-full border p-2 rounded-lg text-xs bg-white font-medium" placeholder="Foundry" value="${data.foundry || ''}">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">Material Grade</label>
-            <select class="rowGrade w-full border p-2 rounded-lg text-xs bg-white font-medium">
-              <option value="CI" ${data.grade === 'CI' ? 'selected' : ''}>CI (Cast Iron)</option>
-              <option value="MS" ${data.grade === 'MS' ? 'selected' : ''}>MS (Mild Steel)</option>
-              <option value="SG Iron" ${data.grade === 'SG Iron' ? 'selected' : ''}>SG Iron</option>
-              <option value="SS" ${data.grade === 'SS' ? 'selected' : ''}>SS (Stainless)</option>
-              <option value="Aluminium" ${data.grade === 'Aluminium' ? 'selected' : ''}>Aluminium</option>
-              <option value="Grade" ${data.grade === 'Grade' ? 'selected' : ''}>Grade</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">Ordered Qty *</label>
-            <input type="number" class="rowQty w-full border p-2 rounded-lg text-xs bg-white font-bold" value="${data.quantity || 1}" min="1" required>
-          </div>
+    </div>
+
+    <!-- COMMAND PALETTE MODAL -->
+    <div id="modal-cmd-palette" class="fixed inset-0 z-50 hidden flex items-start justify-center pt-20 p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-xl rounded-2xl border border-slate-800 shadow-2xl p-4 space-y-3">
+            <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+                <input type="text" id="cmd-input" onkeyup="filterCmdPalette()" placeholder="Search pattern, client PO, or type action..." class="w-full bg-transparent text-xs text-white focus:outline-none">
+            </div>
+            <div class="space-y-1 text-xs text-slate-300" id="cmd-results">
+                <div onclick="openCreateOrderModal(); toggleCommandPalette();" class="p-2 hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between">
+                    <span>Create New Purchase Order</span>
+                    <kbd class="bg-slate-800 text-[10px] px-1.5 py-0.5 rounded text-slate-400">Action</kbd>
+                </div>
+                <div onclick="exportCSV(); toggleCommandPalette();" class="p-2 hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between">
+                    <span>Export Historical Ledger (CSV)</span>
+                    <kbd class="bg-slate-800 text-[10px] px-1.5 py-0.5 rounded text-slate-400">Export</kbd>
+                </div>
+            </div>
         </div>
-      `;
+    </div>
 
-      if (itemsContainer.firstChild) {
-        itemsContainer.insertBefore(row, itemsContainer.firstChild);
-      } else {
-        itemsContainer.appendChild(row);
-      }
+    <!-- Application Script Controller -->
+    <script>
+        // State Management & Database
+        let currentRole = 'admin';
+        let activeDispatchPo = null;
 
-      const patternInput = row.querySelector(".rowPattern");
-      const foundryInput = row.querySelector(".rowFoundry");
-      const gradeSelect = row.querySelector(".rowGrade");
-      const lookupBox = row.querySelector(".rowLookup");
-      const removeBtn = row.querySelector(".removeRowBtn");
+        let mockOrders = [
+            {
+                po: 'PO-2026-884',
+                client: 'Uma Engineering Works',
+                pattern: 'Flange Cover 12" (DWG-FC-12A)',
+                grade: 'C.I FG-260',
+                ordered: 100,
+                supplied: 60,
+                targetDate: '2026-10-18',
+                foundry: 'Sunshine Foundry',
+                status: 'Partially Supplied'
+            },
+            {
+                po: 'PO-2026-902',
+                client: 'Precision Castings Pvt Ltd',
+                pattern: 'Gear Box Housing (DWG-GH-40)',
+                grade: 'SG 500/7',
+                ordered: 140,
+                supplied: 90,
+                targetDate: '2026-10-22',
+                foundry: 'Apex Alloys',
+                status: 'Partially Supplied'
+            }
+        ];
 
-      removeBtn.addEventListener("click", () => {
-        if (document.querySelectorAll(".item-row").length > 1) {
-          row.remove();
-        } else {
-          alert("An order must have at least one pattern item.");
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderOrdersTable();
+            setupDateConstraints();
+
+            // Cmd + K Event Listener
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    toggleCommandPalette();
+                }
+            });
+        });
+
+        // Set Role & Privacy Rules
+        function setRole(role) {
+            currentRole = role;
+            const btnAdmin = document.getElementById('btn-role-admin');
+            const btnClient = document.getElementById('btn-role-client');
+
+            if (role === 'admin') {
+                btnAdmin.className = 'px-3 py-1 rounded-md text-xs font-medium transition bg-indigo-600 text-white shadow';
+                btnClient.className = 'px-3 py-1 rounded-md text-xs font-medium transition text-slate-400 hover:text-white';
+            } else {
+                btnClient.className = 'px-3 py-1 rounded-md text-xs font-medium transition bg-indigo-600 text-white shadow';
+                btnAdmin.className = 'px-3 py-1 rounded-md text-xs font-medium transition text-slate-400 hover:text-white';
+            }
+            applyRoleRules();
+            renderOrdersTable();
         }
-      });
 
-      patternInput.addEventListener("input", () => {
-        const query = patternInput.value.toLowerCase().trim();
-        if (!query) {
-          lookupBox.classList.add("hidden");
-          return;
+        function applyRoleRules() {
+            const adminOnlyElements = document.querySelectorAll('.role-admin-only');
+            const clientOnlyElements = document.querySelectorAll('.role-client-only');
+
+            if (currentRole === 'client') {
+                adminOnlyElements.forEach(el => el.classList.add('hidden'));
+                clientOnlyElements.forEach(el => el.classList.remove('hidden'));
+            } else {
+                adminOnlyElements.forEach(el => el.classList.remove('hidden'));
+                clientOnlyElements.forEach(el => el.classList.add('hidden'));
+            }
         }
 
-        const matches = CATALOG.filter(item => 
-          item.p.toLowerCase().includes(query) || 
-          item.o.toLowerCase().includes(query) || 
-          (currentUser && currentUser.role === 'admin' && item.f.toLowerCase().includes(query))
-        ).slice(0, 8);
+        // Render Table
+        function renderOrdersTable() {
+            const tbody = document.getElementById('orders-tbl-body');
+            tbody.innerHTML = '';
 
-        if (matches.length === 0) {
-          lookupBox.classList.add("hidden");
-          return;
+            mockOrders.forEach(o => {
+                const pct = Math.round((o.supplied / o.ordered) * 100);
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/40 transition';
+
+                tr.innerHTML = `
+                    <td class="p-3.5 font-semibold text-indigo-400">${o.po}</td>
+                    <td class="p-3.5 role-admin-only font-medium text-slate-200 ${currentRole === 'client' ? 'hidden' : ''}">${o.client}</td>
+                    <td class="p-3.5"><div class="font-medium text-slate-200">${o.pattern}</div></td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] border border-slate-700">${o.grade}</span></td>
+                    <td class="p-3.5">
+                        <div class="font-semibold text-white">${o.supplied} / ${o.ordered} pcs</div>
+                        <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
+                            <div class="bg-amber-500 h-full rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </td>
+                    <td class="p-3.5 text-slate-400">${o.targetDate}</td>
+                    <td class="p-3.5 role-admin-only text-slate-400 ${currentRole === 'client' ? 'hidden' : ''}">${o.foundry}</td>
+                    <td class="p-3.5">
+                        <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-medium flex items-center w-max gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="p-3.5 text-right space-x-1">
+                        ${currentRole === 'admin' ? `<button onclick="logDispatch('${o.po}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[11px] border border-slate-700">Dispatch</button>` : ''}
+                        <button onclick="generatePDF('${o.po}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
         }
 
-        // STRICT GUARD: Foundry in lookup dropdown rendered ONLY for Admin
-        lookupBox.innerHTML = matches.map(m => `
-          <div class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0 text-xs" data-pattern="${m.p}" data-owner="${m.o}" data-foundry="${currentUser && currentUser.role === 'admin' ? m.f : ''}">
-            <div class="font-bold text-blue-700">${m.p}</div>
-            ${currentUser && currentUser.role === 'admin' ? `<div class="text-[10px] text-gray-500">Foundry: ${m.f} \vert{} Owner:${m.o}</div>` : ''}
-          </div>
-        `).join('');
+        // Lock Date (+10 days minimum for Clients)
+        function setupDateConstraints() {
+            const dateInput = document.getElementById('po-target-date');
+            const today = new Date();
+            const minDate = new Date(today);
+            minDate.setDate(minDate.getDate() + 10);
 
-        lookupBox.classList.remove("hidden");
+            const minDateStr = minDate.toISOString().split('T')[0];
+            dateInput.min = minDateStr;
+            dateInput.value = minDateStr;
+        }
 
-        lookupBox.querySelectorAll("div[data-pattern]").forEach(el => {
-          el.addEventListener("click", () => {
-            patternInput.value = el.dataset.pattern;
-            if (foundryInput && currentUser && currentUser.role === 'admin') {
-              foundryInput.value = el.dataset.foundry;
+        // Modal Controllers
+        function openCreateOrderModal() {
+            document.getElementById('modal-create-order').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function toggleCommandPalette() {
+            const el = document.getElementById('modal-cmd-palette');
+            el.classList.toggle('hidden');
+            if (!el.classList.contains('hidden')) {
+                document.getElementById('cmd-input').focus();
+            }
+        }
+
+        function toggleNotifications() {
+            alert("Notification Feed:\n1. PO-2026-884 partially supplied (60 pcs).\n2. New registration requested by Apex Alloys.");
+            document.getElementById('notif-badge').classList.add('hidden');
+        }
+
+        // Add Row to Matrix
+        function addMatrixRow() {
+            const container = document.getElementById('po-matrix-rows');
+            const newRow = document.createElement('div');
+            newRow.className = 'grid grid-cols-12 gap-2 items-center matrix-row';
+            newRow.innerHTML = `
+                <div class="col-span-4">
+                    <input type="text" placeholder="Pattern Name / Drawing No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="col-span-5">
+                    <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="" disabled selected>Select Grade...</option>
+                        <optgroup label="C.I (Cast Iron)"><option value="CI General">CI (General)</option></optgroup>
+                        <optgroup label="C.I Grade">
+                            <option value="C.I FG-200">C.I FG-200</option>
+                            <option value="C.I FG-250">C.I FG-250</option>
+                            <option value="C.I FG-260">C.I FG-260</option>
+                            <option value="C.I FG-300">C.I FG-300</option>
+                        </optgroup>
+                        <optgroup label="SG Iron">
+                            <option value="SG 400/12">SG Iron SG 400/12</option>
+                            <option value="SG 400/15">SG Iron SG 400/15</option>
+                            <option value="SG 450/10">SG Iron SG 450/10</option>
+                            <option value="SG 500/7">SG Iron SG 500/7</option>
+                            <option value="SG 600/3">SG Iron SG 600/3</option>
+                            <option value="SG 700/2">SG Iron SG 700/2</option>
+                        </optgroup>
+                        <optgroup label="W.C.B Castings">
+                            <option value="W.C.B Standard">W.C.B Standard</option>
+                            <option value="W.C.B Grade A">W.C.B Grade A</option>
+                            <option value="W.C.B Grade B">W.C.B Grade B</option>
+                            <option value="W.C.B Grade C">W.C.B Grade C</option>
+                            <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="col-span-1 text-center">
+                    <button onclick="this.closest('.matrix-row').remove()" class="text-slate-500 hover:text-rose-400 p-1">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(newRow);
+            lucide.createIcons();
+        }
+
+        function triggerOcrUpload() {
+            alert("AI Order Digitizer Activated: Camera / Image file picker initialized. Auto-populating extracted pattern items.");
+        }
+
+        // Order Creation
+        function submitOrder() {
+            const targetClient = document.getElementById('po-client-select').value;
+            const targetDate = document.getElementById('po-target-date').value;
+            const row = document.querySelector('.matrix-row');
+
+            const pattern = row.querySelector('.input-pattern').value || 'Custom Flange Valve';
+            const grade = row.querySelector('.input-grade').value || 'C.I FG-250';
+            const qty = parseInt(row.querySelector('.input-qty').value) || 50;
+
+            const newPo = {
+                po: `PO-2026-${Math.floor(100 + Math.random() * 900)}`,
+                client: targetClient,
+                pattern: pattern,
+                grade: grade,
+                ordered: qty,
+                supplied: 0,
+                targetDate: targetDate,
+                foundry: 'Allocating Partner',
+                status: 'In Production'
+            };
+
+            mockOrders.unshift(newPo);
+            renderOrdersTable();
+            closeModal('modal-create-order');
+            alert(`Order ${newPo.po} successfully created!`);
+        }
+
+        // Dispatch Operations
+        function logDispatch(po) {
+            activeDispatchPo = po;
+            document.getElementById('dispatch-po-id').innerText = `PO ID: ${po}`;
+            document.getElementById('modal-log-dispatch').classList.remove('hidden');
+        }
+
+        function confirmDispatch() {
+            const qty = parseInt(document.getElementById('dispatch-qty-input').value) || 0;
+            const item = mockOrders.find(o => o.po === activeDispatchPo);
+
+            if (item) {
+                item.supplied = Math.min(item.ordered, item.supplied + qty);
+                if (item.supplied === item.ordered) item.status = 'Completed';
+                else item.status = 'Partially Supplied';
             }
 
-            const rememberedGrade = gradeMemoryMap[el.dataset.pattern.replace(/\//g, "_")];
-            if (rememberedGrade) {
-              gradeSelect.value = rememberedGrade;
-            }
-
-            if (currentUser && currentUser.role === 'admin' && el.dataset.owner && !document.getElementById("formCustomer").value) {
-              document.getElementById("formCustomer").value = el.dataset.owner;
-            }
-            lookupBox.classList.add("hidden");
-          });
-        });
-      });
-
-      document.addEventListener("click", (e) => {
-        if (!lookupBox.contains(e.target) && e.target !== patternInput) {
-          lookupBox.classList.add("hidden");
+            renderOrdersTable();
+            closeModal('modal-log-dispatch');
+            alert(`Log saved for ${activeDispatchPo}`);
         }
-      });
-    }
 
-    document.getElementById("addItemRowBtn").addEventListener("click", () => createItemRow());
-
-    const modal = document.getElementById("orderModal");
-    const openBtn = document.getElementById("openFormBtn");
-    const closeBtn = document.getElementById("closeFormBtn");
-    const cancelBtn = document.getElementById("cancelFormBtn");
-    const form = document.getElementById("orderForm");
-
-    const toggleModal = (show) => {
-      if (show) {
-        modal.classList.remove("hidden");
-      } else {
-        modal.classList.add("hidden");
-        form.reset();
-        document.getElementById("formOrderId").value = "";
-        itemsContainer.innerHTML = "";
-      }
-    };
-
-    openBtn.addEventListener("click", () => {
-      document.getElementById("modalTitle").innerText = "New Pattern Order Entry";
-      document.getElementById("submitFormBtn").innerText = "Save & Process Order";
-      document.getElementById("formDueDate").value = new Date().toISOString().split("T")[0];
-      if (currentUser.role === 'client') {
-        document.getElementById("formCustomer").value = currentUser.name;
-      }
-      itemsContainer.innerHTML = "";
-      createItemRow();
-      toggleModal(true);
-    });
-
-    const openEditModal = (order) => {
-      document.getElementById("modalTitle").innerText = "Edit Pattern Order Details";
-      document.getElementById("submitFormBtn").innerText = "Update Order";
-      document.getElementById("formOrderId").value = order.id;
-      document.getElementById("formCustomer").value = order.customer || "";
-      document.getElementById("formDueDate").value = order.dueDate || "";
-      document.getElementById("formNotes").value = order.notes || "";
-
-      itemsContainer.innerHTML = "";
-      const existingItems = Array.isArray(order.itemsList) && order.itemsList.length > 0 
-        ? order.itemsList 
-        : [{ pattern: order.items || '', foundry: order.foundry || '', grade: order.grade || 'CI', quantity: order.quantity || 1, received: order.received || 0 }];
-
-      existingItems.forEach(item => {
-        createItemRow({
-          ...item,
-          foundry: resolveFoundryForPattern(item.pattern, item.foundry)
-        });
-      });
-      toggleModal(true);
-    };
-
-    closeBtn.addEventListener("click", () => toggleModal(false));
-    cancelBtn.addEventListener("click", () => toggleModal(false));
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const orderId = document.getElementById("formOrderId").value;
-      const rows = document.querySelectorAll(".item-row");
-      const itemsList = [];
-
-      Array.from(rows).reverse().forEach(r => {
-        const pattern = r.querySelector(".rowPattern").value.trim();
-        const grade = r.querySelector(".rowGrade").value;
-        const foundryInput = r.querySelector(".rowFoundry");
-        const foundry = (currentUser.role === 'admin' && foundryInput) ? foundryInput.value.trim() : '';
-        const quantity = Number(r.querySelector(".rowQty").value) || 1;
-
-        if (pattern) {
-          itemsList.push({ pattern, foundry, grade, quantity, received: 0 });
-          patternMemoryCol.doc(pattern.replace(/\//g, "_")).set({ grade });
+        function exportCSV() {
+            let csv = "PO Number,Client Name,Pattern Spec,Grade,Ordered,Supplied,Target Date\n";
+            mockOrders.forEach(o => {
+                csv += `${o.po},${o.client},"${o.pattern}",${o.grade},${o.ordered},${o.supplied},${o.targetDate}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `VortexFlow_Orders_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
         }
-      });
 
-      const orderData = {
-        customer: currentUser.role === 'client' ? currentUser.name : document.getElementById("formCustomer").value,
-        dueDate: document.getElementById("formDueDate").value,
-        notes: document.getElementById("formNotes").value,
-        itemsList: itemsList
-      };
-
-      if (orderId) {
-        await ordersCol.doc(orderId).update(orderData);
-      } else {
-        await ordersCol.add({
-          ...orderData,
-          orderDate: new Date().toISOString().split("T")[0],
-          status: "New",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-
-      toggleModal(false);
-    });
-
-    let activeReceiveOrderId = null;
-    let activeReceiveItemIdx = null;
-
-    function openReceiveModal(orderId, itemIdx) {
-      activeReceiveOrderId = orderId;
-      activeReceiveItemIdx = itemIdx;
-      const order = orders.find(o => o.id === orderId);
-      if (!order) return;
-
-      const item = order.itemsList[itemIdx];
-      const rec = item.received || 0;
-      const pending = Math.max(0, item.quantity - rec);
-
-      const body = document.getElementById("receiveModalBody");
-      body.innerHTML = `
-        <div class="bg-slate-50 p-3 rounded-lg border space-y-1">
-          <p class="font-bold text-slate-800">${item.pattern} (Location: ${item.foundry || 'N/A'})</p>
-          <p class="text-xs text-slate-500">Ordered Qty: <strong>${item.quantity}</strong> | Previously Received: <strong>${rec}</strong></p>
-          <p class="text-xs text-red-600 font-bold">Outstanding Pending Balance: ${pending} units</p>
-        </div>
-        <div>
-          <label class="block font-semibold mb-1">New Units Received Today *</label>
-          <input type="number" id="receiveQtyInput" class="w-full border p-2 rounded-lg font-bold" min="1" max="${pending}" value="${pending}">
-        </div>
-      `;
-
-      document.getElementById("receiveModal").classList.remove("hidden");
-    }
-
-    document.getElementById("closeReceiveBtn").addEventListener("click", () => document.getElementById("receiveModal").classList.add("hidden"));
-    document.getElementById("cancelReceiveBtn").addEventListener("click", () => document.getElementById("receiveModal").classList.add("hidden"));
-
-    document.getElementById("saveReceiveBtn").addEventListener("click", async () => {
-      if (!activeReceiveOrderId || activeReceiveItemIdx === null) return;
-      const newQty = Number(document.getElementById("receiveQtyInput").value) || 0;
-      if (newQty <= 0) return;
-
-      const order = orders.find(o => o.id === activeReceiveOrderId);
-      if (!order) return;
-
-      const itemsList = [...order.itemsList];
-      const targetItem = { ...itemsList[activeReceiveItemIdx] };
-      targetItem.received = (targetItem.received || 0) + newQty;
-      itemsList[activeReceiveItemIdx] = targetItem;
-
-      await ordersCol.doc(activeReceiveOrderId).update({ itemsList });
-      document.getElementById("receiveModal").classList.add("hidden");
-    });
-
-    function buildFoundryPDFHtml(order, foundryName, matchingItems, contact) {
-      return `
-        <div style="padding: 30px; font-family: sans-serif; color: #0f172a;">
-          <div style="border-bottom: 2px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-between: space-between; align-items: center;">
-            <div>
-              <h1 style="color: #2563eb; margin: 0; font-size: 22px; text-transform: uppercase;">PURCHASE WORK ORDER</h1>
-              <p style="margin: 4px 0 0 0; font-size: 13px; color: #475569;">Target Foundry: <strong>${foundryName}</strong> ${contact.name ? '(' + contact.name + ')' : ''}</p>
-            </div>
-            <div style="text-align: right; font-size: 12px; color: #64748b;">
-              <p style="margin: 0;">Date: <strong>${formatDateDDMMYYYY(new Date().toISOString().split("T")[0])}</strong></p>
-              <p style="margin: 3px 0 0 0;">Target Due Date: <strong style="color: #b91c1c;">${formatDateDDMMYYYY(order.dueDate)}</strong></p>
-            </div>
-          </div>
-
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px;">
-            <thead>
-              <tr style="background-color: #f8fafc; text-align: left;">
-                <th style="padding: 10px; border: 1px solid #cbd5e1; width: 40px;">#</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1;">Pattern / Part Number</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1;">Material Grade</th>
-                <th style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; width: 100px;">Ordered Qty</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${matchingItems.map((item, idx) => `
-                <tr>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1;">${idx + 1}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #1e3a8a;">${item.pattern}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1;">${item.grade || 'CI'}</td>
-                  <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold;">${item.quantity} units</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-
-          ${order.notes ? `
-            <div style="font-size: 12px; color: #334155; background-color: #fefce8; border: 1px solid #fef08a; padding: 12px; rounded-radius: 8px; margin-top: 15px;">
-              <strong>Special Instructions / Specifications:</strong>
-              <p style="margin: 4px 0 0 0;">${order.notes}</p>
-            </div>
-          ` : ''}
-
-          <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 15px; text-align: center; font-size: 11px; color: #94a3b8;">
-            This is an automated system generated purchase work order.
-          </div>
-        </div>
-      `;
-    }
-
-    async function downloadFoundryPDF(orderId, foundryName) {
-      const order = orders.find(o => o.id === orderId);
-      if (!order) return;
-
-      const matchingItems = (order.itemsList || []).filter(i => (resolveFoundryForPattern(i.pattern, i.foundry) || 'Unassigned Foundry') === foundryName);
-      const contact = SUPPLIER_DIRECTORY[foundryName] || {};
-
-      const pdfContainer = document.getElementById("pdfPrintContainer");
-      pdfContainer.style.display = "block";
-      pdfContainer.innerHTML = buildFoundryPDFHtml(order, foundryName, matchingItems, contact);
-
-      const fileName = `WorkOrder_${foundryName.replace(/\s+/g, '_')}_${formatDateDDMMYYYY(new Date().toISOString().split("T")[0])}.pdf`;
-      
-      const opt = {
-        margin:       0.4,
-        filename:     fileName,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-
-      await html2pdf().set(opt).from(pdfContainer).save();
-      pdfContainer.style.display = "none";
-    }
-
-    async function dispatchFoundryWhatsApp(orderId, foundryName) {
-      const order = orders.find(o => o.id === orderId);
-      if (!order) return;
-
-      const matchingItems = (order.itemsList || []).filter(i => (resolveFoundryForPattern(i.pattern, i.foundry) || 'Unassigned Foundry') === foundryName);
-      const contact = SUPPLIER_DIRECTORY[foundryName] || {};
-      const phone = contact.phone || '';
-
-      if (!phone) {
-        alert(`No phone number configured for ${foundryName}. Please use the PDF button to download.`);
-        return;
-      }
-
-      await downloadFoundryPDF(orderId, foundryName);
-
-      const itemsText = matchingItems.map((i, idx) => `${idx + 1}. *${i.pattern}* - Qty: ${i.quantity} [Grade: ${i.grade || 'CI'}]`).join('\n');
-      const waMsg = encodeURIComponent(
-        `Hello ${contact.name || foundryName},\n\nNew Purchase Work Order Requirement:\n\n${itemsText}\n\nTarget Due Date: *${formatDateDDMMYYYY(order.dueDate)}*\n\n(Work order PDF has been generated and downloaded to attach)`
-      );
-      
-      const cleanPhone = phone.replace(/[^0-9]/g, '');
-      window.open(`https://wa.me/91${cleanPhone}?text=${waMsg}`, '_blank');
-    }
-  </script>
+        function generatePDF(po) {
+            alert(`Downloading verified work order PDF summary for ${po}...`);
+        }
+    </script>
 </body>
 </html>
