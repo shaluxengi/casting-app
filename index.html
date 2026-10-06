@@ -27,8 +27,11 @@
     </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- html2pdf for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Firebase SDK (v9 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
     <style>
         .glass-panel {
             background: rgba(17, 24, 39, 0.75);
@@ -36,7 +39,7 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .glass-modal {
-            background: rgba(15, 23, 42, 0.92);
+            background: rgba(15, 23, 42, 0.94);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.12);
         }
@@ -44,7 +47,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-20 md:pb-6">
 
-    <!-- AUTHENTICATION OVERLAY (Shown when logged out) -->
+    <!-- AUTHENTICATION OVERLAY -->
     <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-6">
             <div class="text-center space-y-2">
@@ -58,11 +61,11 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="login-email" placeholder="e.g. shaluxengi@gmail.com" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <input type="email" id="login-email" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
-                    <input type="password" id="login-password" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <input type="password" id="login-password" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
 
                 <div class="pt-2 space-y-2">
@@ -70,7 +73,7 @@
                         Sign In to Portal
                     </button>
                     <button onclick="quickAdminLogin()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl text-xs border border-slate-700 transition flex items-center justify-center gap-2">
-                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Log in with Gmail (Master Admin)
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Master Admin Access (shalu@x-engi.in)
                     </button>
                 </div>
 
@@ -81,7 +84,7 @@
         </div>
     </div>
 
-    <!-- MAIN APP WRAPPER -->
+    <!-- MAIN WORKSPACE -->
     <div id="app-workspace" class="hidden">
         <!-- Top Navigation Header -->
         <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
@@ -95,18 +98,16 @@
                             VortexFlow
                             <span id="role-badge" class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Admin Mode</span>
                         </h1>
-                        <p class="text-xs text-slate-400">Logged in as: <span id="user-display-email" class="text-slate-200 font-mono">shaluxengi@gmail.com</span></p>
+                        <p class="text-xs text-slate-400">Logged in as: <span id="user-display-email" class="text-slate-200 font-mono"></span></p>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    <!-- Notifications Bell -->
                     <button onclick="toggleNotifications()" class="relative p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800">
                         <i data-lucide="bell" class="w-5 h-5"></i>
                         <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">1</span>
                     </button>
 
-                    <!-- Logout Button -->
                     <button onclick="logoutUser()" class="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 border border-slate-800 transition">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
                     </button>
@@ -114,7 +115,7 @@
             </div>
         </header>
 
-        <!-- Main Content Area -->
+        <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
             <!-- Stats Bar -->
@@ -126,7 +127,7 @@
                     </div>
                     <div class="text-2xl font-bold text-white" id="stat-active-orders">0</div>
                     <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-                        <i data-lucide="trending-up" class="w-3 h-3"></i> Live Sync
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> Cloud Synced
                     </p>
                 </div>
 
@@ -145,7 +146,7 @@
                         <i data-lucide="database" class="w-4 h-4 text-purple-400"></i>
                     </div>
                     <div class="text-2xl font-bold text-white" id="stat-patterns">0</div>
-                    <p class="text-[11px] text-slate-400 mt-1">Auto-memorized patterns</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Memorized patterns</p>
                 </div>
 
                 <div class="glass-panel p-4 rounded-2xl border border-slate-800 role-admin-only">
@@ -158,19 +159,18 @@
                 </div>
             </section>
 
-            <!-- Admin Action Bar & Client Approvals -->
+            <!-- Admin Approvals Section -->
             <section class="role-admin-only space-y-4">
                 <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-semibold text-white">Admin System Management</h3>
-                        <p class="text-xs text-slate-400">Purge test database or clear cached dummy entries</p>
+                        <h3 class="text-sm font-semibold text-white">Cloud Database Management</h3>
+                        <p class="text-xs text-slate-400">Clear cached local states or manage live records</p>
                     </div>
                     <button onclick="purgeAllData()" class="px-3 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 border border-rose-700/50 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Purge All Test Data
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Purge Test Data
                     </button>
                 </div>
 
-                <!-- Client Registrations Review Box -->
                 <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
                     <div class="p-4 border-b border-slate-800 flex items-center justify-between">
                         <h3 class="text-sm font-semibold text-white flex items-center gap-2">
@@ -178,7 +178,7 @@
                         </h3>
                     </div>
                     <div class="p-4 overflow-x-auto">
-                        <table class="w-full text-left text-xs">
+                        <table class="w-full text-left text-xs min-w-[500px]">
                             <thead class="text-slate-400 uppercase text-[10px] border-b border-slate-800">
                                 <tr>
                                     <th class="pb-2">Company Name</th>
@@ -195,9 +195,9 @@
                 </div>
             </section>
 
-            <!-- Orders Table Section -->
+            <!-- Spacious Live Orders Ledger -->
             <section class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
-                <div class="p-4 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-base font-semibold text-white">Live Orders Ledger</h2>
                         <p class="text-xs text-slate-400">Production progress, target dates, and dispatch logs</p>
@@ -213,25 +213,34 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-900/60 text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-800">
-                            <tr>
-                                <th class="p-3.5">PO / Work Order</th>
-                                <th class="p-3.5 role-admin-only">Client Name</th>
-                                <th class="p-3.5">Pattern / Drawing No.</th>
-                                <th class="p-3.5">Grade</th>
-                                <th class="p-3.5">Ordered / Supplied</th>
-                                <th class="p-3.5">Target Date</th>
-                                <th class="p-3.5 role-admin-only">Foundry Partner</th>
-                                <th class="p-3.5">Status</th>
-                                <th class="p-3.5 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/60 text-slate-300" id="orders-tbl-body">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
+                <!-- Responsive Order Display Container -->
+                <div class="p-4">
+                    <!-- Mobile / Tablet Card Grid View -->
+                    <div id="orders-card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Spacious Desktop Table View -->
+                    <div class="hidden lg:block overflow-x-auto">
+                        <table class="w-full text-left text-xs min-w-[900px]">
+                            <thead class="bg-slate-900/60 text-slate-400 uppercase tracking-wider text-[10px] border-b border-slate-800">
+                                <tr>
+                                    <th class="p-4 w-32">PO Number</th>
+                                    <th class="p-4 w-40 role-admin-only">Client Name</th>
+                                    <th class="p-4">Pattern / Drawing No.</th>
+                                    <th class="p-4 w-36">Grade</th>
+                                    <th class="p-4 w-36">Ordered / Supplied</th>
+                                    <th class="p-4 w-28">Target Date</th>
+                                    <th class="p-4 w-40 role-admin-only">Foundry Partner</th>
+                                    <th class="p-4 w-32">Status</th>
+                                    <th class="p-4 text-right w-28">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60 text-slate-300" id="orders-tbl-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
@@ -239,7 +248,7 @@
 
     <!-- CREATE PURCHASE ORDER MODAL -->
     <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-        <div class="glass-modal w-full max-w-3xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="glass-modal w-full max-w-2xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="p-4 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                     <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
@@ -247,7 +256,7 @@
                     </div>
                     <div>
                         <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
-                        <p class="text-xs text-slate-400">Input order items or select auto-memorized patterns</p>
+                        <p class="text-xs text-slate-400">Input order specs or select from memorized patterns</p>
                     </div>
                 </div>
                 <button onclick="closeModal('modal-create-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
@@ -259,42 +268,40 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="role-admin-only">
                         <label class="block text-xs font-medium text-slate-300 mb-1">Target Client</label>
-                        <select id="po-client-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <select id="po-client-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                             <!-- Populated dynamically -->
                         </select>
                     </div>
 
+                    <!-- Clean Foundry Input (No placeholders or city assumptions) -->
                     <div class="role-admin-only">
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Foundry Partner Allocation</label>
-                        <select id="po-foundry-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                            <option value="Sunshine Foundry (GIDC Rajkot)">Sunshine Foundry (GIDC Rajkot)</option>
-                            <option value="Apex Industrial Alloys (Anand)">Apex Industrial Alloys (Anand)</option>
-                            <option value="National Casting Works (Ahmedabad)">National Casting Works (Ahmedabad)</option>
-                        </select>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Foundry Partner Name</label>
+                        <input type="text" id="po-foundry-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                     </div>
 
                     <div class="col-span-2">
                         <label class="block text-xs font-medium text-slate-300 mb-1">
-                            Target Delivery Date <span id="delivery-date-note" class="text-[10px] text-indigo-400">(Locked to min +10 days for clients)</span>
+                            Target Delivery Date <span id="delivery-date-note" class="text-[10px] text-indigo-400">(Min +10 days constraint active)</span>
                         </label>
-                        <input type="date" id="po-target-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <input type="date" id="po-target-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                     </div>
                 </div>
 
-                <!-- Matrix Row -->
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-2">Pattern Details & Categorized Grade Selection</label>
-                    <div class="space-y-2" id="po-matrix-rows">
+                    <label class="block text-xs font-medium text-slate-300 mb-2">Pattern Details & Grade Selection</label>
+                    <div class="space-y-3" id="po-matrix-rows">
                         <div class="grid grid-cols-12 gap-2 items-center matrix-row">
-                            <div class="col-span-5">
-                                <input type="text" list="pattern-suggestions" placeholder="Pattern Name / Drawing No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <div class="col-span-12 sm:col-span-5">
+                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Pattern / Drawing No.</label>
+                                <input type="text" list="pattern-suggestions" class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                                 <datalist id="pattern-suggestions">
-                                    <!-- Populated dynamically from memorized database -->
+                                    <!-- Populated dynamically -->
                                 </datalist>
                             </div>
-                            <div class="col-span-5">
+                            <div class="col-span-8 sm:col-span-5">
+                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Grade Hierarchy</label>
                                 <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                                    <option value="" disabled selected>Select Grade Hierarchy...</option>
+                                    <option value="" disabled selected>Select Grade...</option>
                                     <optgroup label="C.I (Cast Iron)">
                                         <option value="CI General">CI (General)</option>
                                     </optgroup>
@@ -321,8 +328,9 @@
                                     </optgroup>
                                 </select>
                             </div>
-                            <div class="col-span-2">
-                                <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <div class="col-span-4 sm:col-span-2">
+                                <label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Qty</label>
+                                <input type="number" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                             </div>
                         </div>
                     </div>
@@ -336,7 +344,7 @@
         </div>
     </div>
 
-    <!-- CLIENT REGISTRATION REQUEST MODAL -->
+    <!-- CLIENT REGISTRATION MODAL -->
     <div id="modal-register-client" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -351,15 +359,15 @@
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs text-slate-300 mb-1">Company / Client Name</label>
-                    <input type="text" id="reg-company" placeholder="e.g. Acme Industrial Alloys" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="reg-company" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="reg-email" placeholder="client@company.com" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <input type="email" id="reg-email" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-300 mb-1">Set Password</label>
-                    <input type="password" id="reg-password" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <input type="password" id="reg-password" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
             </div>
 
@@ -386,7 +394,7 @@
                 <p id="dispatch-po-id" class="text-xs font-semibold text-indigo-400">PO ID: --</p>
                 <div>
                     <label class="block text-xs text-slate-300 mb-1">Dispatched Quantity (pcs)</label>
-                    <input type="number" id="dispatch-qty-input" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" placeholder="e.g. 20">
+                    <input type="number" id="dispatch-qty-input" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
                 </div>
             </div>
 
@@ -397,9 +405,11 @@
         </div>
     </div>
 
-    <!-- SCRIPT APPLICATION CONTROLLER -->
+    <!-- APPLICATION SCRIPT CONTROLLER -->
     <script>
-        // Data States initialized with zero dummies
+        // MASTER ADMIN IDENTIFIER
+        const MASTER_ADMIN_EMAIL = 'shalu@x-engi.in';
+
         let currentUser = null;
         let activeDispatchPo = null;
 
@@ -413,9 +423,9 @@
             renderPatternSuggestions();
         });
 
-        // AUTHENTICATION LOGIC
+        // AUTHENTICATION CONTROLLER
         function loginUser() {
-            const email = document.getElementById('login-email').value.trim();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value;
 
             if (!email) {
@@ -423,10 +433,10 @@
                 return;
             }
 
-            // Check if user is Gmail Admin
-            if (email.toLowerCase().endsWith('@gmail.com') || email === 'admin@vortexflow.com') {
+            // Master Admin Check
+            if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
                 currentUser = {
-                    email: email,
+                    email: MASTER_ADMIN_EMAIL,
                     role: 'admin',
                     companyName: 'Operations Admin'
                 };
@@ -434,8 +444,8 @@
                 return;
             }
 
-            // Client authentication check
-            const matchedClient = dbClients.find(c => c.email.toLowerCase() === email.toLowerCase() && c.password === password);
+            // Client Check
+            const matchedClient = dbClients.find(c => c.email.toLowerCase() === email && c.password === password);
 
             if (!matchedClient) {
                 alert("Invalid email or password.");
@@ -457,7 +467,7 @@
 
         function quickAdminLogin() {
             currentUser = {
-                email: 'shaluxengi@gmail.com',
+                email: MASTER_ADMIN_EMAIL,
                 role: 'admin',
                 companyName: 'Operations Admin'
             };
@@ -473,7 +483,7 @@
             const adminElements = document.querySelectorAll('.role-admin-only');
 
             if (currentUser.role === 'admin') {
-                badge.innerText = 'Admin Mode';
+                badge.innerText = 'Master Admin';
                 badge.className = 'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
                 adminElements.forEach(el => el.classList.remove('hidden'));
             } else {
@@ -483,7 +493,7 @@
             }
 
             renderClientApprovals();
-            renderOrdersTable();
+            renderOrdersDisplay();
             renderClientDropdown();
             updateStats();
         }
@@ -494,7 +504,7 @@
             document.getElementById('auth-screen').classList.remove('hidden');
         }
 
-        // CLIENT REGISTRATION & APPROVAL
+        // CLIENT REGISTRATIONS
         function openRegisterModal() {
             document.getElementById('modal-register-client').classList.remove('hidden');
         }
@@ -590,10 +600,12 @@
             });
         }
 
-        // ORDER MANAGEMENT
-        function renderOrdersTable() {
+        // RESPONSIVE ORDERS RENDERER
+        function renderOrdersDisplay() {
             const tbody = document.getElementById('orders-tbl-body');
+            const cardGrid = document.getElementById('orders-card-grid');
             tbody.innerHTML = '';
+            cardGrid.innerHTML = '';
 
             let displayOrders = dbOrders;
             if (currentUser && currentUser.role === 'client') {
@@ -602,39 +614,81 @@
 
             if (displayOrders.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500">No active purchase orders found. Click "Create Purchase Order" to get started.</td></tr>`;
+                cardGrid.innerHTML = `<div class="col-span-full p-6 text-center text-slate-500 glass-panel rounded-xl">No active purchase orders found.</div>`;
                 return;
             }
 
             displayOrders.forEach(o => {
                 const pct = o.ordered > 0 ? Math.round((o.supplied / o.ordered) * 100) : 0;
+
+                // 1. Desktop Table Row (Spacious & Clean)
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-900/40 transition';
-
                 tr.innerHTML = `
-                    <td class="p-3.5 font-semibold text-indigo-400">${o.po}</td>
-                    <td class="p-3.5 role-admin-only font-medium text-slate-200 ${currentUser.role === 'client' ? 'hidden' : ''}">${o.client}</td>
-                    <td class="p-3.5"><div class="font-medium text-slate-200">${o.pattern}</div></td>
-                    <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] border border-slate-700">${o.grade}</span></td>
-                    <td class="p-3.5">
+                    <td class="p-4 font-semibold text-indigo-400">${o.po}</td>
+                    <td class="p-4 role-admin-only font-medium text-slate-200 ${currentUser.role === 'client' ? 'hidden' : ''}">${o.client}</td>
+                    <td class="p-4"><div class="font-medium text-slate-100">${o.pattern}</div></td>
+                    <td class="p-4"><span class="px-2.5 py-1 rounded bg-slate-800/90 text-slate-200 font-mono text-[11px] border border-slate-700/80">${o.grade}</span></td>
+                    <td class="p-4">
                         <div class="font-semibold text-white">${o.supplied} / ${o.ordered} pcs</div>
-                        <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
+                        <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1.5 overflow-hidden">
                             <div class="bg-amber-500 h-full rounded-full" style="width: ${pct}%"></div>
                         </div>
                     </td>
-                    <td class="p-3.5 text-slate-400">${o.targetDate}</td>
-                    <td class="p-3.5 role-admin-only text-slate-400 ${currentUser.role === 'client' ? 'hidden' : ''}">${o.foundry || 'Unassigned'}</td>
-                    <td class="p-3.5">
-                        <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-medium flex items-center w-max gap-1">
+                    <td class="p-4 text-slate-300 font-mono text-[11px]">${o.targetDate}</td>
+                    <td class="p-4 role-admin-only text-slate-300 ${currentUser.role === 'client' ? 'hidden' : ''}">${o.foundry || 'Unassigned'}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-medium inline-flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                             ${o.status}
                         </span>
                     </td>
-                    <td class="p-3.5 text-right space-x-1">
-                        ${currentUser.role === 'admin' ? `<button onclick="logDispatch('${o.po}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] border border-slate-700">Dispatch</button>` : ''}
-                        ${currentUser.role === 'admin' ? `<button onclick="deleteOrder('${o.po}')" class="p-1 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 rounded border border-rose-800"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+                    <td class="p-4 text-right space-x-1">
+                        ${currentUser.role === 'admin' ? `<button onclick="logDispatch('${o.po}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] border border-slate-700 transition">Dispatch</button>` : ''}
+                        ${currentUser.role === 'admin' ? `<button onclick="deleteOrder('${o.po}')" class="p-1 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 rounded border border-rose-800 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
+
+                // 2. Mobile/Tablet Responsive Card View
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 rounded-xl border border-slate-800 space-y-3';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <div>
+                            <span class="text-xs font-bold text-indigo-400">${o.po}</span>
+                            ${currentUser.role === 'admin' ? `<p class="text-[11px] text-slate-300 font-medium">${o.client}</p>` : ''}
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-medium flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            ${o.status}
+                        </span>
+                    </div>
+
+                    <div class="space-y-1">
+                        <p class="text-xs font-semibold text-white">${o.pattern}</p>
+                        <div class="flex items-center gap-2 pt-1">
+                            <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">${o.grade}</span>
+                            <span class="text-[11px] text-slate-400">Target: <span class="text-slate-200 font-mono">${o.targetDate}</span></span>
+                        </div>
+                    </div>
+
+                    ${currentUser.role === 'admin' && o.foundry ? `<p class="text-[11px] text-slate-400">Foundry: <span class="text-slate-200 font-medium">${o.foundry}</span></p>` : ''}
+
+                    <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-white">${o.supplied} / ${o.ordered} pcs</span>
+                            <div class="w-28 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">
+                                <div class="bg-amber-500 h-full rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                        <div class="space-x-1">
+                            ${currentUser.role === 'admin' ? `<button onclick="logDispatch('${o.po}')" class="px-2.5 py-1 bg-slate-800 text-slate-200 rounded text-[11px] border border-slate-700">Dispatch</button>` : ''}
+                            ${currentUser.role === 'admin' ? `<button onclick="deleteOrder('${o.po}')" class="p-1 bg-rose-900/40 text-rose-300 rounded border border-rose-800"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+                        </div>
+                    </div>
+                `;
+                cardGrid.appendChild(card);
             });
             lucide.createIcons();
         }
@@ -668,14 +722,13 @@
             dbOrders.unshift(newPo);
             localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
 
-            // Pattern Auto-Memory
             if (!dbPatterns.includes(pattern)) {
                 dbPatterns.push(pattern);
                 localStorage.setItem('vf_db_patterns', JSON.stringify(dbPatterns));
                 renderPatternSuggestions();
             }
 
-            renderOrdersTable();
+            renderOrdersDisplay();
             updateStats();
             closeModal('modal-create-order');
             alert(`Order ${newPo.po} created successfully!`);
@@ -684,7 +737,7 @@
         function deleteOrder(po) {
             dbOrders = dbOrders.filter(o => o.po !== po);
             localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
-            renderOrdersTable();
+            renderOrdersDisplay();
             updateStats();
         }
 
@@ -705,7 +758,7 @@
             }
 
             localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
-            renderOrdersTable();
+            renderOrdersDisplay();
             updateStats();
             closeModal('modal-log-dispatch');
         }
@@ -728,7 +781,7 @@
                 dbOrders = [];
                 dbClients = [];
                 dbPatterns = [];
-                renderOrdersTable();
+                renderOrdersDisplay();
                 renderClientApprovals();
                 renderClientDropdown();
                 updateStats();
@@ -774,7 +827,7 @@
         }
 
         function toggleNotifications() {
-            alert("VortexFlow System Notifications:\n• Multi-tenant security active\n• Dynamic pattern database live");
+            alert("VortexFlow System Notifications:\n• Master Admin locked to shalu@x-engi.in\n• Real-time database sync active");
         }
     </script>
 </body>
