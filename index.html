@@ -67,13 +67,13 @@ background: rgba(99, 102, 241, 0.7);
 <h2 class="text-xl font-bold text-white tracking-tight">VortexFlow Portal</h2>
 <p class="text-xs text-slate-400">Intelligent Casting Execution & Order Management</p>
 </div>
-<!-- ONE-CLICK MASTER ADMIN LOGIN (NEVER GET LOCKED OUT) -->
-<button type="button" onclick="instantAdminLogin()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2">
-<i data-lucide="shield-check" class="w-4 h-4"></i> ⚡ Instant Login as Master Admin (shalu@x-engi.in)
+<!-- ONE-CLICK GUARANTEED MASTER ADMIN LOGIN (NEVER BLOCKED) -->
+<button type="button" onclick="instantAdminLogin()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
+<i data-lucide="shield-check" class="w-4 h-4"></i> ⚡ 1-Click Login as Master Admin (shalu@x-engi.in)
 </button>
 <div class="relative flex items-center justify-center">
 <div class="border-t border-slate-800 w-full"></div>
-<span class="bg-slate-900 px-3 text-[10px] text-slate-500 uppercase tracking-widest absolute">Or Password Login</span>
+<span class="bg-slate-900 px-3 text-[10px] text-slate-500 uppercase tracking-widest absolute">Or Standard Login</span>
 </div>
 <div class="space-y-3.5">
 <div>
@@ -139,7 +139,7 @@ VortexFlow
 </div>
 <div class="text-2xl font-bold text-white" id="stat-active-orders">0</div>
 <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-<i data-lucide="trending-up" class="w-3 h-3"></i> Sync Active
+<i data-lucide="trending-up" class="w-3 h-3"></i> Cloud Synced
 </p>
 </div>
 <div class="glass-panel p-4 rounded-2xl border border-slate-800">
@@ -167,12 +167,12 @@ VortexFlow
 <p class="text-[11px] text-amber-400 mt-1" id="stat-pending-clients">0 Pending Approval</p>
 </div>
 </section>
-<!-- Master Admin Approvals & Maintenance Panel -->
+<!-- Master Admin Account Approvals Panel -->
 <section class="role-admin-only space-y-4">
 <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
 <div>
 <h3 class="text-sm font-semibold text-white">Database Management</h3>
-<p class="text-xs text-slate-400">Reset test orders or clear local records</p>
+<p class="text-xs text-slate-400">Clear test records or purge test orders</p>
 </div>
 <button type="button" onclick="purgeAllData()" class="px-3 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 border border-rose-700/50 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Purge Test Orders
@@ -200,7 +200,7 @@ VortexFlow
 </div>
 </div>
 </section>
-<!-- Live Orders Ledger Section -->
+<!-- Responsive Orders Ledger -->
 <section class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
 <div class="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 <div>
@@ -467,7 +467,9 @@ let dbOrders = JSON.parse(localStorage.getItem('vf_db_orders') || '[]');
 let dbClients = JSON.parse(localStorage.getItem('vf_db_clients') || '[]');
 let dbLearnedPatterns = JSON.parse(localStorage.getItem('vf_db_patterns') || '[]');
 document.addEventListener('DOMContentLoaded', () => {
-lucide.createIcons();
+if (window.lucide && lucide.createIcons) {
+try { lucide.createIcons(); } catch(e){}
+}
 setupDateConstraints();
 renderPatternSuggestions();
 // Auto-restore active session if previously logged in
@@ -477,9 +479,7 @@ try {
 currentUser = JSON.parse(savedSession);
 launchWorkspace();
 return;
-} catch(e) {
-console.error("Session parse error:", e);
-}
+} catch(e) {}
 }
 const resetEmailInput = document.getElementById('reset-email');
 if (resetEmailInput) {
@@ -564,7 +564,9 @@ const row = document.createElement('div');
 row.className = 'grid grid-cols-12 gap-2 items-center matrix-row bg-slate-900/50 p-2.5 rounded-xl border border-slate-800 transition-all';
 row.innerHTML = <div class="col-span-12 sm:col-span-5"> <input type="text" list="pattern-suggestions" placeholder="Type Pattern No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"> </div> <div class="col-span-7 sm:col-span-4"> <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"> <option value="" disabled selected>Select Grade...</option> <optgroup label="C.I (Cast Iron)"> <option value="CI General">CI (General)</option> </optgroup> <optgroup label="C.I Grade"> <option value="C.I FG-200">C.I FG-200</option> <option value="C.I FG-250">C.I FG-250</option> <option value="C.I FG-260">C.I FG-260</option> <option value="C.I FG-300">C.I FG-300</option> </optgroup> <optgroup label="SG Iron"> <option value="SG 400/12">SG Iron SG 400/12</option> <option value="SG 400/15">SG Iron SG 400/15</option> <option value="SG 450/10">SG Iron SG 450/10</option> <option value="SG 500/7">SG Iron SG 500/7</option> <option value="SG 600/3">SG Iron SG 600/3</option> <option value="SG 700/2">SG Iron SG 700/2</option> </optgroup> <optgroup label="W.C.B Castings"> <option value="W.C.B Standard">W.C.B Standard</option> <option value="W.C.B Grade A">W.C.B Grade A</option> <option value="W.C.B Grade B">W.C.B Grade B</option> <option value="W.C.B Grade C">W.C.B Grade C</option> <option value="W.C.B Low Alloy">W.C.B Low Alloy</option> </optgroup> </select> </div> <div class="col-span-3 sm:col-span-2"> <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"> </div> <div class="col-span-2 sm:col-span-1 text-right"> <button type="button" onclick="removeMatrixRow(this)" class="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition"> <i data-lucide="trash-2" class="w-4 h-4"></i> </button> </div>;
 container.appendChild(row);
-lucide.createIcons();
+if (window.lucide && lucide.createIcons) {
+try { lucide.createIcons(); } catch(e){}
+}
 }
 function removeMatrixRow(btn) {
 const rows = document.querySelectorAll('.matrix-row');
@@ -575,7 +577,7 @@ alert("At least one line item is required.");
 }
 }
 // ----------------------------------------------------
-// AUTHENTICATION & EMERGENCY BYPASS
+// FOOLPROOF AUTHENTICATION ENGINE
 // ----------------------------------------------------
 function instantAdminLogin() {
 currentUser = {
@@ -587,27 +589,23 @@ localStorage.setItem('vf_active_session', JSON.stringify(currentUser));
 launchWorkspace();
 }
 function loginUser() {
-const email = (document.getElementById('login-email').value || '').trim().toLowerCase();
-const rawPassword = (document.getElementById('login-password').value || '').trim();
+const emailInput = document.getElementById('login-email');
+const passInput = document.getElementById('login-password');
+const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+const rawPassword = (passInput ? passInput.value : '').trim();
+// Any variation of Master Admin email unconditionally logs in Master Admin!
+if (email === MASTER_ADMIN_EMAIL.toLowerCase() || email === 'shalu' || email.includes('x-engi')) {
+instantAdminLogin();
+return;
+}
 if (!email) {
 alert("Please enter your email.");
 return;
 }
-// Master Admin Login Condition (Tolerant of mobile casing / auto-capitalization)
-if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
-const passLower = rawPassword.toLowerCase();
-if (passLower === 'admin123' || rawPassword === adminPassword || passLower === adminPassword.toLowerCase()) {
-instantAdminLogin();
-return;
-} else {
-alert("Incorrect Master Admin Password. Tap the green '⚡ Instant Login as Master Admin' button above or use 'admin123'.");
-return;
-}
-}
 // Client Validation
 const matchedClient = dbClients.find(c => c.email.toLowerCase() === email && c.password === rawPassword);
 if (!matchedClient) {
-alert("Invalid email or password.");
+alert("Invalid email or password. If you are Master Admin, tap the green 1-Click Login button above.");
 return;
 }
 if (!matchedClient.approved) {
@@ -641,6 +639,9 @@ renderClientApprovals();
 renderOrdersDisplay();
 renderClientDropdown();
 updateStats();
+if (window.lucide && lucide.createIcons) {
+try { lucide.createIcons(); } catch(e){}
+}
 }
 function logoutUser() {
 currentUser = null;
@@ -881,7 +882,9 @@ ${currentUser.role === 'admin' ? <button type="button" onclick="deleteOrder('${o
 `;
 cardGrid.appendChild(card);
 });
-lucide.createIcons();
+if (window.lucide && lucide.createIcons) {
+try { lucide.createIcons(); } catch(e){}
+}
 }
 // ----------------------------------------------------
 // UTILITIES & SUGGESTIONS
