@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VortexFlow | Intelligent Supply & Fast Execution</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS Engine -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -25,7 +25,7 @@
             }
         }
     </script>
-    <!-- Lucide Icons -->
+    <!-- Lucide Vector Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .glass-panel {
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <!-- MAIN WORKSPACE -->
+    <!-- MAIN WORKSPACE UI -->
     <div id="app-workspace" class="hidden">
         <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -111,6 +111,7 @@
 
         <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
+            <!-- Metrics Overview Bar -->
             <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="glass-panel p-4 rounded-2xl border border-slate-800">
                     <div class="flex items-center justify-between text-slate-400 mb-2">
@@ -119,7 +120,7 @@
                     </div>
                     <div class="text-2xl font-bold text-white" id="stat-active-orders">0</div>
                     <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-                        <i data-lucide="trending-up" class="w-3 h-3"></i> Cloud Synced
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> Sync Active
                     </p>
                 </div>
 
@@ -151,11 +152,12 @@
                 </div>
             </section>
 
+            <!-- Master Admin Account Approvals Panel -->
             <section class="role-admin-only space-y-4">
                 <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-semibold text-white">Cloud Database Management</h3>
-                        <p class="text-xs text-slate-400">Clear test data or adjust security credentials</p>
+                        <h3 class="text-sm font-semibold text-white">Database Management</h3>
+                        <p class="text-xs text-slate-400">Purge local test data or edit client permissions</p>
                     </div>
                     <button onclick="purgeAllData()" class="px-3 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 border border-rose-700/50 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Purge Test Data
@@ -185,6 +187,7 @@
                 </div>
             </section>
 
+            <!-- Responsive Orders Ledger -->
             <section class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
                 <div class="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -230,7 +233,7 @@
         </main>
     </div>
 
-    <!-- CREATE ORDER MODAL WITH AUTO-SPAWNING MATRIX -->
+    <!-- MODAL 1: CREATE ORDER (WITH PRESET FOUNDRY NAMES) -->
     <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div class="glass-modal w-full max-w-3xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="p-4 border-b border-slate-800 flex items-center justify-between">
@@ -240,7 +243,7 @@
                     </div>
                     <div>
                         <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
-                        <p class="text-xs text-slate-400">Line items automatically spawn as you type</p>
+                        <p class="text-xs text-slate-400">Line items automatically spawn as you enter specs</p>
                     </div>
                 </div>
                 <button onclick="closeModal('modal-create-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
@@ -256,9 +259,16 @@
                         </select>
                     </div>
 
+                    <!-- Clean Foundry Name Datalist Dropdown (No Location Strings) -->
                     <div class="role-admin-only">
                         <label class="block text-xs font-medium text-slate-300 mb-1">Foundry Partner Name</label>
-                        <input type="text" id="po-foundry-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="po-foundry-select" list="foundry-presets" placeholder="Select or type Foundry Name" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <datalist id="foundry-presets">
+                            <option value="Sunshine Foundry"></option>
+                            <option value="Apex Industrial Alloys"></option>
+                            <option value="National Casting Works"></option>
+                            <option value="Dynamic Foundry Partners"></option>
+                        </datalist>
                     </div>
 
                     <div class="col-span-2">
@@ -269,7 +279,7 @@
                     </div>
                 </div>
 
-                <!-- AUTO-SPAWNING MATRIX CONTAINER -->
+                <!-- AUTO-SPAWNING MATRIX ENGINE -->
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-2">Pattern Details & Line Items</label>
                     <div class="space-y-3" id="po-matrix-rows">
@@ -330,12 +340,12 @@
         </div>
     </div>
 
-    <!-- FORGOT PASSWORD MODAL -->
+    <!-- MODAL 2: FORGOT / RESET PASSWORD -->
     <div id="modal-forgot-password" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-base font-semibold text-white flex items-center gap-2">
-                    <i data-lucide="key" class="w-5 h-5 text-indigo-400"></i> Reset Password
+                    <i data-lucide="key" class="w-5 h-5 text-indigo-400"></i> Reset Account Password
                 </h3>
                 <button onclick="closeModal('modal-forgot-password')" class="text-slate-400 hover:text-white">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -366,7 +376,7 @@
         </div>
     </div>
 
-    <!-- REGISTRATION MODAL -->
+    <!-- MODAL 3: CLIENT ACCOUNT REQUEST -->
     <div id="modal-register-client" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -400,7 +410,7 @@
         </div>
     </div>
 
-    <!-- LOG DISPATCH MODAL -->
+    <!-- MODAL 4: LOG PARTIAL DISPATCH -->
     <div id="modal-log-dispatch" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -458,7 +468,7 @@
             }
         });
 
-        // AUTOMATIC MATRIX ROW SPAWNING ON INPUT
+        // AUTO-SPAWNING MATRIX ENGINE
         document.addEventListener('input', (e) => {
             if (e.target.classList.contains('input-pattern') || e.target.classList.contains('input-qty')) {
                 const rows = document.querySelectorAll('.matrix-row');
@@ -539,7 +549,7 @@
             }
         }
 
-        // AUTHENTICATION LOGIC
+        // AUTHENTICATION & SESSION MANAGEMENT
         function loginUser() {
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value;
@@ -614,7 +624,7 @@
             document.getElementById('auth-screen').classList.remove('hidden');
         }
 
-        // SUBMIT MULTI-ITEM ORDERS
+        // ORDER CREATION & BATCH SUBMISSION
         function submitOrder() {
             const targetClient = currentUser.role === 'admin' ? (document.getElementById('po-client-select').value || 'Direct Client') : currentUser.companyName;
             const targetFoundry = document.getElementById('po-foundry-select').value;
@@ -665,7 +675,7 @@
             alert(`Successfully submitted ${createdCount} order item(s)!`);
         }
 
-        // PASSWORD RESET SYSTEM
+        // PASSWORD RECOVERY SYSTEM
         function openForgotPasswordModal() {
             document.getElementById('modal-forgot-password').classList.remove('hidden');
         }
@@ -715,7 +725,7 @@
             }
         }
 
-        // CLIENT REGISTRATIONS
+        // CLIENT REGISTRATIONS & MANAGEMENT
         function openRegisterModal() {
             document.getElementById('modal-register-client').classList.remove('hidden');
         }
@@ -812,6 +822,7 @@
             });
         }
 
+        // RESPONSIVE LEDGER RENDERER
         function renderOrdersDisplay() {
             const tbody = document.getElementById('orders-tbl-body');
             const cardGrid = document.getElementById('orders-card-grid');
@@ -902,6 +913,7 @@
             lucide.createIcons();
         }
 
+        // UTILITY FUNCTIONS
         function openCreateOrderModal() {
             document.getElementById('modal-create-order').classList.remove('hidden');
         }
@@ -999,7 +1011,7 @@
         }
 
         function toggleNotifications() {
-            alert("VortexFlow System Notifications:\n• Master Admin locked to shalu@x-engi.in\n• Auto-spawning matrix line items enabled");
+            alert("VortexFlow System Notifications:\n• Master Admin locked to shalu@x-engi.in\n• Foundry datalist active");
         }
     </script>
 </body>
