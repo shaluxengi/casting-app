@@ -1323,6 +1323,24 @@ if (roleData.role === "admin") {
 
 }
 
+    patternMasterButton.addEventListener("click", () => {
+    patternMasterModal.classList.remove("hidden");
+    patternMasterModal.classList.add("flex");
+});
+
+document
+    .getElementById("btn-close-pattern-master")
+    .addEventListener("click", () => {
+        patternMasterModal.classList.add("hidden");
+        patternMasterModal.classList.remove("flex");
+    });
+
+document
+    .getElementById("btn-close-pattern-master-bottom")
+    .addEventListener("click", () => {
+        patternMasterModal.classList.add("hidden");
+        patternMasterModal.classList.remove("flex");
+    });
 
             if (roleData.role === "admin") {
 
