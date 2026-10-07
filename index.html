@@ -48,7 +48,7 @@
                     <i data-lucide="layers" class="w-7 h-7 text-white"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white tracking-tight">VortexFlow Portal</h2>
-                <p class="text-xs text-slate-400">Select Login Role</p>
+                <p class="text-xs text-slate-400">Select Login Access Level</p>
             </div>
 
             <!-- ROLE SELECTOR TABS -->
@@ -57,7 +57,10 @@
                 <button type="button" id="tab-role-client" class="py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">Client Access</button>
             </div>
 
+            <div id="login-error-msg" class="hidden p-3 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs rounded-xl font-medium text-center"></div>
+
             <div class="space-y-4">
+                <!-- MASTER ADMIN ONE-CLICK BYPASS (VISIBLE ONLY IN ADMIN TAB) -->
                 <div id="admin-bypass-wrapper">
                     <button type="button" id="btn-direct-admin" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2">
                         <i data-lucide="zap" class="w-4 h-4"></i> ⚡ 1-Click Login as Master Admin (shalu@x-engi.in)
@@ -236,32 +239,75 @@
             "720-32-200": {"client": "Chirai", "foundry": "Ashutosh"}
         };
 
-        const MASTER_ADMIN = 'shalu@x-engi.in';
+        const MASTER_ADMIN_EMAIL = 'shalu@x-engi.in';
+        let activeTabRole = 'admin'; // 'admin' or 'client'
         let currentUser = null;
         let orders = [];
         let selectedOrderForDispatch = null;
 
+        function showLoginError(msg) {
+            const errBox = document.getElementById('login-error-msg');
+            errBox.textContent = msg;
+            errBox.classList.remove('hidden');
+        }
+
+        function clearLoginError() {
+            const errBox = document.getElementById('login-error-msg');
+            errBox.textContent = '';
+            errBox.classList.add('hidden');
+        }
+
         function setLoginRole(role) {
+            activeTabRole = role;
+            clearLoginError();
+            
             const adminTab = document.getElementById('tab-role-admin');
             const clientTab = document.getElementById('tab-role-client');
             const bypassWrapper = document.getElementById('admin-bypass-wrapper');
             const emailInput = document.getElementById('login-email');
+            const passInput = document.getElementById('login-password');
 
             if (role === 'admin') {
                 adminTab.className = "py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition";
                 clientTab.className = "py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition";
                 bypassWrapper.classList.remove('hidden');
-                emailInput.value = MASTER_ADMIN;
+                emailInput.value = MASTER_ADMIN_EMAIL;
+                passInput.value = 'admin123';
             } else {
                 clientTab.className = "py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition";
                 adminTab.className = "py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition";
-                bypassWrapper.classList.add('hidden');
-                emailInput.value = 'client@example.com';
+                bypassWrapper.classList.add('hidden'); // HIDE MASTER ADMIN 1-CLICK BUTTON
+                emailInput.value = 'client@x-engi.in';
+                passInput.value = 'client123';
             }
         }
 
-        function loginUser(role) {
-            const email = document.getElementById('login-email').value.trim() || (role === 'admin' ? MASTER_ADMIN : 'client@example.com');
+        function attemptLogin() {
+            clearLoginError();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-password').value.trim();
+
+            if (activeTabRole === 'admin') {
+                if (email === MASTER_ADMIN_EMAIL.toLowerCase() || email === 'shalu@x-engi.in') {
+                    grantAccess('shalu@x-engi.in', 'admin');
+                } else {
+                    showLoginError("Invalid Master Admin email. Use shalu@x-engi.in.");
+                }
+            } else {
+                // Client tab attempt
+                if (email === MASTER_ADMIN_EMAIL.toLowerCase() || email === 'shalu@x-engi.in') {
+                    showLoginError("Master Admin cannot log in under Client Access. Switch to Master Admin tab.");
+                    return;
+                }
+                if (!email || email.includes('admin')) {
+                    showLoginError("Invalid client email address.");
+                    return;
+                }
+                grantAccess(email, 'client');
+            }
+        }
+
+        function grantAccess(email, role) {
             currentUser = { email: email, role: role };
             
             document.getElementById('auth-screen').classList.add('hidden');
@@ -400,15 +446,13 @@
             document.getElementById('tab-role-admin').addEventListener('click', () => setLoginRole('admin'));
             document.getElementById('tab-role-client').addEventListener('click', () => setLoginRole('client'));
 
-            document.getElementById('btn-direct-admin').addEventListener('click', () => loginUser('admin'));
-            document.getElementById('btn-standard-login').addEventListener('click', () => {
-                const isClientTab = document.getElementById('tab-role-client').classList.contains('bg-indigo-600');
-                loginUser(isClientTab ? 'client' : 'admin');
-            });
+            document.getElementById('btn-direct-admin').addEventListener('click', () => grantAccess('shalu@x-engi.in', 'admin'));
+            document.getElementById('btn-standard-login').addEventListener('click', attemptLogin);
 
             document.getElementById('btn-logout').addEventListener('click', function () {
                 document.getElementById('app-workspace').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('hidden');
+                clearLoginError();
             });
 
             document.getElementById('btn-open-create-modal').addEventListener('click', function () {
