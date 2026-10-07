@@ -2299,10 +2299,10 @@ itemsList: [
                 o.targetDate ||
                 "-";
 
-            const items =
-                Array.isArray(o.itemsList)
-                    ? o.itemsList
-                    : [];
+ const items =
+    Array.isArray(o.itemsList)
+        ? o.itemsList
+        : [];
 
             const totalQty =
                 items.reduce(
@@ -2713,7 +2713,7 @@ document
            FOUNDRY MODAL
         ========================================================= */
 
-        function openFoundryModal(poId) {
+        async function openFoundryModal(poId) {
 
     const order =
         orders.find(
@@ -2725,10 +2725,51 @@ document
     selectedOrderForDispatch =
         order;
 
-    const items =
-        Array.isArray(order.itemsList)
-            ? order.itemsList
-            : [];
+    const rawItems =
+    Array.isArray(order.itemsList)
+        ? order.itemsList
+        : [];
+
+const items = [];
+
+for (const item of rawItems) {
+
+    let foundry =
+        item.foundry &&
+        item.foundry !== "Unassigned"
+            ? item.foundry
+            : "";
+
+    if (!foundry && item.pattern) {
+
+        const patternQuery =
+            query(
+                collection(db, "patternMaster"),
+                where(
+                    "pattern",
+                    "==",
+                    item.pattern
+                )
+            );
+
+        const patternSnapshot =
+            await getDocs(patternQuery);
+
+        if (!patternSnapshot.empty) {
+
+            foundry =
+                patternSnapshot.docs[0]
+                    .data()
+                    .foundry || "";
+        }
+    }
+
+    items.push({
+        ...item,
+        foundry:
+            foundry || "Unassigned"
+    });
+}
 
     const totalQty =
         items.reduce(
@@ -2794,26 +2835,48 @@ document
         .textContent =
             `${totalQty} pcs`;
 
+const groupedByFoundry = {};
 
+items.forEach(item => {
+
+    const foundry =
+        item.foundry || "Unassigned";
+
+    if (!groupedByFoundry[foundry]) {
+        groupedByFoundry[foundry] = [];
+    }
+
+    groupedByFoundry[foundry].push(item);
+
+});
     const itemLines =
-        items.map(
-            (item, index) => {
+    Object.entries(groupedByFoundry)
+        .map(
+            ([foundry, foundryItems]) => {
 
-                return `${index + 1}. Pattern: ${
-                    item.pattern || "-"
-                }
+                const lines =
+                    foundryItems.map(
+                        (item, index) => {
+
+                            return `${index + 1}. Pattern: ${
+                                item.pattern || "-"
+                            }
 Grade: ${
-                    item.grade || "-"
-                }
-Foundry: ${
-                    item.foundry || "Unassigned"
-                }
+                                item.grade || "-"
+                            }
 Quantity: ${
-                    Number(item.quantity || 0)
-                } pcs
+                                Number(item.quantity || 0)
+                            } pcs
 Received: ${
-                    Number(item.received || 0)
-                } pcs`;
+                                Number(item.received || 0)
+                            } pcs`;
+
+                        }
+                    ).join("\n\n");
+
+                return `===== ${foundry.toUpperCase()} =====
+
+${lines}`;
 
             }
         ).join("\n\n");
@@ -2821,10 +2884,10 @@ Received: ${
 
     const message =
 
-`PURCHASE ORDER NOTICE
+`PURCHASE ORDER NOTICE — FOUNDRY DISPATCH
 PO Ref: ${poNumber}
 Customer: ${order.customer || order.client || "-"}
-Order Date: ${order.orderDate || "-"}
+Order Date: ${order.orderDate || order.createdAt || "-"}
 Target Delivery: ${dueDate}
 
 TOTAL ITEMS: ${items.length}
@@ -2870,7 +2933,11 @@ Please confirm order receipt & production scheduling.`;
 
             if (!order) return;
 
-
+const items =
+    Array.isArray(order.itemsList)
+        ? order.itemsList
+        : [];
+            
             const area =
                 document.getElementById(
                     "printable-po-area"
@@ -2972,10 +3039,11 @@ Please confirm order receipt & production scheduling.`;
                                 Client:
                             </strong>
 
-                            ${escapeHtml(
-                                order.client ||
-                                "-"
-                            )}
+                           ${escapeHtml(
+    order.client ||
+    order.customer ||
+    "-"
+)}
 
                             <br>
 
@@ -2990,19 +3058,28 @@ Please confirm order receipt & production scheduling.`;
 
                         </div>
 
+<div>
 
-                        <div>
+    <strong>
+        Total Items:
+    </strong>
 
-                            <strong>
-                                Assigned Foundry:
-                            </strong>
+    ${items.length}
 
-                            ${escapeHtml(
-                                order.foundry ||
-                                "-"
-                            )}
+    <br>
 
-                        </div>
+    <strong>
+        Total Quantity:
+    </strong>
+
+    ${items.reduce(
+        (sum, item) =>
+            sum + Number(item.quantity || 0),
+        0
+    )}
+    pcs
+
+</div>
 
                     </div>
 
@@ -3023,17 +3100,29 @@ Please confirm order receipt & production scheduling.`;
                                     background-color:#f2f2f2;
                                 ">
 
-                                <th>
-                                    Pattern / Drawing No.
-                                </th>
+                               <th>
+    Pattern / Drawing No.
+</th>
 
-                                <th>
-                                    Quantity
-                                </th>
+<th>
+    Grade
+</th>
 
-                                <th>
-                                    Status
-                                </th>
+<th>
+    Foundry
+</th>
+
+<th>
+    Quantity
+</th>
+
+<th>
+    Received
+</th>
+
+<th>
+    Status
+</th>
 
                             </tr>
 
@@ -3042,48 +3131,49 @@ Please confirm order receipt & production scheduling.`;
 
                         <tbody>
 
-                            <tr>
+                            ${items.map(item => `
 
-                                <td
-                                    style="
-                                        text-align:center;
-                                    ">
+    <tr>
 
-                                    ${escapeHtml(
-                                        order.pattern
-                                    )}
+        <td style="text-align:center;">
+            ${escapeHtml(item.pattern || "-")}
+        </td>
 
-                                </td>
+        <td style="text-align:center;">
+            ${escapeHtml(item.grade || "-")}
+        </td>
 
-                                <td
-                                    style="
-                                        text-align:center;
-                                    ">
+        <td style="text-align:center;">
+            ${escapeHtml(item.foundry || "-")}
+        </td>
 
-                                    ${escapeHtml(
-                                        String(
-                                            order.qty
-                                        )
-                                    )}
-                                    pcs
+        <td style="text-align:center;">
+            ${escapeHtml(
+                String(item.quantity || 0)
+            )}
+            pcs
+        </td>
 
-                                </td>
+        <td style="text-align:center;">
+            ${escapeHtml(
+                String(item.received || 0)
+            )}
+            pcs
+        </td>
 
-                                <td
-                                    style="
-                                        text-align:center;
-                                    ">
+        <td style="text-align:center;">
+            ${escapeHtml(
+                item.status ||
+                order.status ||
+                "In Production"
+            )}
+        </td>
 
-                                    ${escapeHtml(
-                                        order.status ||
-                                        "In Production"
-                                    )}
+    </tr>
 
-                                </td>
+`).join("")}
 
-                            </tr>
-
-                        </tbody>
+                    </tbody>
 
                     </table>
 
@@ -3425,16 +3515,19 @@ if (!pattern) {
 
 
                     const subject =
-                        encodeURIComponent(
-                            `Purchase Order ${
-                                selectedOrderForDispatch.poNumber ||
-                                selectedOrderForDispatch.id
-                            } - ${
-                                selectedOrderForDispatch.pattern
-                            }`
-                        );
-
-
+    encodeURIComponent(
+        `Purchase Order ${
+            selectedOrderForDispatch.poNumber ||
+            selectedOrderForDispatch.id
+        } - ${
+            Array.isArray(
+                selectedOrderForDispatch.itemsList
+            )
+                ? `${selectedOrderForDispatch.itemsList.length} Items`
+                : selectedOrderForDispatch.pattern ||
+                  "Order"
+        }`
+    );
                     const body =
                         encodeURIComponent(
                             document
