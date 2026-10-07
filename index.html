@@ -556,6 +556,225 @@
     <!-- FOUNDRY DISPATCH MODAL -->
     <!-- ========================================================= -->
 
+<!-- PATTERN MASTER MODAL -->
+<div id="modal-pattern-master"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+
+    <div class="glass-modal w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 p-6 space-y-5">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-700 pb-4">
+
+            <div>
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="database" class="w-5 h-5 text-indigo-400"></i>
+                    Pattern Master
+                </h3>
+
+                <p class="text-xs text-slate-400 mt-1">
+                    Manage pattern → foundry → client master data
+                </p>
+            </div>
+
+            <button
+                type="button"
+                id="btn-close-pattern-master"
+                class="text-slate-400 hover:text-white">
+
+                <i data-lucide="x" class="w-5 h-5"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- Import Section -->
+        <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-5">
+
+            <div class="flex items-center justify-between mb-4">
+
+                <div>
+                    <h4 class="text-sm font-semibold text-white">
+                        Import Pattern Master
+                    </h4>
+
+                    <p class="text-xs text-slate-400 mt-1">
+                        Import your Pattern / Foundry / Client master file.
+                    </p>
+                </div>
+
+                <span
+                    id="pattern-master-count"
+                    class="px-3 py-1 rounded-full bg-slate-800 text-xs text-slate-300">
+                    0 records
+                </span>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- File Input -->
+                <div>
+
+                    <label class="block text-xs font-medium text-slate-300 mb-2">
+                        Master File
+                    </label>
+
+                    <input
+                        type="file"
+                        id="pattern-master-file"
+                        accept=".csv,.xlsx,.xls"
+                        class="block w-full text-xs text-slate-300
+                               file:mr-3 file:py-2 file:px-3
+                               file:rounded-lg file:border-0
+                               file:bg-indigo-600 file:text-white
+                               hover:file:bg-indigo-500
+                               bg-slate-800 border border-slate-700
+                               rounded-lg">
+
+                </div>
+
+
+                <!-- Status -->
+                <div>
+
+                    <label class="block text-xs font-medium text-slate-300 mb-2">
+                        Import Status
+                    </label>
+
+                    <div
+                        id="pattern-master-status"
+                        class="min-h-[40px] flex items-center px-3
+                               rounded-lg bg-slate-800 border border-slate-700
+                               text-xs text-slate-400">
+
+                        Select a CSV file to begin.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Import Buttons -->
+            <div class="flex flex-wrap gap-3 mt-5">
+
+                <button
+                    type="button"
+                    id="btn-preview-pattern-master"
+                    class="px-4 py-2 rounded-lg bg-slate-700
+                           hover:bg-slate-600 text-xs font-semibold text-white">
+
+                    <i data-lucide="eye" class="w-4 h-4 inline-block mr-1"></i>
+                    Preview
+
+                </button>
+
+
+                <button
+                    type="button"
+                    id="btn-import-pattern-master"
+                    class="px-4 py-2 rounded-lg bg-indigo-600
+                           hover:bg-indigo-500 text-xs font-semibold text-white">
+
+                    <i data-lucide="upload" class="w-4 h-4 inline-block mr-1"></i>
+                    Import to Firebase
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Preview -->
+        <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-5">
+
+            <div class="flex items-center justify-between mb-3">
+
+                <h4 class="text-sm font-semibold text-white">
+                    Preview
+                </h4>
+
+                <span
+                    id="pattern-master-preview-count"
+                    class="text-xs text-slate-400">
+                    No data loaded
+                </span>
+
+            </div>
+
+
+            <div class="overflow-x-auto rounded-lg border border-slate-700">
+
+                <table class="w-full text-xs">
+
+                    <thead class="bg-slate-800 text-slate-300">
+
+                        <tr>
+
+                            <th class="text-left px-3 py-2">
+                                Pattern
+                            </th>
+
+                            <th class="text-left px-3 py-2">
+                                Foundry
+                            </th>
+
+                            <th class="text-left px-3 py-2">
+                                Client
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody
+                        id="pattern-master-preview-body"
+                        class="divide-y divide-slate-800">
+
+                        <tr>
+
+                            <td
+                                colspan="3"
+                                class="px-3 py-8 text-center text-slate-500">
+
+                                No preview available.
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- Close -->
+        <div class="flex justify-end pt-2">
+
+            <button
+                type="button"
+                id="btn-close-pattern-master-bottom"
+                class="px-4 py-2 rounded-lg bg-slate-800
+                       hover:bg-slate-700 text-xs font-semibold text-slate-300">
+
+                Close
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- END PATTERN MASTER MODAL -->
     <div
         id="modal-send-foundry"
         class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
