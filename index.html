@@ -780,7 +780,94 @@
 
 </div>
 <!-- END PATTERN MASTER MODAL -->
+<!-- ADD PATTERN MODAL -->
+<div
+  id="modal-add-pattern"
+  class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+
+  <div
+    class="glass-modal w-full max-w-lg rounded-2xl border border-slate-700 p-6">
+
+    <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-5">
+      <div>
+        <h3 class="text-lg font-semibold text-white">
+          Add New Pattern
+        </h3>
+        <p class="text-xs text-slate-400 mt-1">
+          Add pattern → foundry → client master data
+        </p>
+      </div>
+
+      <button
+        type="button"
+        id="btn-close-add-pattern"
+        class="text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-2">
+          Pattern / Drawing No.
+        </label>
+        <input
+          id="add-pattern-number"
+          type="text"
+          placeholder="Enter pattern number"
+          class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-2">
+          Foundry
+        </label>
+        <input
+          id="add-pattern-foundry"
+          type="text"
+          placeholder="Enter foundry name"
+          class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-2">
+          Client
+        </label>
+        <input
+          id="add-pattern-client"
+          type="text"
+          placeholder="Enter client name"
+          class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none">
+      </div>
+
+    </div>
+
     <div
+      id="add-pattern-status"
+      class="mt-4 text-xs text-slate-400">
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6">
+
+      <button
+        type="button"
+        id="btn-cancel-add-pattern"
+        class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        id="btn-save-add-pattern"
+        class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white">
+        Save Pattern
+      </button>
+
+    </div>
+
+  </div>
+</div>    <div
         id="modal-send-foundry"
         class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
 
@@ -1338,10 +1425,106 @@ if (roleData.role === "admin") {
     document
   .getElementById("btn-add-pattern")
   .addEventListener("click", () => {
-    alert("Add Pattern form coming next.");
+   const addPatternModal =
+  document.getElementById(
+    "modal-add-pattern"
+  );
+
+addPatternModal.classList.remove("hidden");
+addPatternModal.classList.add("flex");
+  });
+ document
+  .getElementById("btn-close-add-pattern")
+  .addEventListener("click", () => {
+    const modal =
+      document.getElementById("modal-add-pattern");
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  });
+
+document
+  .getElementById("btn-cancel-add-pattern")
+  .addEventListener("click", () => {
+    const modal =
+      document.getElementById("modal-add-pattern");
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  });           
+document
+  .getElementById("btn-save-add-pattern")
+  .addEventListener("click", async () => {
+
+    const pattern =
+      document
+        .getElementById("add-pattern-number")
+        .value.trim();
+
+    const foundry =
+      document
+        .getElementById("add-pattern-foundry")
+        .value.trim();
+
+    const client =
+      document
+        .getElementById("add-pattern-client")
+        .value.trim();
+
+    const status =
+      document.getElementById(
+        "add-pattern-status"
+      );
+
+    if (!pattern || !foundry || !client) {
+      status.textContent =
+        "Please enter Pattern, Foundry and Client.";
+      return;
+    }
+
+    status.textContent =
+      "Checking pattern...";
+
+    const existing =
+      await getDocs(
+        query(
+          collection(db, "patternMaster"),
+          where("pattern", "==", pattern)
+        )
+      );
+
+    if (!existing.empty) {
+      status.textContent =
+        "This pattern already exists.";
+      return;
+    }
+
+    await addDoc(
+      collection(db, "patternMaster"),
+      {
+        pattern: pattern,
+        foundry: foundry,
+        client: client
+      }
+    );
+
+    status.textContent =
+      "Pattern saved successfully.";
+
+    document
+      .getElementById("add-pattern-number")
+      .value = "";
+
+    document
+      .getElementById("add-pattern-foundry")
+      .value = "";
+
+    document
+      .getElementById("add-pattern-client")
+      .value = "";
   });
             
-document
+    document
     .getElementById("btn-close-pattern-master")
     .addEventListener("click", () => {
         patternMasterModal.classList.add("hidden");
