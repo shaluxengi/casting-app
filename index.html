@@ -1341,6 +1341,174 @@ document
         patternMasterModal.classList.add("hidden");
         patternMasterModal.classList.remove("flex");
     });
+            
+            let patternMasterImportData = [];
+
+document
+    .getElementById("btn-preview-pattern-master")
+    .addEventListener("click", () => {
+
+        const fileInput =
+            document.getElementById("pattern-master-file");
+
+        const status =
+            document.getElementById("pattern-master-status");
+
+        const previewBody =
+            document.getElementById("pattern-master-preview-body");
+
+        const previewCount =
+            document.getElementById("pattern-master-preview-count");
+
+        const masterCount =
+            document.getElementById("pattern-master-count");
+
+        const file = fileInput.files[0];
+
+        if (!file) {
+            status.textContent = "Please select a CSV file first.";
+            return;
+        }
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            status.textContent = "Please select the pattern_master.csv file.";
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+
+            try {
+
+                const text = event.target.result;
+
+                const rows = text
+                    .replace(/^\uFEFF/, "")
+                    .trim()
+                    .split(/\r?\n/)
+                    .map(row =>
+                        row.split(",").map(cell =>
+                            cell.trim().replace(/^"|"$/g, "")
+                        )
+                    );
+
+                if (rows.length < 2) {
+                    throw new Error("No records found.");
+                }
+
+                const headers = rows[0].map(h => h.trim());
+
+                const patternIndex =
+                    headers.indexOf("Product Name");
+
+                const foundryIndex =
+                    headers.indexOf("Foundry");
+
+                const ownerIndex =
+                    headers.indexOf("Owner");
+
+                if (
+                    patternIndex === -1 ||
+                    foundryIndex === -1 ||
+                    ownerIndex === -1
+                ) {
+                    throw new Error(
+                        "CSV must contain Product Name, Foundry and Owner columns."
+                    );
+                }
+
+                patternMasterImportData = rows
+                    .slice(1)
+                    .map(row => ({
+                        pattern:
+                            row[patternIndex]?.trim() || "",
+
+                        foundry:
+                            row[foundryIndex]?.trim() || "",
+
+                        client:
+                            row[ownerIndex]?.trim() || ""
+                    }))
+                    .filter(item =>
+                        item.pattern ||
+                        item.foundry ||
+                        item.client
+                    );
+
+                const total =
+                    patternMasterImportData.length;
+
+                masterCount.textContent =
+                    `${total} records`;
+
+                previewCount.textContent =
+                    `${total} records loaded`;
+
+                previewBody.innerHTML = "";
+
+                patternMasterImportData
+                    .slice(0, 10)
+                    .forEach(item => {
+
+                        const tr =
+                            document.createElement("tr");
+
+                        tr.innerHTML = `
+                            <td class="px-3 py-2 text-slate-200">
+                                ${item.pattern || "-"}
+                            </td>
+
+                            <td class="px-3 py-2 text-slate-300">
+                                ${item.foundry || "-"}
+                            </td>
+
+                            <td class="px-3 py-2 text-slate-300">
+                                ${item.client || "-"}
+                            </td>
+                        `;
+
+                        previewBody.appendChild(tr);
+                    });
+
+                status.textContent =
+                    `Preview loaded successfully: ${total} records. Showing first 10.`;
+
+            } catch (error) {
+
+                patternMasterImportData = [];
+
+                status.textContent =
+                    `Preview error: ${error.message}`;
+
+                previewCount.textContent =
+                    "No data loaded";
+
+                masterCount.textContent =
+                    "0 records";
+
+                previewBody.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="3"
+                            class="px-3 py-8 text-center text-red-400">
+                            ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        };
+
+        reader.onerror = () => {
+
+            status.textContent =
+                "Unable to read the selected file.";
+
+        };
+
+        reader.readAsText(file);
+
+    });
 
             if (roleData.role === "admin") {
 
