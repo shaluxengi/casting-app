@@ -2261,7 +2261,7 @@ itemsList: [
            STATISTICS
         ========================================================= */
 
-        function updateStatistics() {
+        async function updateStatistics() {
 
             document
                 .getElementById(
@@ -2304,15 +2304,17 @@ itemsList: [
                     " pcs";
 
 
-            document
-                .getElementById(
-                    "stat-patterns"
-                )
-                .textContent =
-                    Object.keys(
-                        PATTERN_CATALOG
-                    ).length;
+            const patternSnapshot =
+  await getDocs(
+    collection(db, "patternMaster")
+  );
 
+document
+  .getElementById(
+    "stat-patterns"
+  )
+  .textContent =
+    patternSnapshot.size;
 
             const clients =
                 new Set(
