@@ -1,30 +1,74 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>VortexFlow | Supply Chain & Order Management</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        brand: { 50: '#f0f3ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        }
                     }
                 }
             }
         };
     </script>
+
     <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        .glass-panel { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .glass-modal { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.12); }
-        
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,.25);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         @media print {
-            body * { visibility: hidden !important; }
-            #printable-po-area, #printable-po-area * { visibility: visible !important; }
+            body * {
+                visibility: hidden !important;
+            }
+
+            #printable-po-area,
+            #printable-po-area * {
+                visibility: visible !important;
+            }
+
             #printable-po-area {
                 position: absolute !important;
                 left: 0 !important;
@@ -34,490 +78,2377 @@
                 color: #000000 !important;
                 padding: 24px !important;
             }
-            .no-print { display: none !important; }
+
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 </head>
+
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-20 md:pb-6">
 
-    <!-- AUTHENTICATION OVERLAY -->
-    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl no-print">
+    <!-- ========================================================= -->
+    <!-- AUTH SCREEN -->
+    <!-- ========================================================= -->
+
+    <div id="auth-screen"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
+
         <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-5">
+
             <div class="text-center space-y-2">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/30">
+
+                <div
+                    class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/30">
+
                     <i data-lucide="layers" class="w-7 h-7 text-white"></i>
+
                 </div>
-                <h2 class="text-xl font-bold text-white tracking-tight">VortexFlow Portal</h2>
-                <p class="text-xs text-slate-400">Select Login Access Level</p>
+
+                <h2 class="text-xl font-bold text-white tracking-tight">
+                    VortexFlow Portal
+                </h2>
+
+                <p class="text-xs text-slate-400">
+                    Secure Sign In
+                </p>
+
             </div>
 
-            <!-- ROLE SELECTOR TABS -->
-            <div class="grid grid-cols-2 p-1 bg-slate-900 rounded-xl border border-slate-800">
-                <button type="button" id="tab-role-admin" class="py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition">Master Admin</button>
-                <button type="button" id="tab-role-client" class="py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">Client Access</button>
+
+            <div id="login-error-msg"
+                class="hidden p-3 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs rounded-xl font-medium text-center">
             </div>
 
-            <div id="login-error-msg" class="hidden p-3 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs rounded-xl font-medium text-center"></div>
+
+            <div id="login-loading"
+                class="hidden p-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs rounded-xl text-center">
+
+                <div class="flex items-center justify-center gap-2">
+
+                    <div class="loading-spinner"></div>
+
+                    <span>Signing in...</span>
+
+                </div>
+
+            </div>
+
 
             <div class="space-y-4">
-                <!-- MASTER ADMIN ONE-CLICK BYPASS (VISIBLE ONLY IN ADMIN TAB) -->
-                <div id="admin-bypass-wrapper">
-                    <button type="button" id="btn-direct-admin" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2">
-                        <i data-lucide="zap" class="w-4 h-4"></i> ⚡ 1-Click Login as Master Admin (shalu@x-engi.in)
-                    </button>
-                    <div class="relative flex py-3 items-center">
-                        <div class="flex-grow border-t border-slate-800"></div>
-                        <span class="flex-shrink mx-3 text-[10px] text-slate-500 uppercase font-semibold">Or Password Login</span>
-                        <div class="flex-grow border-t border-slate-800"></div>
-                    </div>
-                </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="login-email" value="shalu@x-engi.in" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
-                    <input type="password" id="login-password" value="admin123" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+
+                    <label class="block text-xs font-medium text-slate-300 mb-1">
+                        Email Address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="login-email"
+                        autocomplete="username"
+                        placeholder="Enter your email"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+
                 </div>
 
-                <button type="button" id="btn-standard-login" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition">
+
+                <div>
+
+                    <label class="block text-xs font-medium text-slate-300 mb-1">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="login-password"
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="btn-standard-login"
+                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition">
+
                     Sign In
+
                 </button>
+
             </div>
+
+
+            <div class="text-center">
+
+                <p class="text-[10px] text-slate-500">
+                    Access is controlled by VortexFlow security.
+                </p>
+
+            </div>
+
         </div>
     </div>
 
-    <!-- MAIN APP WORKSPACE -->
+
+
+    <!-- ========================================================= -->
+    <!-- MAIN APPLICATION -->
+    <!-- ========================================================= -->
+
     <div id="app-workspace" class="hidden">
-        <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3 no-print">
+
+        <!-- HEADER -->
+
+        <header
+            class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3 no-print">
+
             <div class="max-w-7xl mx-auto flex items-center justify-between">
+
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+
                         <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+
                     </div>
+
+
                     <div>
-                        <h1 class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+
+                        <h1
+                            class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+
                             VortexFlow
-                            <span id="role-badge" class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Master Admin</span>
+
+                            <span
+                                id="role-badge"
+                                class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+
+                                User
+
+                            </span>
+
                         </h1>
-                        <p class="text-xs text-slate-400">Logged in as: <span id="user-display-email" class="text-slate-200 font-mono">shalu@x-engi.in</span></p>
+
+
+                        <p class="text-xs text-slate-400">
+
+                            Logged in as:
+
+                            <span
+                                id="user-display-email"
+                                class="text-slate-200 font-mono">
+
+                                -
+
+                            </span>
+
+                        </p>
+
                     </div>
+
                 </div>
 
-                <button type="button" id="btn-logout" class="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 border border-slate-800 transition">
+
+                <button
+                    type="button"
+                    id="btn-logout"
+                    class="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 border border-slate-800 transition">
+
                     <i data-lucide="log-out" class="w-5 h-5"></i>
+
                 </button>
+
             </div>
+
         </header>
 
+
+
+        <!-- MAIN -->
+
         <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-            <section class="grid grid-cols-2 md:grid-cols-4 gap-4 no-print">
-                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
-                    <span class="text-xs font-medium uppercase text-slate-400">Active Orders</span>
-                    <div class="text-2xl font-bold text-white mt-1" id="stat-active-orders">0</div>
-                </div>
-                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
-                    <span class="text-xs font-medium uppercase text-slate-400">Completed</span>
-                    <div class="text-2xl font-bold text-white mt-1" id="stat-completed">0 pcs</div>
-                </div>
-                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
-                    <span class="text-xs font-medium uppercase text-slate-400">Pattern Catalog</span>
-                    <div class="text-2xl font-bold text-white mt-1" id="stat-patterns">899</div>
-                </div>
-                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
-                    <span class="text-xs font-medium uppercase text-slate-400">Clients Loaded</span>
-                    <div class="text-2xl font-bold text-white mt-1" id="stat-clients">12</div>
-                </div>
-            </section>
 
-            <section class="glass-panel rounded-2xl border border-slate-800 p-4">
-                <div class="flex items-center justify-between mb-4 no-print">
-                    <div>
-                        <h2 class="text-base font-semibold text-white">Purchase Orders Ledger</h2>
-                        <p class="text-xs text-slate-400">Real-time status and foundry dispatching</p>
+
+            <!-- STATISTICS -->
+
+            <section
+                class="grid grid-cols-2 md:grid-cols-4 gap-4 no-print">
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Active Orders
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-active-orders">
+
+                        0
+
                     </div>
-                    <button type="button" id="btn-open-create-modal" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
-                    </button>
+
                 </div>
-                <div id="orders-card-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Completed
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-completed">
+
+                        0 pcs
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Pattern Catalog
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-patterns">
+
+                        0
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Clients Loaded
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-clients">
+
+                        0
+
+                    </div>
+
+                </div>
+
             </section>
+
+
+
+            <!-- PO LEDGER -->
+
+            <section
+                class="glass-panel rounded-2xl border border-slate-800 p-4">
+
+                <div
+                    class="flex items-center justify-between mb-4 no-print">
+
+                    <div>
+
+                        <h2 class="text-base font-semibold text-white">
+                            Purchase Orders Ledger
+                        </h2>
+
+                        <p class="text-xs text-slate-400">
+                            Real-time status and foundry dispatching
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        id="btn-open-create-modal"
+                        class="hidden px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 items-center gap-1.5 transition">
+
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+
+                        Create Purchase Order
+
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="orders-card-grid"
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                </div>
+
+            </section>
+
         </main>
+
     </div>
 
+
+
+    <!-- ========================================================= -->
     <!-- CREATE PO MODAL -->
-    <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
-        <div class="glass-modal w-full max-w-2xl rounded-2xl border border-slate-800 p-5 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
-                <button type="button" id="btn-close-modal" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <!-- ========================================================= -->
+
+    <div
+        id="modal-create-order"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
+
+        <div
+            class="glass-modal w-full max-w-2xl rounded-2xl border border-slate-800 p-5 space-y-4">
+
+            <div
+                class="flex items-center justify-between border-b border-slate-800 pb-3">
+
+                <h3 class="text-base font-semibold text-white">
+                    Create Purchase Order
+                </h3>
+
+                <button
+                    type="button"
+                    id="btn-close-modal"
+                    class="text-slate-400 hover:text-white">
+
+                    <i data-lucide="x" class="w-5 h-5"></i>
+
+                </button>
+
             </div>
+
+
             <div class="grid grid-cols-2 gap-4">
+
+
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Target Client</label>
-                    <input type="text" id="po-client" placeholder="e.g. Ashirwad / Chirai" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
+                    <label class="block text-xs text-slate-300 mb-1">
+                        Target Client
+                    </label>
+
+                    <input
+                        type="text"
+                        id="po-client"
+                        placeholder="e.g. Ashirwad / Chirai"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
                 </div>
-                <div id="foundry-field-container">
-                    <label class="block text-xs text-slate-300 mb-1">Foundry Partner Name</label>
-                    <input type="text" id="po-foundry" placeholder="Auto-fills on pattern typing" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
+
+                <div>
+
+                    <label class="block text-xs text-slate-300 mb-1">
+                        Foundry Partner Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="po-foundry"
+                        placeholder="Auto-fills on pattern typing"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
                 </div>
+
+
                 <div class="col-span-2">
-                    <label class="block text-xs text-slate-300 mb-1">Pattern / Drawing No.</label>
-                    <input type="text" id="po-pattern" placeholder="Type pattern no. e.g. 748-14-9091" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
+                    <label class="block text-xs text-slate-300 mb-1">
+                        Pattern / Drawing No.
+                    </label>
+
+                    <input
+                        type="text"
+                        id="po-pattern"
+                        placeholder="e.g. 748-14-9091"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
                 </div>
+
+
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Quantity</label>
-                    <input type="number" id="po-qty" value="10" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
+                    <label class="block text-xs text-slate-300 mb-1">
+                        Quantity
+                    </label>
+
+                    <input
+                        type="number"
+                        id="po-qty"
+                        value="10"
+                        min="1"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
                 </div>
+
+
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Target Date</label>
-                    <input type="date" id="po-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
+                    <label class="block text-xs text-slate-300 mb-1">
+                        Target Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="po-date"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
                 </div>
+
             </div>
-            <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
-                <button type="button" id="btn-cancel-modal" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancel</button>
-                <button type="button" id="btn-submit-po" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Submit Order</button>
+
+
+            <div
+                class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+
+                <button
+                    type="button"
+                    id="btn-cancel-modal"
+                    class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">
+
+                    Cancel
+
+                </button>
+
+
+                <button
+                    type="button"
+                    id="btn-submit-po"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">
+
+                    Submit Order
+
+                </button>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- SEND TO FOUNDRY DISPATCH MODAL -->
-    <div id="modal-send-foundry" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
-        <div class="glass-modal w-full max-w-lg rounded-2xl border border-slate-800 p-5 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-base font-semibold text-white flex items-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4 text-emerald-400"></i> Dispatch Purchase Order to Foundry
+
+
+    <!-- ========================================================= -->
+    <!-- FOUNDRY DISPATCH MODAL -->
+    <!-- ========================================================= -->
+
+    <div
+        id="modal-send-foundry"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
+
+        <div
+            class="glass-modal w-full max-w-lg rounded-2xl border border-slate-800 p-5 space-y-4">
+
+            <div
+                class="flex items-center justify-between border-b border-slate-800 pb-3">
+
+                <h3
+                    class="text-base font-semibold text-white flex items-center gap-2">
+
+                    <i data-lucide="send"
+                        class="w-4 h-4 text-emerald-400"></i>
+
+                    Dispatch Purchase Order to Foundry
+
                 </h3>
-                <button type="button" id="btn-close-foundry-modal" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+
+
+                <button
+                    type="button"
+                    id="btn-close-foundry-modal"
+                    class="text-slate-400 hover:text-white">
+
+                    <i data-lucide="x" class="w-5 h-5"></i>
+
+                </button>
+
             </div>
+
 
             <div class="space-y-3">
-                <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs space-y-1">
-                    <p class="text-slate-400">Assigned Foundry: <span id="dispatch-foundry-name" class="font-bold text-indigo-400"></span></p>
-                    <p class="text-slate-400">PO Number: <span id="dispatch-po-id" class="font-bold text-white"></span></p>
-                    <p class="text-slate-400">Pattern / Drawing: <span id="dispatch-pattern" class="font-bold text-slate-200"></span></p>
-                    <p class="text-slate-400">Quantity: <span id="dispatch-qty" class="font-bold text-slate-200"></span></p>
+
+
+                <div
+                    class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs space-y-1">
+
+                    <p class="text-slate-400">
+                        Assigned Foundry:
+                        <span
+                            id="dispatch-foundry-name"
+                            class="font-bold text-indigo-400">
+                        </span>
+                    </p>
+
+                    <p class="text-slate-400">
+                        PO Number:
+                        <span
+                            id="dispatch-po-id"
+                            class="font-bold text-white">
+                        </span>
+                    </p>
+
+                    <p class="text-slate-400">
+                        Pattern / Drawing:
+                        <span
+                            id="dispatch-pattern"
+                            class="font-bold text-slate-200">
+                        </span>
+                    </p>
+
+                    <p class="text-slate-400">
+                        Quantity:
+                        <span
+                            id="dispatch-qty"
+                            class="font-bold text-slate-200">
+                        </span>
+                    </p>
+
                 </div>
+
 
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Foundry Contact / Phone Number</label>
-                    <input type="text" id="dispatch-phone" placeholder="Enter phone for WhatsApp (e.g. 919876543210)" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
+                    <label class="block text-xs text-slate-300 mb-1">
+                        Foundry Contact / Phone Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="dispatch-phone"
+                        placeholder="919876543210"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
                 </div>
+
 
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Purchase Order Text Preview</label>
-                    <textarea id="dispatch-message-text" rows="4" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-xs text-slate-200 font-mono"></textarea>
+
+                    <label class="block text-xs text-slate-300 mb-1">
+                        Purchase Order Text Preview
+                    </label>
+
+                    <textarea
+                        id="dispatch-message-text"
+                        rows="5"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3 text-xs text-slate-200 font-mono">
+                    </textarea>
+
                 </div>
+
             </div>
 
-            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800">
-                <button type="button" id="btn-dispatch-pdf" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5">
-                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Export PDF
+
+            <div
+                class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800">
+
+                <button
+                    type="button"
+                    id="btn-dispatch-pdf"
+                    class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5">
+
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+
+                    Export PDF
+
                 </button>
-                <button type="button" id="btn-dispatch-whatsapp" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30">
-                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i> WhatsApp
+
+
+                <button
+                    type="button"
+                    id="btn-dispatch-whatsapp"
+                    class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30">
+
+                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+
+                    WhatsApp
+
                 </button>
-                <button type="button" id="btn-dispatch-email" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/30">
-                    <i data-lucide="mail" class="w-3.5 h-3.5"></i> Email
+
+
+                <button
+                    type="button"
+                    id="btn-dispatch-email"
+                    class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/30">
+
+                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+
+                    Email
+
                 </button>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- PRINTABLE PDF CONTAINER -->
+
+
+    <!-- PRINT AREA -->
+
     <div id="printable-po-area" class="hidden"></div>
 
-    <script>
-        const PATTERN_CATALOG = {
-            "748-14-9091": {"client": "Ashirwad", "foundry": "Castingcast"},
-            "660-0551-778014": {"client": "Chirai", "foundry": "Castingcast"},
-            "04-10-304": {"client": "Chirai", "foundry": "Charbhuja"},
-            "05-10-256": {"client": "Chirai", "foundry": "Highton"},
-            "8560324": {"client": "RMP", "foundry": "Charbhuja"},
-            "8560325": {"client": "RMP", "foundry": "Charbhuja"},
-            "720-32-200": {"client": "Chirai", "foundry": "Ashutosh"}
+
+
+    <!-- ========================================================= -->
+    <!-- FIREBASE -->
+    <!-- ========================================================= -->
+
+    <script type="module">
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            where,
+            orderBy,
+            doc,
+            getDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+
+        /* =========================================================
+           FIREBASE CONFIGURATION
+           =========================================================
+
+           REPLACE THESE VALUES WITH YOUR FIREBASE PROJECT CONFIG.
+
+           Firebase Console:
+           Project Settings
+           -> Your apps
+           -> Web app
+           -> Firebase SDK snippet
+           -> Config
+
+        ========================================================= */
+
+        const firebaseConfig = {
+
+            apiKey: "YOUR_API_KEY",
+
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+
+            projectId: "YOUR_PROJECT_ID",
+
+            storageBucket: "YOUR_PROJECT.firebasestorage.app",
+
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+
+            appId: "YOUR_APP_ID"
+
         };
 
-        const MASTER_ADMIN_EMAIL = 'shalu@x-engi.in';
-        let activeTabRole = 'admin'; // 'admin' or 'client'
+
+        /* =========================================================
+           FIREBASE INITIALIZATION
+        ========================================================= */
+
+        const app = initializeApp(firebaseConfig);
+
+        const auth = getAuth(app);
+
+        const db = getFirestore(app);
+
+
+
+        /* =========================================================
+           PATTERN CATALOG
+        ========================================================= */
+
+        const PATTERN_CATALOG = {
+
+            "748-14-9091": {
+                client: "Ashirwad",
+                foundry: "Castingcast"
+            },
+
+            "660-0551-778014": {
+                client: "Chirai",
+                foundry: "Castingcast"
+            },
+
+            "04-10-304": {
+                client: "Chirai",
+                foundry: "Charbhuja"
+            },
+
+            "05-10-256": {
+                client: "Chirai",
+                foundry: "Highton"
+            },
+
+            "8560324": {
+                client: "RMP",
+                foundry: "Charbhuja"
+            },
+
+            "8560325": {
+                client: "RMP",
+                foundry: "Charbhuja"
+            },
+
+            "720-32-200": {
+                client: "Chirai",
+                foundry: "Ashutosh"
+            }
+
+        };
+
+
+
+        /* =========================================================
+           GLOBAL STATE
+        ========================================================= */
+
         let currentUser = null;
+
+        let currentUserRole = null;
+
         let orders = [];
+
         let selectedOrderForDispatch = null;
 
-        function showLoginError(msg) {
-            const errBox = document.getElementById('login-error-msg');
-            errBox.textContent = msg;
-            errBox.classList.remove('hidden');
+
+
+        /* =========================================================
+           LOGIN UI
+        ========================================================= */
+
+        function showLoginError(message) {
+
+            const box =
+                document.getElementById("login-error-msg");
+
+            box.textContent = message;
+
+            box.classList.remove("hidden");
+
         }
+
 
         function clearLoginError() {
-            const errBox = document.getElementById('login-error-msg');
-            errBox.textContent = '';
-            errBox.classList.add('hidden');
+
+            const box =
+                document.getElementById("login-error-msg");
+
+            box.textContent = "";
+
+            box.classList.add("hidden");
+
         }
 
-        function setLoginRole(role) {
-            activeTabRole = role;
+
+        function setLoginLoading(isLoading) {
+
+            const loading =
+                document.getElementById("login-loading");
+
+            const button =
+                document.getElementById("btn-standard-login");
+
+            if (isLoading) {
+
+                loading.classList.remove("hidden");
+
+                button.disabled = true;
+
+                button.classList.add("opacity-50");
+
+            } else {
+
+                loading.classList.add("hidden");
+
+                button.disabled = false;
+
+                button.classList.remove("opacity-50");
+
+            }
+
+        }
+
+
+
+        /* =========================================================
+           LOGIN
+        ========================================================= */
+
+        async function attemptLogin() {
+
             clearLoginError();
-            
-            const adminTab = document.getElementById('tab-role-admin');
-            const clientTab = document.getElementById('tab-role-client');
-            const bypassWrapper = document.getElementById('admin-bypass-wrapper');
-            const emailInput = document.getElementById('login-email');
-            const passInput = document.getElementById('login-password');
 
-            if (role === 'admin') {
-                adminTab.className = "py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition";
-                clientTab.className = "py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition";
-                bypassWrapper.classList.remove('hidden');
-                emailInput.value = MASTER_ADMIN_EMAIL;
-                passInput.value = 'admin123';
-            } else {
-                clientTab.className = "py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition";
-                adminTab.className = "py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition";
-                bypassWrapper.classList.add('hidden'); // HIDE MASTER ADMIN 1-CLICK BUTTON
-                emailInput.value = 'client@x-engi.in';
-                passInput.value = 'client123';
-            }
-        }
+            const email =
+                document.getElementById("login-email")
+                    .value
+                    .trim()
+                    .toLowerCase();
 
-        function attemptLogin() {
-            clearLoginError();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const pass = document.getElementById('login-password').value.trim();
+            const password =
+                document.getElementById("login-password")
+                    .value;
 
-            if (activeTabRole === 'admin') {
-                if (email === MASTER_ADMIN_EMAIL.toLowerCase() || email === 'shalu@x-engi.in') {
-                    grantAccess('shalu@x-engi.in', 'admin');
-                } else {
-                    showLoginError("Invalid Master Admin email. Use shalu@x-engi.in.");
-                }
-            } else {
-                // Client tab attempt
-                if (email === MASTER_ADMIN_EMAIL.toLowerCase() || email === 'shalu@x-engi.in') {
-                    showLoginError("Master Admin cannot log in under Client Access. Switch to Master Admin tab.");
-                    return;
-                }
-                if (!email || email.includes('admin')) {
-                    showLoginError("Invalid client email address.");
-                    return;
-                }
-                grantAccess(email, 'client');
-            }
-        }
+            if (!email || !password) {
 
-        function grantAccess(email, role) {
-            currentUser = { email: email, role: role };
-            
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-workspace').classList.remove('hidden');
-            document.getElementById('user-display-email').textContent = email;
-            document.getElementById('role-badge').textContent = role === 'admin' ? 'Master Admin' : 'Client Access';
+                showLoginError(
+                    "Please enter your email and password."
+                );
 
-            if (role === 'client') {
-                document.getElementById('foundry-field-container').classList.add('hidden');
-            } else {
-                document.getElementById('foundry-field-container').classList.remove('hidden');
-            }
-
-            renderOrders();
-            lucide.createIcons();
-        }
-
-        function openFoundryModal(poId) {
-            const order = orders.find(o => o.id === poId);
-            if (!order) return;
-
-            selectedOrderForDispatch = order;
-            document.getElementById('dispatch-foundry-name').textContent = order.foundry;
-            document.getElementById('dispatch-po-id').textContent = order.id;
-            document.getElementById('dispatch-pattern').textContent = order.pattern;
-            document.getElementById('dispatch-qty').textContent = order.qty + ' pcs';
-
-            const msg = `PURCHASE ORDER NOTICE\nPO Ref: ${order.id}\nPattern / Drawing No: ${order.pattern}\nQuantity: ${order.qty} pcs\nTarget Delivery: ${order.targetDate}\n\nPlease confirm order receipt & production scheduling.`;
-            document.getElementById('dispatch-message-text').value = msg;
-
-            document.getElementById('modal-send-foundry').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function printOrderPDF(poId) {
-            const order = orders.find(o => o.id === poId);
-            if (!order) return;
-
-            const isClient = currentUser && currentUser.role === 'client';
-            const area = document.getElementById('printable-po-area');
-            
-            area.innerHTML = `
-                <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; border: 2px solid #000;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px;">
-                        <div>
-                            <h1 style="margin: 0; font-size: 24px; text-transform: uppercase;">VortexFlow Operations</h1>
-                            <p style="margin: 2px 0; font-size: 12px; color: #555;">Official Purchase Order</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <h2 style="margin: 0; font-size: 18px;">${order.id}</h2>
-                            <p style="margin: 2px 0; font-size: 12px;">Date: ${new Date().toLocaleDateString()}</p>
-                        </div>
-                    </div>
-
-                    <div style="margin: 20px 0; display: flex; justify-content: space-between;">
-                        <div>
-                            <strong>Client Order Ref:</strong> ${order.client}<br>
-                            <strong>Target Delivery Date:</strong> ${order.targetDate}
-                        </div>
-                        ${!isClient ? `<div><strong>Assigned Foundry Partner:</strong> ${order.foundry}</div>` : ''}
-                    </div>
-
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;" border="1" cellpadding="8">
-                        <thead>
-                            <tr style="background-color: #f2f2f2;">
-                                <th>Pattern / Drawing No.</th>
-                                <th>Quantity</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="text-align: center;">${order.pattern}</td>
-                                <td style="text-align: center;">${order.qty} pcs</td>
-                                <td style="text-align: center;">In Production</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 11px; text-align: center; color: #777;">
-                        Computer Generated Purchase Order - VortexFlow Management System
-                    </div>
-                </div>
-            `;
-
-            area.classList.remove('hidden');
-            window.print();
-            area.classList.add('hidden');
-        }
-
-        function renderOrders() {
-            const cardGrid = document.getElementById('orders-card-grid');
-            const isClient = currentUser && currentUser.role === 'client';
-
-            if (orders.length === 0) {
-                cardGrid.innerHTML = '<p class="text-xs text-slate-400 col-span-2">No purchase orders created yet.</p>';
                 return;
+
             }
 
-            cardGrid.innerHTML = orders.map(function (o) {
-                return `
-                    <div class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-indigo-400">${o.id}</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">In Production</span>
-                        </div>
-                        <p class="text-xs font-semibold text-white">Pattern: ${o.pattern}</p>
-                        <p class="text-[11px] text-slate-400">
-                            Client: ${o.client} 
-                            ${!isClient ? `| Foundry: <span class="text-indigo-300 font-semibold">${o.foundry}</span>` : ''}
-                        </p>
-                        <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 gap-2">
-                            <span class="text-xs text-slate-300">Qty: ${o.qty} pcs</span>
-                            <div class="flex items-center gap-1.5">
-                                ${!isClient ? `
-                                    <button onclick="openFoundryModal('${o.id}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-lg font-semibold flex items-center gap-1 shadow-md shadow-emerald-600/20">
-                                        <i data-lucide="send" class="w-3.5 h-3.5"></i> Send to Foundry
-                                    </button>
-                                ` : ''}
-                                <button onclick="printOrderPDF('${o.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg flex items-center gap-1">
-                                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print / PDF
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            document.getElementById('stat-active-orders').textContent = orders.length;
-            lucide.createIcons();
+
+            try {
+
+                setLoginLoading(true);
+
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                let message =
+                    "Unable to sign in.";
+
+                if (
+                    error.code ===
+                    "auth/invalid-credential"
+                ) {
+
+                    message =
+                        "Incorrect email or password.";
+
+                } else if (
+                    error.code ===
+                    "auth/user-not-found"
+                ) {
+
+                    message =
+                        "No account exists with this email.";
+
+                } else if (
+                    error.code ===
+                    "auth/wrong-password"
+                ) {
+
+                    message =
+                        "Incorrect password.";
+
+                } else if (
+                    error.code ===
+                    "auth/too-many-requests"
+                ) {
+
+                    message =
+                        "Too many attempts. Please try again later.";
+
+                }
+
+                showLoginError(message);
+
+            } finally {
+
+                setLoginLoading(false);
+
+            }
+
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            lucide.createIcons();
 
-            document.getElementById('tab-role-admin').addEventListener('click', () => setLoginRole('admin'));
-            document.getElementById('tab-role-client').addEventListener('click', () => setLoginRole('client'));
 
-            document.getElementById('btn-direct-admin').addEventListener('click', () => grantAccess('shalu@x-engi.in', 'admin'));
-            document.getElementById('btn-standard-login').addEventListener('click', attemptLogin);
+        /* =========================================================
+           LOAD USER ROLE
+        ========================================================= */
 
-            document.getElementById('btn-logout').addEventListener('click', function () {
-                document.getElementById('app-workspace').classList.add('hidden');
-                document.getElementById('auth-screen').classList.remove('hidden');
-                clearLoginError();
-            });
+        async function loadUserRole(user) {
 
-            document.getElementById('btn-open-create-modal').addEventListener('click', function () {
-                document.getElementById('modal-create-order').classList.remove('hidden');
-            });
+            const userRef =
+                doc(db, "users", user.uid);
 
-            const closeModal = function () {
-                document.getElementById('modal-create-order').classList.add('hidden');
+            const userSnap =
+                await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+
+                await signOut(auth);
+
+                throw new Error(
+                    "Your account does not have a VortexFlow role assigned."
+                );
+
+            }
+
+            const userData =
+                userSnap.data();
+
+            const role =
+                userData.role;
+
+            if (
+                role !== "admin" &&
+                role !== "client"
+            ) {
+
+                await signOut(auth);
+
+                throw new Error(
+                    "Invalid VortexFlow access role."
+                );
+
+            }
+
+            return {
+                role: role,
+                data: userData
             };
 
-            document.getElementById('btn-close-modal').addEventListener('click', closeModal);
-            document.getElementById('btn-cancel-modal').addEventListener('click', closeModal);
+        }
 
-            document.getElementById('btn-close-foundry-modal').addEventListener('click', () => {
-                document.getElementById('modal-send-foundry').classList.add('hidden');
-            });
 
-            // Dispatch Action Handlers
-            document.getElementById('btn-dispatch-whatsapp').addEventListener('click', () => {
-                const phone = document.getElementById('dispatch-phone').value.trim();
-                const text = encodeURIComponent(document.getElementById('dispatch-message-text').value);
-                const url = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
-                window.open(url, '_blank');
-            });
 
-            document.getElementById('btn-dispatch-email').addEventListener('click', () => {
-                if (!selectedOrderForDispatch) return;
-                const subject = encodeURIComponent(`Purchase Order ${selectedOrderForDispatch.id} - ${selectedOrderForDispatch.pattern}`);
-                const body = encodeURIComponent(document.getElementById('dispatch-message-text').value);
-                window.location.href = `mailto:?subject=${subject}&body=${body}`;
-            });
+        /* =========================================================
+           GRANT ACCESS
+        ========================================================= */
 
-            document.getElementById('btn-dispatch-pdf').addEventListener('click', () => {
-                if (selectedOrderForDispatch) printOrderPDF(selectedOrderForDispatch.id);
-            });
+        async function grantAccess(user, roleData) {
 
-            document.getElementById('po-pattern').addEventListener('input', function (e) {
-                const val = e.target.value.trim();
-                if (PATTERN_CATALOG[val]) {
-                    document.getElementById('po-foundry').value = PATTERN_CATALOG[val].foundry || '';
-                    document.getElementById('po-client').value = PATTERN_CATALOG[val].client || '';
+            currentUser = user;
+
+            currentUserRole =
+                roleData.role;
+
+
+            document
+                .getElementById("auth-screen")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("app-workspace")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("user-display-email")
+                .textContent = user.email;
+
+
+            document
+                .getElementById("role-badge")
+                .textContent =
+                    roleData.role === "admin"
+                        ? "Master Admin"
+                        : "Client Access";
+
+
+            const createButton =
+                document.getElementById(
+                    "btn-open-create-modal"
+                );
+
+
+            if (roleData.role === "admin") {
+
+                createButton.classList.remove("hidden");
+
+                createButton.classList.add("flex");
+
+            } else {
+
+                createButton.classList.add("hidden");
+
+                createButton.classList.remove("flex");
+
+            }
+
+
+            await loadOrders();
+
+            updateStatistics();
+
+            lucide.createIcons();
+
+        }
+
+
+
+        /* =========================================================
+           LOAD ORDERS
+        ========================================================= */
+
+        async function loadOrders() {
+
+            orders = [];
+
+            try {
+
+                let ordersQuery;
+
+
+                if (currentUserRole === "admin") {
+
+                    ordersQuery =
+                        query(
+                            collection(db, "orders"),
+                            orderBy(
+                                "createdAt",
+                                "desc"
+                            )
+                        );
+
+                } else {
+
+                    ordersQuery =
+                        query(
+                            collection(db, "orders"),
+                            where(
+                                "clientEmail",
+                                "==",
+                                currentUser.email
+                            ),
+                            orderBy(
+                                "createdAt",
+                                "desc"
+                            )
+                        );
+
                 }
-            });
 
-            document.getElementById('btn-submit-po').addEventListener('click', function () {
-                const client = document.getElementById('po-client').value || 'Direct Client';
-                const foundry = document.getElementById('po-foundry').value || 'Unassigned';
-                const pattern = document.getElementById('po-pattern').value || 'N/A';
-                const qty = document.getElementById('po-qty').value || '10';
-                const targetDate = document.getElementById('po-date').value || '2026-10-30';
 
-                const newOrder = {
-                    id: 'PO-2026-' + Math.floor(100 + Math.random() * 900),
-                    client: client,
-                    foundry: foundry,
-                    pattern: pattern,
-                    qty: qty,
-                    targetDate: targetDate
-                };
+                const snapshot =
+                    await getDocs(ordersQuery);
 
-                orders.unshift(newOrder);
+
+                snapshot.forEach((docSnap) => {
+
+                    orders.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    });
+
+                });
+
+
                 renderOrders();
-                closeModal();
-            });
-        });
+
+
+            } catch (error) {
+
+                console.error(
+                    "Order loading error:",
+                    error
+                );
+
+                document
+                    .getElementById(
+                        "orders-card-grid"
+                    )
+                    .innerHTML = `
+                        <div class="col-span-2 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+                            Unable to load purchase orders.
+                            Please check Firebase configuration and Firestore indexes.
+                        </div>
+                    `;
+
+            }
+
+        }
+
+
+
+        /* =========================================================
+           CREATE ORDER
+        ========================================================= */
+
+        async function submitPurchaseOrder() {
+
+            if (
+                !currentUser ||
+                currentUserRole !== "admin"
+            ) {
+
+                showLoginError(
+                    "Only Master Admin can create purchase orders."
+                );
+
+                return;
+
+            }
+
+
+            const client =
+                document
+                    .getElementById("po-client")
+                    .value
+                    .trim();
+
+
+            const foundry =
+                document
+                    .getElementById("po-foundry")
+                    .value
+                    .trim();
+
+
+            const pattern =
+                document
+                    .getElementById("po-pattern")
+                    .value
+                    .trim();
+
+
+            const qty =
+                Number(
+                    document
+                        .getElementById("po-qty")
+                        .value
+                );
+
+
+            const targetDate =
+                document
+                    .getElementById("po-date")
+                    .value;
+
+
+            if (!client) {
+
+                alert("Please enter the target client.");
+
+                return;
+
+            }
+
+
+            if (!pattern) {
+
+                alert(
+                    "Please enter the pattern / drawing number."
+                );
+
+                return;
+
+            }
+
+
+            if (!qty || qty < 1) {
+
+                alert("Please enter a valid quantity.");
+
+                return;
+
+            }
+
+
+            if (!targetDate) {
+
+                alert("Please select a target date.");
+
+                return;
+
+            }
+
+
+            const button =
+                document.getElementById(
+                    "btn-submit-po"
+                );
+
+            button.disabled = true;
+
+            button.textContent =
+                "Creating...";
+
+
+            try {
+
+                const poRef =
+                    await addDoc(
+                        collection(db, "orders"),
+                        {
+
+                            poNumber:
+                                "PO-" +
+                                new Date()
+                                    .getFullYear() +
+                                "-" +
+                                Math.floor(
+                                    1000 +
+                                    Math.random() *
+                                    9000
+                                ),
+
+                            client:
+                                client,
+
+                            clientEmail:
+                                client.toLowerCase() ===
+                                currentUser.email.toLowerCase()
+                                    ? currentUser.email
+                                    : "",
+
+                            foundry:
+                                foundry || "Unassigned",
+
+                            pattern:
+                                pattern,
+
+                            qty:
+                                qty,
+
+                            targetDate:
+                                targetDate,
+
+                            status:
+                                "In Production",
+
+                            createdBy:
+                                currentUser.email,
+
+                            createdAt:
+                                serverTimestamp()
+
+                        }
+                    );
+
+
+                alert(
+                    "Purchase Order created successfully."
+                );
+
+
+                closeCreateModal();
+
+                await loadOrders();
+
+                updateStatistics();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Unable to create Purchase Order."
+                );
+
+            } finally {
+
+                button.disabled = false;
+
+                button.textContent =
+                    "Submit Order";
+
+            }
+
+        }
+
+
+
+        /* =========================================================
+           RENDER ORDERS
+        ========================================================= */
+
+        function renderOrders() {
+
+            const cardGrid =
+                document.getElementById(
+                    "orders-card-grid"
+                );
+
+
+            if (!orders.length) {
+
+                cardGrid.innerHTML = `
+                    <div class="col-span-2 text-xs text-slate-400 py-5 text-center">
+                        No purchase orders available.
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            const isClient =
+                currentUserRole === "client";
+
+
+            cardGrid.innerHTML =
+                orders.map((o) => {
+
+                    const poNumber =
+                        o.poNumber ||
+                        o.id;
+
+
+                    return `
+
+                    <div
+                        class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
+
+                        <div
+                            class="flex justify-between items-center">
+
+                            <span
+                                class="text-xs font-bold text-indigo-400">
+
+                                ${escapeHtml(poNumber)}
+
+                            </span>
+
+
+                            <span
+                                class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
+
+                                ${escapeHtml(
+                                    o.status ||
+                                    "In Production"
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        <p
+                            class="text-xs font-semibold text-white">
+
+                            Pattern:
+                            ${escapeHtml(
+                                o.pattern || "-"
+                            )}
+
+                        </p>
+
+
+                        <p
+                            class="text-[11px] text-slate-400">
+
+                            Client:
+                            ${escapeHtml(
+                                o.client || "-"
+                            )}
+
+                            ${
+                                !isClient
+                                ? `
+                                |
+                                Foundry:
+                                <span
+                                    class="text-indigo-300 font-semibold">
+                                    ${escapeHtml(
+                                        o.foundry ||
+                                        "Unassigned"
+                                    )}
+                                </span>
+                                `
+                                : ""
+                            }
+
+                        </p>
+
+
+                        <p
+                            class="text-[11px] text-slate-400">
+
+                            Target Date:
+                            <span class="text-slate-200">
+                                ${escapeHtml(
+                                    o.targetDate ||
+                                    "-"
+                                )}
+                            </span>
+
+                        </p>
+
+
+                        <div
+                            class="flex items-center justify-between pt-2 border-t border-slate-800/60 gap-2">
+
+                            <span
+                                class="text-xs text-slate-300">
+
+                                Qty:
+                                ${escapeHtml(
+                                    String(o.qty || 0)
+                                )}
+                                pcs
+
+                            </span>
+
+
+                            <div
+                                class="flex items-center gap-1.5">
+
+                                ${
+                                    !isClient
+                                    ? `
+                                    <button
+                                        onclick="openFoundryModal('${o.id}')"
+                                        class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-lg font-semibold flex items-center gap-1">
+
+                                        <i
+                                            data-lucide="send"
+                                            class="w-3.5 h-3.5">
+                                        </i>
+
+                                        Send to Foundry
+
+                                    </button>
+                                    `
+                                    : ""
+                                }
+
+
+                                <button
+                                    onclick="printOrderPDF('${o.id}')"
+                                    class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg flex items-center gap-1">
+
+                                    <i
+                                        data-lucide="printer"
+                                        class="w-3.5 h-3.5">
+                                    </i>
+
+                                    Print / PDF
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    `;
+
+                })
+                .join("");
+
+
+            lucide.createIcons();
+
+        }
+
+
+
+        /* =========================================================
+           STATISTICS
+        ========================================================= */
+
+        function updateStatistics() {
+
+            document
+                .getElementById(
+                    "stat-active-orders"
+                )
+                .textContent =
+                    orders.filter(
+                        o =>
+                            o.status !==
+                            "Completed"
+                    ).length;
+
+
+            const completedQty =
+                orders
+                    .filter(
+                        o =>
+                            o.status ===
+                            "Completed"
+                    )
+                    .reduce(
+                        (
+                            total,
+                            o
+                        ) =>
+                            total +
+                            Number(
+                                o.qty || 0
+                            ),
+                        0
+                    );
+
+
+            document
+                .getElementById(
+                    "stat-completed"
+                )
+                .textContent =
+                    completedQty +
+                    " pcs";
+
+
+            document
+                .getElementById(
+                    "stat-patterns"
+                )
+                .textContent =
+                    Object.keys(
+                        PATTERN_CATALOG
+                    ).length;
+
+
+            const clients =
+                new Set(
+                    orders.map(
+                        o =>
+                            o.client
+                    )
+                );
+
+
+            document
+                .getElementById(
+                    "stat-clients"
+                )
+                .textContent =
+                    clients.size;
+
+        }
+
+
+
+        /* =========================================================
+           FOUNDRY MODAL
+        ========================================================= */
+
+        function openFoundryModal(poId) {
+
+            const order =
+                orders.find(
+                    o => o.id === poId
+                );
+
+
+            if (!order) return;
+
+
+            selectedOrderForDispatch =
+                order;
+
+
+            document
+                .getElementById(
+                    "dispatch-foundry-name"
+                )
+                .textContent =
+                    order.foundry ||
+                    "Unassigned";
+
+
+            document
+                .getElementById(
+                    "dispatch-po-id"
+                )
+                .textContent =
+                    order.poNumber ||
+                    order.id;
+
+
+            document
+                .getElementById(
+                    "dispatch-pattern"
+                )
+                .textContent =
+                    order.pattern;
+
+
+            document
+                .getElementById(
+                    "dispatch-qty"
+                )
+                .textContent =
+                    order.qty +
+                    " pcs";
+
+
+            const message =
+
+`PURCHASE ORDER NOTICE
+PO Ref: ${order.poNumber || order.id}
+Pattern / Drawing No: ${order.pattern}
+Quantity: ${order.qty} pcs
+Target Delivery: ${order.targetDate}
+
+Please confirm order receipt & production scheduling.`;
+
+
+            document
+                .getElementById(
+                    "dispatch-message-text"
+                )
+                .value =
+                    message;
+
+
+            document
+                .getElementById(
+                    "modal-send-foundry"
+                )
+                .classList.remove("hidden");
+
+
+            lucide.createIcons();
+
+        }
+
+
+
+        /* =========================================================
+           PRINT
+        ========================================================= */
+
+        function printOrderPDF(poId) {
+
+            const order =
+                orders.find(
+                    o => o.id === poId
+                );
+
+
+            if (!order) return;
+
+
+            const area =
+                document.getElementById(
+                    "printable-po-area"
+                );
+
+
+            area.innerHTML = `
+
+                <div
+                    style="
+                        font-family:Arial,sans-serif;
+                        max-width:800px;
+                        margin:auto;
+                        padding:20px;
+                        border:2px solid #000;
+                    ">
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:center;
+                            border-bottom:2px solid #000;
+                            padding-bottom:10px;
+                        ">
+
+                        <div>
+
+                            <h1
+                                style="
+                                    margin:0;
+                                    font-size:24px;
+                                    text-transform:uppercase;
+                                ">
+
+                                VortexFlow Operations
+
+                            </h1>
+
+                            <p
+                                style="
+                                    margin:2px 0;
+                                    font-size:12px;
+                                    color:#555;
+                                ">
+
+                                Official Purchase Order
+
+                            </p>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                text-align:right;
+                            ">
+
+                            <h2
+                                style="
+                                    margin:0;
+                                    font-size:18px;
+                                ">
+
+                                ${escapeHtml(
+                                    order.poNumber ||
+                                    order.id
+                                )}
+
+                            </h2>
+
+                            <p
+                                style="
+                                    margin:2px 0;
+                                    font-size:12px;
+                                ">
+
+                                Date:
+                                ${new Date()
+                                    .toLocaleDateString()}
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            margin:20px 0;
+                            display:flex;
+                            justify-content:space-between;
+                        ">
+
+                        <div>
+
+                            <strong>
+                                Client:
+                            </strong>
+
+                            ${escapeHtml(
+                                order.client ||
+                                "-"
+                            )}
+
+                            <br>
+
+                            <strong>
+                                Target Delivery:
+                            </strong>
+
+                            ${escapeHtml(
+                                order.targetDate ||
+                                "-"
+                            )}
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                Assigned Foundry:
+                            </strong>
+
+                            ${escapeHtml(
+                                order.foundry ||
+                                "-"
+                            )}
+
+                        </div>
+
+                    </div>
+
+
+                    <table
+                        style="
+                            width:100%;
+                            border-collapse:collapse;
+                            margin-top:20px;
+                        "
+                        border="1"
+                        cellpadding="8">
+
+                        <thead>
+
+                            <tr
+                                style="
+                                    background-color:#f2f2f2;
+                                ">
+
+                                <th>
+                                    Pattern / Drawing No.
+                                </th>
+
+                                <th>
+                                    Quantity
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            <tr>
+
+                                <td
+                                    style="
+                                        text-align:center;
+                                    ">
+
+                                    ${escapeHtml(
+                                        order.pattern
+                                    )}
+
+                                </td>
+
+                                <td
+                                    style="
+                                        text-align:center;
+                                    ">
+
+                                    ${escapeHtml(
+                                        String(
+                                            order.qty
+                                        )
+                                    )}
+                                    pcs
+
+                                </td>
+
+                                <td
+                                    style="
+                                        text-align:center;
+                                    ">
+
+                                    ${escapeHtml(
+                                        order.status ||
+                                        "In Production"
+                                    )}
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+
+                    <div
+                        style="
+                            margin-top:40px;
+                            border-top:1px solid #ccc;
+                            padding-top:10px;
+                            font-size:11px;
+                            text-align:center;
+                            color:#777;
+                        ">
+
+                        Computer Generated Purchase Order -
+                        VortexFlow Management System
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            area.classList.remove("hidden");
+
+            window.print();
+
+            setTimeout(
+                () =>
+                    area.classList.add(
+                        "hidden"
+                    ),
+                500
+            );
+
+        }
+
+
+
+        /* =========================================================
+           CREATE MODAL
+        ========================================================= */
+
+        function openCreateModal() {
+
+            document
+                .getElementById(
+                    "modal-create-order"
+                )
+                .classList.remove(
+                    "hidden"
+                );
+
+        }
+
+
+        function closeCreateModal() {
+
+            document
+                .getElementById(
+                    "modal-create-order"
+                )
+                .classList.add(
+                    "hidden"
+                );
+
+        }
+
+
+
+        /* =========================================================
+           ESCAPE HTML
+        ========================================================= */
+
+        function escapeHtml(value) {
+
+            return String(value ?? "")
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+
+        /* =========================================================
+           EVENT HANDLERS
+        ========================================================= */
+
+        document
+            .getElementById(
+                "btn-standard-login"
+            )
+            .addEventListener(
+                "click",
+                attemptLogin
+            );
+
+
+        document
+            .getElementById(
+                "login-password"
+            )
+            .addEventListener(
+                "keydown",
+                event => {
+
+                    if (
+                        event.key ===
+                        "Enter"
+                    ) {
+
+                        attemptLogin();
+
+                    }
+
+                }
+            );
+
+
+        document
+            .getElementById(
+                "btn-logout"
+            )
+            .addEventListener(
+                "click",
+                async () => {
+
+                    await signOut(auth);
+
+                }
+            );
+
+
+        document
+            .getElementById(
+                "btn-open-create-modal"
+            )
+            .addEventListener(
+                "click",
+                openCreateModal
+            );
+
+
+        document
+            .getElementById(
+                "btn-close-modal"
+            )
+            .addEventListener(
+                "click",
+                closeCreateModal
+            );
+
+
+        document
+            .getElementById(
+                "btn-cancel-modal"
+            )
+            .addEventListener(
+                "click",
+                closeCreateModal
+            );
+
+
+        document
+            .getElementById(
+                "btn-close-foundry-modal"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    document
+                        .getElementById(
+                            "modal-send-foundry"
+                        )
+                        .classList.add(
+                            "hidden"
+                        );
+
+                }
+            );
+
+
+        document
+            .getElementById(
+                "btn-submit-po"
+            )
+            .addEventListener(
+                "click",
+                submitPurchaseOrder
+            );
+
+
+
+        /* =========================================================
+           PATTERN AUTO-FILL
+        ========================================================= */
+
+        document
+            .getElementById(
+                "po-pattern"
+            )
+            .addEventListener(
+                "input",
+                event => {
+
+                    const value =
+                        event.target.value.trim();
+
+
+                    const pattern =
+                        PATTERN_CATALOG[
+                            value
+                        ];
+
+
+                    if (!pattern)
+                        return;
+
+
+                    document
+                        .getElementById(
+                            "po-foundry"
+                        )
+                        .value =
+                            pattern.foundry ||
+                            "";
+
+
+                    document
+                        .getElementById(
+                            "po-client"
+                        )
+                        .value =
+                            pattern.client ||
+                            "";
+
+                }
+            );
+
+
+
+        /* =========================================================
+           WHATSAPP
+        ========================================================= */
+
+        document
+            .getElementById(
+                "btn-dispatch-whatsapp"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        !selectedOrderForDispatch
+                    )
+                        return;
+
+
+                    const phone =
+                        document
+                            .getElementById(
+                                "dispatch-phone"
+                            )
+                            .value
+                            .trim();
+
+
+                    const text =
+                        encodeURIComponent(
+                            document
+                                .getElementById(
+                                    "dispatch-message-text"
+                                )
+                                .value
+                        );
+
+
+                    const url =
+                        phone
+                        ? `https://wa.me/${phone}?text=${text}`
+                        : `https://wa.me/?text=${text}`;
+
+
+                    window.open(
+                        url,
+                        "_blank"
+                    );
+
+                }
+            );
+
+
+
+        /* =========================================================
+           EMAIL
+        ========================================================= */
+
+        document
+            .getElementById(
+                "btn-dispatch-email"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        !selectedOrderForDispatch
+                    )
+                        return;
+
+
+                    const subject =
+                        encodeURIComponent(
+                            `Purchase Order ${
+                                selectedOrderForDispatch.poNumber ||
+                                selectedOrderForDispatch.id
+                            } - ${
+                                selectedOrderForDispatch.pattern
+                            }`
+                        );
+
+
+                    const body =
+                        encodeURIComponent(
+                            document
+                                .getElementById(
+                                    "dispatch-message-text"
+                                )
+                                .value
+                        );
+
+
+                    window.location.href =
+                        `mailto:?subject=${subject}&body=${body}`;
+
+                }
+            );
+
+
+
+        /* =========================================================
+           PDF
+        ========================================================= */
+
+        document
+            .getElementById(
+                "btn-dispatch-pdf"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        selectedOrderForDispatch
+                    ) {
+
+                        printOrderPDF(
+                            selectedOrderForDispatch.id
+                        );
+
+                    }
+
+                }
+            );
+
+
+
+        /* =========================================================
+           FIREBASE AUTH STATE
+        ========================================================= */
+
+        onAuthStateChanged(
+            auth,
+            async user => {
+
+                if (!user) {
+
+                    currentUser = null;
+
+                    currentUserRole = null;
+
+                    document
+                        .getElementById(
+                            "auth-screen"
+                        )
+                        .classList.remove(
+                            "hidden"
+                        );
+
+                    document
+                        .getElementById(
+                            "app-workspace"
+                        )
+                        .classList.add(
+                            "hidden"
+                        );
+
+                    return;
+
+                }
+
+
+                try {
+
+                    clearLoginError();
+
+                    const roleData =
+                        await loadUserRole(
+                            user
+                        );
+
+
+                    await grantAccess(
+                        user,
+                        roleData
+                    );
+
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    document
+                        .getElementById(
+                            "app-workspace"
+                        )
+                        .classList.add(
+                            "hidden"
+                        );
+
+                    document
+                        .getElementById(
+                            "auth-screen"
+                        )
+                        .classList.remove(
+                            "hidden"
+                        );
+
+
+                    showLoginError(
+                        error.message ||
+                        "Your account could not be loaded."
+                    );
+
+                }
+
+            }
+        );
+
+
+
+        /* =========================================================
+           LUCIDE
+        ========================================================= */
+
+        lucide.createIcons();
+
+
+
+        /* =========================================================
+           EXPOSE FUNCTIONS FOR BUTTONS
+        ========================================================= */
+
+        window.openFoundryModal =
+            openFoundryModal;
+
+        window.printOrderPDF =
+            printOrderPDF;
+
     </script>
+
 </body>
+
 </html>
