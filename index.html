@@ -446,86 +446,188 @@
 
             </div>
 
+<div class="space-y-4">
 
-            <div class="grid grid-cols-2 gap-4">
+    <!-- PO HEADER -->
 
+    <div class="grid grid-cols-2 gap-4">
 
-                <div>
+        <div>
+            <label class="block text-xs text-slate-300 mb-1">
+                Customer PO No.
+            </label>
 
-                    <label class="block text-xs text-slate-300 mb-1">
-                        Target Client
-                    </label>
-
-                    <input
-                        type="text"
-                        id="po-client"
-                        placeholder="e.g. Ashirwad / Chirai"
-                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
-
-                </div>
-
-
-                <div>
-
-                    <label class="block text-xs text-slate-300 mb-1">
-                        Foundry Partner Name
-                    </label>
-
-                    <input
-                        type="text"
-                        id="po-foundry"
-                        placeholder="Auto-fills on pattern typing"
-                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
-
-                </div>
+            <input
+                type="text"
+                id="po-number"
+                placeholder="e.g. RMP/PO/4587"
+                class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+        </div>
 
 
-                <div class="col-span-2">
+        <div>
+            <label class="block text-xs text-slate-300 mb-1">
+                Customer
+            </label>
 
-                    <label class="block text-xs text-slate-300 mb-1">
-                        Pattern / Drawing No.
-                    </label>
+            <input
+                type="text"
+                id="po-client"
+                placeholder="e.g. RMP / Megha Engineering"
+                class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+        </div>
 
-                    <input
-                        type="text"
-                        id="po-pattern"
-                        placeholder="e.g. 748-14-9091"
-                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
-
-                </div>
-
-
-                <div>
-
-                    <label class="block text-xs text-slate-300 mb-1">
-                        Quantity
-                    </label>
-
-                    <input
-                        type="number"
-                        id="po-qty"
-                        value="10"
-                        min="1"
-                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
-
-                </div>
+    </div>
 
 
-                <div>
+    <!-- PO ITEMS -->
 
-                    <label class="block text-xs text-slate-300 mb-1">
-                        Target Date
-                    </label>
+    <div>
 
-                    <input
-                        type="date"
-                        id="po-date"
-                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+        <div class="flex items-center justify-between mb-2">
 
-                </div>
+            <label class="block text-xs text-slate-300">
+                PO Items
+            </label>
 
-            </div>
+            <button
+                type="button"
+                id="btn-add-po-item"
+                class="px-3 py-1.5 bg-emerald-600/20
+                       text-emerald-300 border border-emerald-500/30
+                       rounded-lg text-xs font-semibold">
 
+                + Add Item
+
+            </button>
+
+        </div>
+
+
+        <div
+            class="overflow-x-auto rounded-xl border border-slate-700">
+
+            <table class="w-full text-xs">
+
+                <thead class="bg-slate-800">
+
+                    <tr>
+
+                        <th class="px-3 py-2 text-left">
+                            Pattern / Drawing
+                        </th>
+
+                        <th class="px-3 py-2 text-left">
+                            Grade
+                        </th>
+
+                        <th class="px-3 py-2 text-left">
+                            Foundry
+                        </th>
+
+                        <th class="px-3 py-2 text-right">
+                            Qty
+                        </th>
+
+                        <th class="px-3 py-2 text-left">
+                            Target Date
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="po-items-body">
+
+                    <tr class="border-t border-slate-800">
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="text"
+                                id="po-pattern"
+                                placeholder="Pattern / Drawing"
+                                class="w-full min-w-[140px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="text"
+                                id="po-grade"
+                                placeholder="CI"
+                                class="w-full min-w-[70px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="text"
+                                id="po-foundry"
+                                placeholder="Auto"
+                                class="w-full min-w-[100px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="number"
+                                id="po-qty"
+                                value="10"
+                                min="1"
+                                class="w-full min-w-[70px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="date"
+                                id="po-date"
+                                class="w-full min-w-[130px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+   
 
             <div
                 class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
@@ -2231,40 +2333,40 @@ document
 
             }
 
+const client =
+    document
+        .getElementById("po-client")
+        .value
+        .trim();
 
-            const client =
-                document
-                    .getElementById("po-client")
-                    .value
-                    .trim();
+const poNumber =
+    document
+        .getElementById("po-number")
+        .value
+        .trim();
 
+const rows =
+    document.querySelectorAll(
+        "#po-items-body tr"
+    );
 
-            const foundry =
-                document
-                    .getElementById("po-foundry")
-                    .value
-                    .trim();
+const firstInputs =
+    rows[0].querySelectorAll("input");
 
+const pattern =
+    firstInputs[0].value.trim();
 
-            const pattern =
-                document
-                    .getElementById("po-pattern")
-                    .value
-                    .trim();
+const grade =
+    firstInputs[1].value.trim();
 
+const foundry =
+    firstInputs[2].value.trim();
 
-            const qty =
-                Number(
-                    document
-                        .getElementById("po-qty")
-                        .value
-                );
+const qty =
+    Number(firstInputs[3].value);
 
-
-            const targetDate =
-                document
-                    .getElementById("po-date")
-                    .value;
+const targetDate =
+    firstInputs[4].value;
 
 
             if (!client) {
@@ -2324,53 +2426,73 @@ document
                         {
 
                             poNumber:
-                                "PO-" +
-                                new Date()
-                                    .getFullYear() +
-                                "-" +
-                                Math.floor(
-                                    1000 +
-                                    Math.random() *
-                                    9000
-                                ),
+    poNumber,
 
-                            client:
-                                client,
+client:
+    client,
 
-                            clientEmail:
-                                client.toLowerCase() ===
-                                currentUser.email.toLowerCase()
-                                    ? currentUser.email
-                                    : "",
+clientEmail:
+    client.toLowerCase() === currentUser.email.toLowerCase()
+        ? currentUser.email
+        : "",
 
-                            foundry:
-                                foundry || "Unassigned",
+foundry:
+    "Multiple",
 
-                            pattern:
-                                pattern,
+pattern:
+    "",
 
-                            qty:
-                                qty,
-itemsList: [
-  {
-    foundry: foundry || "Unassigned",
-    grade: "",
-    pattern: pattern,
-    quantity: qty,
-    received: 0
-  }
-],
-                            targetDate:
-                                targetDate,
+qty:
+    Array.from(rows).reduce(
+        (total, row) =>
+            total +
+            Number(
+                row.querySelectorAll("input")[3].value
+            ),
+        0
+    ),
 
-                            status:
-                                "In Production",
+itemsList:
+    Array.from(rows).map(row => {
 
-                            createdBy:
-                                currentUser.email,
+        const inputs =
+            row.querySelectorAll("input");
 
-                            createdAt:
-                                serverTimestamp()
+        return {
+            foundry:
+                inputs[2].value.trim() || "Unassigned",
+
+            grade:
+                inputs[1].value.trim(),
+
+            pattern:
+                inputs[0].value.trim(),
+
+            quantity:
+                Number(inputs[3].value),
+
+            received:
+                0,
+
+            targetDate:
+                inputs[4].value
+        };
+
+    }),
+
+targetDate:
+    Array.from(rows)[0]
+        .querySelectorAll("input")[4]
+        .value,
+
+status:
+    "In Production",
+
+createdBy:
+    currentUser.email,
+
+createdAt:
+    serverTimestamp()
 
                         }
                     );
@@ -4352,7 +4474,59 @@ for (const item of rawItems) {
                 "click",
                 submitPurchaseOrder
             );
+document
+    .getElementById("btn-add-po-item")
+    .addEventListener("click", () => {
 
+        const body =
+            document.getElementById("po-items-body");
+
+        const row =
+            document.createElement("tr");
+
+        row.className =
+            "border-t border-slate-800";
+
+        row.innerHTML = `
+            <td class="px-2 py-2">
+                <input
+                    type="text"
+                    placeholder="Pattern / Drawing"
+                    class="w-full min-w-[140px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="text"
+                    placeholder="CI"
+                    class="w-full min-w-[70px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="text"
+                    placeholder="Auto"
+                    class="w-full min-w-[100px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="number"
+                    value="10"
+                    min="1"
+                    class="w-full min-w-[70px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="date"
+                    class="w-full min-w-[130px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+        `;
+
+        body.appendChild(row);
+
+    });
 
 
         /* =========================================================
