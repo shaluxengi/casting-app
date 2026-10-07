@@ -1510,7 +1510,73 @@ document
         reader.readAsText(file);
 
     });
+document
+  .getElementById("btn-import-pattern-master")
+  .addEventListener("click", async () => {
+    const status = document.getElementById("pattern-master-status");
+    const button = document.getElementById("btn-import-pattern-master");
 
+    if (roleData.role !== "admin") {
+      status.textContent = "Only administrators can import Pattern Master data.";
+      return;
+    }
+
+    if (!patternMasterImportData.length) {
+      status.textContent = "Please select the CSV and click Preview first.";
+      return;
+    }
+
+    if (!confirm(`Import ${patternMasterImportData.length} records into Firebase?`)) {
+      return;
+    }
+
+    try {
+      button.disabled = true;
+      status.textContent = "Importing Pattern Master...";
+
+      const batchSize = 400;
+      let imported = 0;
+
+      for (let start = 0; start < patternMasterImportData.length; start += batchSize) {
+        const batch = writeBatch(db);
+        const rows = patternMasterImportData.slice(start, start + batchSize);
+
+        rows.forEach((item, index) => {
+          const rowNumber = start + index + 1;
+          const ref = doc(
+            db,
+            "patternMaster",
+            `pattern_${String(rowNumber).padStart(4, "0")}`
+          );
+
+          batch.set(ref, {
+            pattern: item.pattern,
+            foundry: item.foundry,
+            client: item.client,
+            sourceRow: rowNumber,
+            importedAt: serverTimestamp()
+          }, { merge: true });
+        });
+
+        await batch.commit();
+        imported += rows.length;
+        status.textContent =
+          `Imported ${imported} of ${patternMasterImportData.length}...`;
+      }
+
+      status.textContent =
+        `Import complete: ${imported} records saved to Pattern Master.`;
+
+      document.getElementById("pattern-master-count").textContent =
+        `${imported} records`;
+
+    } catch (error) {
+      console.error("Pattern Master import error:", error);
+      status.textContent = `Import failed: ${error.message}`;
+    } finally {
+      button.disabled = false;
+    }
+  });
             if (roleData.role === "admin") {
 
                 createButton.classList.remove("hidden");
