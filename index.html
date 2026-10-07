@@ -3713,136 +3713,173 @@ if (!pattern) {
 
 
 
-        /* =========================================================
-           WHATSAPP
-        ========================================================= */
+       /* =========================================================
+   FOUNDRY DISPATCH — NEW WORK PACKAGE ACTIONS
+========================================================= */
 
-        document
-            .getElementById(
-                "btn-dispatch-whatsapp"
-            )
-            .addEventListener(
-                "click",
-                () => {
+document
+    .getElementById("btn-foundry-dispatch-whatsapp")
+    .addEventListener(
+        "click",
+        () => {
 
-                    if (
-                        !selectedOrderForDispatch
+            const message =
+                document
+                    .getElementById(
+                        "foundry-dispatch-message"
                     )
-                        return;
+                    .value
+                    .trim();
 
+            if (!message) {
+                alert(
+                    "Please generate the work package first."
+                );
+                return;
+            }
 
-                    const phone =
-                        document
-                            .getElementById(
-                                "dispatch-phone"
-                            )
-                            .value
-                            .trim();
+            const url =
+                `https://wa.me/?text=${
+                    encodeURIComponent(message)
+                }`;
 
-
-                    const text =
-                        encodeURIComponent(
-                            document
-                                .getElementById(
-                                    "dispatch-message-text"
-                                )
-                                .value
-                        );
-
-
-                    const url =
-                        phone
-                        ? `https://wa.me/${phone}?text=${text}`
-                        : `https://wa.me/?text=${text}`;
-
-
-                    window.open(
-                        url,
-                        "_blank"
-                    );
-
-                }
+            window.open(
+                url,
+                "_blank"
             );
 
-
-
-        /* =========================================================
-           EMAIL
-        ========================================================= */
-
-        document
-            .getElementById(
-                "btn-dispatch-email"
-            )
-            .addEventListener(
-                "click",
-                () => {
-
-                    if (
-                        !selectedOrderForDispatch
-                    )
-                        return;
-
-
-                    const subject =
-    encodeURIComponent(
-        `Purchase Order ${
-            selectedOrderForDispatch.poNumber ||
-            selectedOrderForDispatch.id
-        } - ${
-            Array.isArray(
-                selectedOrderForDispatch.itemsList
-            )
-                ? `${selectedOrderForDispatch.itemsList.length} Items`
-                : selectedOrderForDispatch.pattern ||
-                  "Order"
-        }`
+        }
     );
-                    const body =
-                        encodeURIComponent(
-                            document
-                                .getElementById(
-                                    "dispatch-message-text"
-                                )
-                                .value
-                        );
-
-
-                    window.location.href =
-                        `mailto:?subject=${subject}&body=${body}`;
-
-                }
-            );
 
 
 
-        /* =========================================================
-           PDF
-        ========================================================= */
+/* =========================================================
+   EMAIL
+========================================================= */
 
-        document
-            .getElementById(
-                "btn-dispatch-pdf"
-            )
-            .addEventListener(
-                "click",
+document
+    .getElementById("btn-foundry-dispatch-email")
+    .addEventListener(
+        "click",
+        () => {
+
+            const message =
+                document
+                    .getElementById(
+                        "foundry-dispatch-message"
+                    )
+                    .value
+                    .trim();
+
+            if (!message) {
+                alert(
+                    "Please generate the work package first."
+                );
+                return;
+            }
+
+            const subject =
+                encodeURIComponent(
+                    "VortexFlow Foundry Work Package"
+                );
+
+            const body =
+                encodeURIComponent(
+                    message
+                );
+
+            window.location.href =
+                `mailto:?subject=${subject}&body=${body}`;
+
+        }
+    );
+
+
+
+/* =========================================================
+   PDF
+========================================================= */
+
+document
+    .getElementById("btn-foundry-dispatch-pdf")
+    .addEventListener(
+        "click",
+        () => {
+
+            const message =
+                document
+                    .getElementById(
+                        "foundry-dispatch-message"
+                    )
+                    .value
+                    .trim();
+
+            if (!message) {
+                alert(
+                    "Please generate the work package first."
+                );
+                return;
+            }
+
+            const area =
+                document.getElementById(
+                    "printable-po-area"
+                );
+
+            area.innerHTML = `
+                <div style="
+                    font-family:Arial,sans-serif;
+                    padding:30px;
+                    color:#111;
+                ">
+
+                    <h2 style="
+                        margin-bottom:5px;
+                    ">
+                        VortexFlow
+                    </h2>
+
+                    <h3 style="
+                        margin-top:0;
+                    ">
+                        Foundry Work Package
+                    </h3>
+
+                    <pre style="
+                        white-space:pre-wrap;
+                        font-family:Arial,sans-serif;
+                        font-size:13px;
+                        line-height:1.6;
+                    ">${escapeHtml(message)}</pre>
+
+                    <div style="
+                        margin-top:40px;
+                        border-top:1px solid #ccc;
+                        padding-top:10px;
+                        font-size:11px;
+                        text-align:center;
+                        color:#777;
+                    ">
+                        Computer Generated Work Package -
+                        VortexFlow Management System
+                    </div>
+
+                </div>
+            `;
+
+            area.classList.remove("hidden");
+
+            window.print();
+
+            setTimeout(
                 () => {
-
-                    if (
-                        selectedOrderForDispatch
-                    ) {
-
-                        printOrderPDF(
-                            selectedOrderForDispatch.id
-                        );
-
-                    }
-
-                }
+                    area.classList.add("hidden");
+                },
+                500
             );
 
-
-
+        }
+    );
         /* =========================================================
            FIREBASE AUTH STATE
         ========================================================= */
