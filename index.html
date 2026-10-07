@@ -2031,7 +2031,7 @@ document
                 });
 
 
-                renderOrders();
+                await renderOrders();
 
 
             } catch (error) {
@@ -2258,8 +2258,58 @@ itemsList: [
         /* =========================================================
            RENDER ORDERS
         ========================================================= */
+async function resolvePatternFoundry(item) {
 
-       function renderOrders() {
+    if (
+        item.foundry &&
+        item.foundry !== "Unassigned"
+    ) {
+        return {
+            foundry: item.foundry,
+            source: "order"
+        };
+    }
+
+    if (!item.pattern) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
+
+    const patternQuery =
+        query(
+            collection(db, "patternMaster"),
+            where("pattern", "==", item.pattern)
+        );
+
+    const patternSnapshot =
+        await getDocs(patternQuery);
+
+    if (patternSnapshot.empty) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
+
+    const patternData =
+        patternSnapshot.docs[0].data();
+
+    if (patternData.foundry) {
+        return {
+            foundry: patternData.foundry,
+            source: "pattern-master"
+        };
+    }
+
+    return {
+        foundry: "",
+        source: "not-assigned"
+    };
+}
+       
+       async function renderOrders() {
 
     const cardGrid =
         document.getElementById("orders-card-grid");
@@ -2278,56 +2328,77 @@ itemsList: [
     const isClient =
         currentUserRole === "client";
 
-    cardGrid.innerHTML =
-        orders.map((o) => {
+    const orderCards = [];
 
-            const poNumber =
-                o.poNumber || o.id;
+    for (const o of orders) {
 
-            const customer =
-                o.customer ||
-                o.client ||
-                "-";
+        const poNumber =
+            o.poNumber || o.id;
 
-            const orderDate =
-                o.orderDate ||
-                o.createdAt ||
-                "-";
+        const customer =
+            o.customer ||
+            o.client ||
+            "-";
 
-            const dueDate =
-                o.dueDate ||
-                o.targetDate ||
-                "-";
+        const orderDate =
+            o.orderDate ||
+            o.createdAt ||
+            "-";
 
- const items =
-    Array.isArray(o.itemsList)
-        ? o.itemsList
-        : [];
+        const dueDate =
+            o.dueDate ||
+            o.targetDate ||
+            "-";
 
-            const totalQty =
-                items.reduce(
-                    (sum, item) =>
-                        sum + Number(item.quantity || 0),
-                    0
-                );
+        const items =
+            Array.isArray(o.itemsList)
+                ? o.itemsList
+                : [];
 
-            const totalReceived =
-                items.reduce(
-                    (sum, item) =>
-                        sum + Number(item.received || 0),
-                    0
-                );
+        const totalQty =
+            items.reduce(
+                (sum, item) =>
+                    sum + Number(item.quantity || 0),
+                0
+            );
 
-            const visibleItems =
-                items.slice(0, 6);
+        const totalReceived =
+            items.reduce(
+                (sum, item) =>
+                    sum + Number(item.received || 0),
+                0
+            );
 
-            const remainingItems =
-                Math.max(
-                    items.length - visibleItems.length,
-                    0
-                );
+        const visibleItems =
+            items.slice(0, 6);
 
-            return `
+        const resolvedItems = [];
+
+        for (const item of visibleItems) {
+
+            const result =
+                await resolvePatternFoundry(item);
+
+            resolvedItems.push({
+                ...item,
+                displayFoundry:
+                    result.foundry ||
+                    (
+                        result.source === "not-assigned"
+                            ? "Not Assigned"
+                            : "Pattern Not in Master"
+                    )
+            });
+        }
+
+        const remainingItems =
+            Math.max(
+                items.length -
+                visibleItems.length,
+                0
+            );
+
+        orderCards.push(`
 
             <div
                 class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
@@ -2363,7 +2434,9 @@ itemsList: [
                     class="text-[11px] text-slate-400">
 
                     Customer:
-                    <span class="text-slate-200 font-semibold">
+
+                    <span
+                        class="text-slate-200 font-semibold">
 
                         ${escapeHtml(customer)}
 
@@ -2426,7 +2499,8 @@ itemsList: [
                         <span
                             class="text-[10px] text-slate-400">
 
-                            ${items.length} item${items.length === 1 ? "" : "s"}
+                            ${items.length}
+                            item${items.length === 1 ? "" : "s"}
 
                         </span>
 
@@ -2434,102 +2508,104 @@ itemsList: [
 
 
                     ${
-                        visibleItems.length
-                        ? visibleItems.map((item) => `
-
-                            <div
-                                class="flex items-center justify-between gap-2
-                                       bg-slate-900/40 rounded-lg px-2.5 py-1.5">
-
-                                <div class="min-w-0">
-
-                                    <div
-                                        class="text-[11px] font-semibold text-slate-200">
-
-                                        ${escapeHtml(
-                                            item.pattern || "-"
-                                        )}
-
-                                    </div>
-
-                                    <div
-                                        class="text-[10px] text-slate-500">
-
-                                        ${escapeHtml(
-                                            item.grade || "-"
-                                        )}
-
-                                        ${
-                                            !isClient
-                                            ? `
-                                            · Foundry:
-                                            ${escapeHtml(
-                                                item.foundry ||
-                                                "Unassigned"
-                                            )}
-                                            `
-                                            : ""
-                                        }
-
-                                    </div>
-
-                                </div>
-
+                        resolvedItems.length
+                            ? resolvedItems.map((item) => `
 
                                 <div
-                                    class="text-right shrink-0">
+                                    class="flex items-center justify-between gap-2
+                                           bg-slate-900/40 rounded-lg px-2.5 py-1.5">
 
-                                    <div
-                                        class="text-[11px] text-slate-200">
+                                    <div class="min-w-0">
 
-                                        ${escapeHtml(
-                                            String(
-                                                item.quantity || 0
-                                            )
-                                        )} pcs
+                                        <div
+                                            class="text-[11px] font-semibold text-slate-200">
+
+                                            ${escapeHtml(
+                                                item.pattern || "-"
+                                            )}
+
+                                        </div>
+
+                                        <div
+                                            class="text-[10px] text-slate-500">
+
+                                            ${escapeHtml(
+                                                item.grade || "-"
+                                            )}
+
+                                            ${
+                                                !isClient
+                                                    ? `
+                                                        · Foundry:
+                                                        ${escapeHtml(
+                                                            item.displayFoundry
+                                                        )}
+                                                      `
+                                                    : ""
+                                            }
+
+                                        </div>
 
                                     </div>
 
-                                    <div
-                                        class="text-[10px] text-slate-500">
 
-                                        Received:
-                                        ${escapeHtml(
-                                            String(
-                                                item.received || 0
-                                            )
-                                        )}
+                                    <div
+                                        class="text-right shrink-0">
+
+                                        <div
+                                            class="text-[11px] text-slate-200">
+
+                                            ${escapeHtml(
+                                                String(
+                                                    item.quantity || 0
+                                                )
+                                            )}
+                                            pcs
+
+                                        </div>
+
+                                        <div
+                                            class="text-[10px] text-slate-500">
+
+                                            Received:
+
+                                            ${escapeHtml(
+                                                String(
+                                                    item.received || 0
+                                                )
+                                            )}
+
+                                        </div>
 
                                     </div>
 
                                 </div>
 
-                            </div>
+                            `).join("")
 
-                        `).join("")
-                        : `
-                            <div
-                                class="text-[11px] text-slate-500">
+                            : `
+                                <div
+                                    class="text-[11px] text-slate-500">
 
-                                No items found.
+                                    No items found.
 
-                            </div>
-                        `
+                                </div>
+                            `
                     }
 
 
                     ${
                         remainingItems > 0
-                        ? `
-                            <div
-                                class="text-[10px] text-indigo-300 pt-1">
+                            ? `
+                                <div
+                                    class="text-[10px] text-indigo-300 pt-1">
 
-                                + ${remainingItems}
-                                more item${remainingItems === 1 ? "" : "s"}
+                                    + ${remainingItems}
+                                    more item${remainingItems === 1 ? "" : "s"}
 
-                            </div>
-                        `
-                        : ""
+                                </div>
+                              `
+                            : ""
                     }
 
                 </div>
@@ -2545,7 +2621,9 @@ itemsList: [
                         class="text-xs text-slate-300">
 
                         Total:
-                        <span class="font-semibold text-white">
+
+                        <span
+                            class="font-semibold text-white">
 
                             ${escapeHtml(
                                 String(totalQty)
@@ -2561,7 +2639,9 @@ itemsList: [
                         class="text-[10px] text-slate-400">
 
                         Received:
-                        <span class="text-emerald-300 font-semibold">
+
+                        <span
+                            class="text-emerald-300 font-semibold">
 
                             ${escapeHtml(
                                 String(totalReceived)
@@ -2581,23 +2661,23 @@ itemsList: [
 
                     ${
                         !isClient
-                        ? `
-                        <button
-                            onclick="openFoundryModal('${o.id}')"
-                            class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500
-                                   text-white text-xs rounded-lg font-semibold
-                                   flex items-center gap-1">
+                            ? `
+                                <button
+                                    onclick="openFoundryModal('${o.id}')"
+                                    class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500
+                                           text-white text-xs rounded-lg font-semibold
+                                           flex items-center gap-1">
 
-                            <i
-                                data-lucide="send"
-                                class="w-3.5 h-3.5">
-                            </i>
+                                    <i
+                                        data-lucide="send"
+                                        class="w-3.5 h-3.5">
+                                    </i>
 
-                            Send to Foundry
+                                    Send to Foundry
 
-                        </button>
-                        `
-                        : ""
+                                </button>
+                              `
+                            : ""
                     }
 
 
@@ -2620,15 +2700,16 @@ itemsList: [
 
             </div>
 
-            `;
+        `);
+    }
 
-        })
-        .join("");
-
+    cardGrid.innerHTML =
+        orderCards.join("");
 
     lucide.createIcons();
 
 }
+
 
         /* =========================================================
            STATISTICS
