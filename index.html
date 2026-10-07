@@ -1463,6 +1463,9 @@ addPatternModal.classList.add("flex");
  document
   .getElementById("btn-close-add-pattern")
   .addEventListener("click", () => {
+      
+      editingPatternId = null;
+      
     const modal =
       document.getElementById("modal-add-pattern");
 
@@ -1473,6 +1476,8 @@ addPatternModal.classList.add("flex");
 document
   .getElementById("btn-cancel-add-pattern")
   .addEventListener("click", () => {
+      editingPatternId = null;
+      
     const modal =
       document.getElementById("modal-add-pattern");
 
