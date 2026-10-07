@@ -4583,7 +4583,50 @@ if (!pattern) {
                 }
             );
 
+document
+    .getElementById("po-items-body")
+    .addEventListener("input", async event => {
 
+        if (event.target.type !== "text")
+            return;
+
+        const row =
+            event.target.closest("tr");
+
+        if (!row)
+            return;
+
+        const inputs =
+            row.querySelectorAll("input");
+
+        if (inputs.length < 3)
+            return;
+
+        const pattern =
+            inputs[0].value.trim();
+
+        if (!pattern)
+            return;
+
+        const patternQuery =
+            query(
+                collection(db, "patternMaster"),
+                where("pattern", "==", pattern)
+            );
+
+        const snapshot =
+            await getDocs(patternQuery);
+
+        if (snapshot.empty)
+            return;
+
+        const data =
+            snapshot.docs[0].data();
+
+        inputs[2].value =
+            data.foundry || "";
+
+    });
 
        /* =========================================================
    FOUNDRY DISPATCH — NEW WORK PACKAGE ACTIONS
