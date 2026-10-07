@@ -4356,20 +4356,33 @@ document
         "click",
         () => {
 
-            const message =
-                document
-                    .getElementById(
-                        "foundry-dispatch-message"
-                    )
-                    .value
-                    .trim();
+            const selectedItems =
+                generatedFoundryPackage &&
+                Array.isArray(
+                    generatedFoundryPackage.items
+                )
+                    ? generatedFoundryPackage.items
+                    : [];
 
-            if (!message) {
+            if (!selectedItems.length) {
+
                 alert(
                     "Please generate the work package first."
                 );
+
                 return;
             }
+
+            const packageData =
+                generatedFoundryPackage;
+
+            const totalQty =
+                selectedItems.reduce(
+                    (total, item) =>
+                        total +
+                        Number(item.quantity || 0),
+                    0
+                );
 
             const area =
                 document.getElementById(
@@ -4377,44 +4390,309 @@ document
                 );
 
             area.innerHTML = `
+
                 <div style="
                     font-family:Arial,sans-serif;
                     padding:30px;
                     color:#111;
+                    max-width:900px;
+                    margin:auto;
                 ">
 
-                    <h2 style="
-                        margin-bottom:5px;
+                    <div style="
+                        border-bottom:2px solid #111;
+                        padding-bottom:15px;
+                        margin-bottom:20px;
                     ">
-                        VortexFlow
-                    </h2>
 
-                    <h3 style="
-                        margin-top:0;
-                    ">
-                        Foundry Work Package
-                    </h3>
+                        <h2 style="
+                            margin:0 0 5px 0;
+                        ">
+                            VortexFlow
+                        </h2>
 
-                    <pre style="
-                        white-space:pre-wrap;
-                        font-family:Arial,sans-serif;
+                        <h3 style="
+                            margin:0;
+                        ">
+                            FOUNDRY WORK PACKAGE
+                        </h3>
+
+                    </div>
+
+                    <table style="
+                        width:100%;
+                        border-collapse:collapse;
+                        margin-bottom:25px;
                         font-size:13px;
-                        line-height:1.6;
-                    ">${escapeHtml(message)}</pre>
+                    ">
+
+                        <tr>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                                width:25%;
+                            ">
+                                Dispatch Ref
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                            ">
+                                ${escapeHtml(
+                                    packageData.reference || "-"
+                                )}
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                                width:25%;
+                            ">
+                                Foundry
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                            ">
+                                ${escapeHtml(
+                                    packageData.foundry || "-"
+                                )}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                            ">
+                                Dispatch Date
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                            ">
+                                ${escapeHtml(
+                                    packageData.dispatchDate || "-"
+                                )}
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                            ">
+                                Total Quantity
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                            ">
+                                ${totalQty} pcs
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                    <table style="
+                        width:100%;
+                        border-collapse:collapse;
+                        font-size:12px;
+                    ">
+
+                        <thead>
+
+                            <tr>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:center;
+                                    background:#eee;
+                                    width:7%;
+                                ">
+                                    Sr.
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:left;
+                                    background:#eee;
+                                ">
+                                    Pattern / Drawing
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:left;
+                                    background:#eee;
+                                ">
+                                    Grade
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:right;
+                                    background:#eee;
+                                ">
+                                    Qty
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:left;
+                                    background:#eee;
+                                ">
+                                    Target Delivery
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            ${selectedItems.map(
+                                (item, index) => `
+
+                                    <tr>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                            text-align:center;
+                                        ">
+                                            ${index + 1}
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                            font-weight:bold;
+                                        ">
+                                            ${escapeHtml(
+                                                item.pattern || "-"
+                                            )}
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                        ">
+                                            ${escapeHtml(
+                                                item.grade || "-"
+                                            )}
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                            text-align:right;
+                                            font-weight:bold;
+                                        ">
+                                            ${Number(
+                                                item.quantity || 0
+                                            )} pcs
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                        ">
+                                            ${escapeHtml(
+                                                item.targetDate || "-"
+                                            )}
+                                        </td>
+
+                                    </tr>
+
+                                `
+                            ).join("")}
+
+                            <tr>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                "></td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    font-weight:bold;
+                                ">
+                                    TOTAL
+                                </td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                "></td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:right;
+                                    font-weight:bold;
+                                ">
+                                    ${totalQty} pcs
+                                </td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                "></td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
 
                     <div style="
-                        margin-top:40px;
+                        margin-top:25px;
+                        padding:12px;
+                        border:1px solid #ccc;
+                        font-size:12px;
+                        line-height:1.5;
+                    ">
+
+                        Please confirm receipt and
+                        production scheduling.
+
+                    </div>
+
+                    <div style="
+                        margin-top:35px;
                         border-top:1px solid #ccc;
                         padding-top:10px;
-                        font-size:11px;
+                        font-size:10px;
                         text-align:center;
                         color:#777;
                     ">
+
                         Computer Generated Work Package -
                         VortexFlow Management System
+
                     </div>
 
                 </div>
+
             `;
 
             area.classList.remove("hidden");
