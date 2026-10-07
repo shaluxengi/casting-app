@@ -1377,188 +1377,376 @@ const firebaseConfig = {
            RENDER ORDERS
         ========================================================= */
 
-        function renderOrders() {
+       function renderOrders() {
 
-            const cardGrid =
-                document.getElementById(
-                    "orders-card-grid"
+    const cardGrid =
+        document.getElementById("orders-card-grid");
+
+    if (!orders.length) {
+
+        cardGrid.innerHTML = `
+            <div class="col-span-2 text-xs text-slate-400 py-5 text-center">
+                No purchase orders available.
+            </div>
+        `;
+
+        return;
+    }
+
+    const isClient =
+        currentUserRole === "client";
+
+    cardGrid.innerHTML =
+        orders.map((o) => {
+
+            const poNumber =
+                o.poNumber || o.id;
+
+            const customer =
+                o.customer ||
+                o.client ||
+                "-";
+
+            const orderDate =
+                o.orderDate ||
+                o.createdAt ||
+                "-";
+
+            const dueDate =
+                o.dueDate ||
+                o.targetDate ||
+                "-";
+
+            const items =
+                Array.isArray(o.itemsList)
+                    ? o.itemsList
+                    : [];
+
+            const totalQty =
+                items.reduce(
+                    (sum, item) =>
+                        sum + Number(item.quantity || 0),
+                    0
                 );
 
+            const totalReceived =
+                items.reduce(
+                    (sum, item) =>
+                        sum + Number(item.received || 0),
+                    0
+                );
 
-            if (!orders.length) {
+            const visibleItems =
+                items.slice(0, 6);
 
-                cardGrid.innerHTML = `
-                    <div class="col-span-2 text-xs text-slate-400 py-5 text-center">
-                        No purchase orders available.
+            const remainingItems =
+                Math.max(
+                    items.length - visibleItems.length,
+                    0
+                );
+
+            return `
+
+            <div
+                class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
+
+                <!-- HEADER -->
+
+                <div
+                    class="flex justify-between items-center gap-3">
+
+                    <span
+                        class="text-xs font-bold text-indigo-400">
+
+                        ${escapeHtml(poNumber)}
+
+                    </span>
+
+                    <span
+                        class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
+
+                        ${escapeHtml(
+                            o.status ||
+                            "In Production"
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <!-- CUSTOMER -->
+
+                <div
+                    class="text-[11px] text-slate-400">
+
+                    Customer:
+                    <span class="text-slate-200 font-semibold">
+
+                        ${escapeHtml(customer)}
+
+                    </span>
+
+                </div>
+
+
+                <!-- DATES -->
+
+                <div
+                    class="grid grid-cols-2 gap-2 text-[11px]">
+
+                    <div class="text-slate-400">
+
+                        Order Date:
+
+                        <span class="text-slate-200">
+
+                            ${escapeHtml(
+                                String(orderDate)
+                            )}
+
+                        </span>
+
                     </div>
-                `;
 
-                return;
+                    <div class="text-slate-400">
 
-            }
+                        Due Date:
+
+                        <span class="text-slate-200">
+
+                            ${escapeHtml(
+                                String(dueDate)
+                            )}
+
+                        </span>
+
+                    </div>
+
+                </div>
 
 
-            const isClient =
-                currentUserRole === "client";
+                <!-- ITEMS -->
 
-
-            cardGrid.innerHTML =
-                orders.map((o) => {
-
-                    const poNumber =
-                        o.poNumber ||
-                        o.id;
-
-
-                    return `
+                <div
+                    class="border-t border-slate-800/60 pt-3 space-y-1.5">
 
                     <div
-                        class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
+                        class="flex justify-between items-center mb-2">
 
-                        <div
-                            class="flex justify-between items-center">
-
-                            <span
-                                class="text-xs font-bold text-indigo-400">
-
-                                ${escapeHtml(poNumber)}
-
-                            </span>
-
-
-                            <span
-                                class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
-
-                                ${escapeHtml(
-                                    o.status ||
-                                    "In Production"
-                                )}
-
-                            </span>
-
-                        </div>
-
-
-                        <p
+                        <span
                             class="text-xs font-semibold text-white">
 
-                            Pattern:
-                            ${escapeHtml(
-                                o.pattern || "-"
-                            )}
+                            Order Items
 
-                        </p>
+                        </span>
 
+                        <span
+                            class="text-[10px] text-slate-400">
 
-                        <p
-                            class="text-[11px] text-slate-400">
+                            ${items.length} item${items.length === 1 ? "" : "s"}
 
-                            Client:
-                            ${escapeHtml(
-                                o.client || "-"
-                            )}
+                        </span>
 
-                            ${
-                                !isClient
-                                ? `
-                                |
-                                Foundry:
-                                <span
-                                    class="text-indigo-300 font-semibold">
-                                    ${escapeHtml(
-                                        o.foundry ||
-                                        "Unassigned"
-                                    )}
-                                </span>
-                                `
-                                : ""
-                            }
-
-                        </p>
+                    </div>
 
 
-                        <p
-                            class="text-[11px] text-slate-400">
-
-                            Target Date:
-                            <span class="text-slate-200">
-                                ${escapeHtml(
-                                    o.targetDate ||
-                                    "-"
-                                )}
-                            </span>
-
-                        </p>
-
-
-                        <div
-                            class="flex items-center justify-between pt-2 border-t border-slate-800/60 gap-2">
-
-                            <span
-                                class="text-xs text-slate-300">
-
-                                Qty:
-                                ${escapeHtml(
-                                    String(o.qty || 0)
-                                )}
-                                pcs
-
-                            </span>
-
+                    ${
+                        visibleItems.length
+                        ? visibleItems.map((item) => `
 
                             <div
-                                class="flex items-center gap-1.5">
+                                class="flex items-center justify-between gap-2
+                                       bg-slate-900/40 rounded-lg px-2.5 py-1.5">
 
-                                ${
-                                    !isClient
-                                    ? `
-                                    <button
-                                        onclick="openFoundryModal('${o.id}')"
-                                        class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-lg font-semibold flex items-center gap-1">
+                                <div class="min-w-0">
 
-                                        <i
-                                            data-lucide="send"
-                                            class="w-3.5 h-3.5">
-                                        </i>
+                                    <div
+                                        class="text-[11px] font-semibold text-slate-200">
 
-                                        Send to Foundry
+                                        ${escapeHtml(
+                                            item.pattern || "-"
+                                        )}
 
-                                    </button>
-                                    `
-                                    : ""
-                                }
+                                    </div>
+
+                                    <div
+                                        class="text-[10px] text-slate-500">
+
+                                        ${escapeHtml(
+                                            item.grade || "-"
+                                        )}
+
+                                        ${
+                                            !isClient
+                                            ? `
+                                            · Foundry:
+                                            ${escapeHtml(
+                                                item.foundry ||
+                                                "Unassigned"
+                                            )}
+                                            `
+                                            : ""
+                                        }
+
+                                    </div>
+
+                                </div>
 
 
-                                <button
-                                    onclick="printOrderPDF('${o.id}')"
-                                    class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg flex items-center gap-1">
+                                <div
+                                    class="text-right shrink-0">
 
-                                    <i
-                                        data-lucide="printer"
-                                        class="w-3.5 h-3.5">
-                                    </i>
+                                    <div
+                                        class="text-[11px] text-slate-200">
 
-                                    Print / PDF
+                                        ${escapeHtml(
+                                            String(
+                                                item.quantity || 0
+                                            )
+                                        )} pcs
 
-                                </button>
+                                    </div>
+
+                                    <div
+                                        class="text-[10px] text-slate-500">
+
+                                        Received:
+                                        ${escapeHtml(
+                                            String(
+                                                item.received || 0
+                                            )
+                                        )}
+
+                                    </div>
+
+                                </div>
 
                             </div>
 
-                        </div>
+                        `).join("")
+                        : `
+                            <div
+                                class="text-[11px] text-slate-500">
+
+                                No items found.
+
+                            </div>
+                        `
+                    }
+
+
+                    ${
+                        remainingItems > 0
+                        ? `
+                            <div
+                                class="text-[10px] text-indigo-300 pt-1">
+
+                                + ${remainingItems}
+                                more item${remainingItems === 1 ? "" : "s"}
+
+                            </div>
+                        `
+                        : ""
+                    }
+
+                </div>
+
+
+                <!-- TOTALS -->
+
+                <div
+                    class="flex items-center justify-between
+                           pt-2 border-t border-slate-800/60">
+
+                    <div
+                        class="text-xs text-slate-300">
+
+                        Total:
+                        <span class="font-semibold text-white">
+
+                            ${escapeHtml(
+                                String(totalQty)
+                            )}
+
+                            pcs
+
+                        </span>
 
                     </div>
 
-                    `;
+                    <div
+                        class="text-[10px] text-slate-400">
 
-                })
-                .join("");
+                        Received:
+                        <span class="text-emerald-300 font-semibold">
+
+                            ${escapeHtml(
+                                String(totalReceived)
+                            )}
+
+                        </span>
+
+                    </div>
+
+                </div>
 
 
-            lucide.createIcons();
+                <!-- ACTIONS -->
 
-        }
+                <div
+                    class="flex items-center justify-end pt-1 gap-1.5">
+
+                    ${
+                        !isClient
+                        ? `
+                        <button
+                            onclick="openFoundryModal('${o.id}')"
+                            class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500
+                                   text-white text-xs rounded-lg font-semibold
+                                   flex items-center gap-1">
+
+                            <i
+                                data-lucide="send"
+                                class="w-3.5 h-3.5">
+                            </i>
+
+                            Send to Foundry
+
+                        </button>
+                        `
+                        : ""
+                    }
 
 
+                    <button
+                        onclick="printOrderPDF('${o.id}')"
+                        class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700
+                               text-slate-200 text-xs rounded-lg
+                               flex items-center gap-1">
+
+                        <i
+                            data-lucide="printer"
+                            class="w-3.5 h-3.5">
+                        </i>
+
+                        Print / PDF
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            `;
+
+        })
+        .join("");
+
+
+    lucide.createIcons();
+
+}
 
         /* =========================================================
            STATISTICS
