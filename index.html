@@ -2924,20 +2924,28 @@ Please confirm order receipt & production scheduling.`;
             )
             .addEventListener(
                 "input",
-                event => {
+                async event => {
 
                     const value =
                         event.target.value.trim();
 
 
-                    const pattern =
-                        PATTERN_CATALOG[
-                            value
-                        ];
+                    const patternQuery = query(
+  collection(db, "patternMaster"),
+  where("pattern", "==", value)
+);
 
+const patternSnapshot = await getDocs(patternQuery);
 
-                    if (!pattern)
-                        return;
+const pattern = patternSnapshot.empty
+  ? null
+  : patternSnapshot.docs[0].data();
+
+if (!pattern) {
+  document.getElementById("po-foundry").value = "";
+  document.getElementById("po-client").value = "";
+  return;
+}
 
 
                     document
