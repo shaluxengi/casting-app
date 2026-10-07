@@ -394,7 +394,12 @@
     <i data-lucide="database" class="w-4 h-4 inline-block mr-1"></i>
     Pattern Master
 </button>
-
+<button
+  type="button"
+  id="btn-add-pattern"
+  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold">
+  + Add Pattern
+</button>
 </div>
 
 
@@ -1329,6 +1334,13 @@ if (roleData.role === "admin") {
     patternMasterModal.classList.add("flex");
 });
 
+
+    document
+  .getElementById("btn-add-pattern")
+  .addEventListener("click", () => {
+    alert("Add Pattern form coming next.");
+  });
+            
 document
     .getElementById("btn-close-pattern-master")
     .addEventListener("click", () => {
