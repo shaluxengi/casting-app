@@ -1071,6 +1071,7 @@
     getFirestore,
     collection,
     addDoc,
+    updateDoc,
     getDocs,
     query,
     where,
@@ -1177,7 +1178,7 @@ const firebaseConfig = {
 
         let selectedOrderForDispatch = null;
 
-
+        let editingPatternId = null;
 
         /* =========================================================
            LOGIN UI
@@ -1450,6 +1451,7 @@ if (roleData.role === "admin") {
     document
   .getElementById("btn-add-pattern")
   .addEventListener("click", () => {
+     editingPatternId = null;
    const addPatternModal =
   document.getElementById(
     "modal-add-pattern"
@@ -1518,23 +1520,45 @@ document
         )
       );
 
-    if (!existing.empty) {
-      status.textContent =
-        "This pattern already exists.";
-      return;
+    if (!editingPatternId && !existing.empty) {
+  status.textContent =
+    "This pattern already exists.";
+  return;
+}
+
+    if (editingPatternId) {
+
+  await updateDoc(
+    doc(
+      db,
+      "patternMaster",
+      editingPatternId
+    ),
+    {
+      pattern: pattern,
+      foundry: foundry,
+      client: client
     }
+  );
 
-    await addDoc(
-      collection(db, "patternMaster"),
-      {
-        pattern: pattern,
-        foundry: foundry,
-        client: client
-      }
-    );
+  status.textContent =
+    "Pattern updated successfully.";
 
-    status.textContent =
-      "Pattern saved successfully.";
+  editingPatternId = null;
+
+} else {
+
+  await addDoc(
+    collection(db, "patternMaster"),
+    {
+      pattern: pattern,
+      foundry: foundry,
+      client: client
+    }
+  );
+
+  status.textContent =
+    "Pattern saved successfully.";
 
     document
       .getElementById("add-pattern-number")
@@ -1546,7 +1570,7 @@ document
 
     document
       .getElementById("add-pattern-client")
-      .value = "";
+      .value = "";}
   });
      document
   .getElementById("btn-search-pattern-master")
@@ -1618,9 +1642,9 @@ document
         </div>
     `;
   });
-            document
+          document
   .getElementById("pattern-master-search-results")
-  .addEventListener("click", event => {
+  .addEventListener("click", async event => {
 
     const button =
       event.target.closest(
@@ -1629,10 +1653,49 @@ document
 
     if (!button) return;
 
-    alert(
-      "Edit Pattern selected: " +
-      button.dataset.editPattern
-    );
+    const patternDoc =
+      await getDoc(
+        doc(
+          db,
+          "patternMaster",
+          button.dataset.editPattern
+        )
+      );
+
+    if (!patternDoc.exists()) {
+      alert("Pattern record not found.");
+      return;
+    }
+
+    const data =
+      patternDoc.data();
+
+    editingPatternId =
+      button.dataset.editPattern;
+
+    document.getElementById(
+      "add-pattern-number"
+    ).value =
+      data.pattern || "";
+
+    document.getElementById(
+      "add-pattern-foundry"
+    ).value =
+      data.foundry || "";
+
+    document.getElementById(
+      "add-pattern-client"
+    ).value =
+      data.client || "";
+
+    const editModal =
+      document.getElementById(
+        "modal-add-pattern"
+      );
+
+    editModal.classList.remove("hidden");
+    editModal.classList.add("flex");
+
   });
     document
     .getElementById("btn-close-pattern-master")
