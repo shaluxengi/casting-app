@@ -2923,7 +2923,7 @@ Please confirm order receipt & production scheduling.`;
            PRINT
         ========================================================= */
 
-        function printOrderPDF(poId) {
+        async function printOrderPDF(poId) {
 
             const order =
                 orders.find(
@@ -2933,10 +2933,45 @@ Please confirm order receipt & production scheduling.`;
 
             if (!order) return;
 
-const items =
+const rawItems =
     Array.isArray(order.itemsList)
         ? order.itemsList
         : [];
+
+const items = [];
+
+for (const item of rawItems) {
+
+    let foundry =
+        item.foundry &&
+        item.foundry !== "Unassigned"
+            ? item.foundry
+            : "";
+
+    if (!foundry && item.pattern) {
+
+        const patternQuery =
+            query(
+                collection(db, "patternMaster"),
+                where("pattern", "==", item.pattern)
+            );
+
+        const patternSnapshot =
+            await getDocs(patternQuery);
+
+        if (!patternSnapshot.empty) {
+
+            foundry =
+                patternSnapshot.docs[0].data().foundry || "";
+
+        }
+    }
+
+    items.push({
+        ...item,
+        foundry: foundry || "Unassigned"
+    });
+}
             
             const area =
                 document.getElementById(
