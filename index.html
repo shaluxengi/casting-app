@@ -1831,83 +1831,144 @@ const firebaseConfig = {
 
         function openFoundryModal(poId) {
 
-            const order =
-                orders.find(
-                    o => o.id === poId
-                );
+    const order =
+        orders.find(
+            o => o.id === poId
+        );
+
+    if (!order) return;
+
+    selectedOrderForDispatch =
+        order;
+
+    const items =
+        Array.isArray(order.itemsList)
+            ? order.itemsList
+            : [];
+
+    const totalQty =
+        items.reduce(
+            (sum, item) =>
+                sum + Number(item.quantity || 0),
+            0
+        );
+
+    const foundries =
+        [
+            ...new Set(
+                items
+                    .map(item => item.foundry)
+                    .filter(Boolean)
+            )
+        ];
+
+    const foundryText =
+        foundries.length
+            ? foundries.join(", ")
+            : "Unassigned";
+
+    const poNumber =
+        order.poNumber ||
+        order.id;
+
+    const dueDate =
+        order.dueDate ||
+        order.targetDate ||
+        "-";
 
 
-            if (!order) return;
+    document
+        .getElementById(
+            "dispatch-foundry-name"
+        )
+        .textContent =
+            foundryText;
 
 
-            selectedOrderForDispatch =
-                order;
+    document
+        .getElementById(
+            "dispatch-po-id"
+        )
+        .textContent =
+            poNumber;
 
 
-            document
-                .getElementById(
-                    "dispatch-foundry-name"
-                )
-                .textContent =
-                    order.foundry ||
-                    "Unassigned";
+    document
+        .getElementById(
+            "dispatch-pattern"
+        )
+        .textContent =
+            items.length
+                ? `${items.length} items`
+                : "No items";
 
 
-            document
-                .getElementById(
-                    "dispatch-po-id"
-                )
-                .textContent =
-                    order.poNumber ||
-                    order.id;
+    document
+        .getElementById(
+            "dispatch-qty"
+        )
+        .textContent =
+            `${totalQty} pcs`;
 
 
-            document
-                .getElementById(
-                    "dispatch-pattern"
-                )
-                .textContent =
-                    order.pattern;
+    const itemLines =
+        items.map(
+            (item, index) => {
+
+                return `${index + 1}. Pattern: ${
+                    item.pattern || "-"
+                }
+Grade: ${
+                    item.grade || "-"
+                }
+Foundry: ${
+                    item.foundry || "Unassigned"
+                }
+Quantity: ${
+                    Number(item.quantity || 0)
+                } pcs
+Received: ${
+                    Number(item.received || 0)
+                } pcs`;
+
+            }
+        ).join("\n\n");
 
 
-            document
-                .getElementById(
-                    "dispatch-qty"
-                )
-                .textContent =
-                    order.qty +
-                    " pcs";
-
-
-            const message =
+    const message =
 
 `PURCHASE ORDER NOTICE
-PO Ref: ${order.poNumber || order.id}
-Pattern / Drawing No: ${order.pattern}
-Quantity: ${order.qty} pcs
-Target Delivery: ${order.targetDate}
+PO Ref: ${poNumber}
+Customer: ${order.customer || order.client || "-"}
+Order Date: ${order.orderDate || "-"}
+Target Delivery: ${dueDate}
+
+TOTAL ITEMS: ${items.length}
+TOTAL QUANTITY: ${totalQty} pcs
+
+${itemLines}
 
 Please confirm order receipt & production scheduling.`;
 
 
-            document
-                .getElementById(
-                    "dispatch-message-text"
-                )
-                .value =
-                    message;
+    document
+        .getElementById(
+            "dispatch-message-text"
+        )
+        .value =
+            message;
 
 
-            document
-                .getElementById(
-                    "modal-send-foundry"
-                )
-                .classList.remove("hidden");
+    document
+        .getElementById(
+            "modal-send-foundry"
+        )
+        .classList.remove("hidden");
 
 
-            lucide.createIcons();
+    lucide.createIcons();
 
-        }
+}
 
 
 
