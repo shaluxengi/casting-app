@@ -2817,7 +2817,7 @@ async function resolvePatternFoundry(item) {
                         !isClient
                             ? `
                                 <button
-                                    onclick="openFoundryModal('${o.id}')"
+                                   onclick="openFoundryAllocation()"
                                     class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500
                                            text-white text-xs rounded-lg font-semibold
                                            flex items-center gap-1">
@@ -2945,215 +2945,530 @@ document
 
 
         /* =========================================================
-           FOUNDRY MODAL
-        ========================================================= */
+   FOUNDRY WORK ALLOCATION
+========================================================= */
 
-        async function openFoundryModal(poId) {
+let foundryAllocationItems = [];
+let selectedFoundryAllocationItems = new Set();
+let generatedFoundryPackage = null;
 
-    const order =
-        orders.find(
-            o => o.id === poId
-        );
 
-    if (!order) return;
+async function resolveAllocationFoundry(item) {
 
-    selectedOrderForDispatch =
-        order;
-
-    const rawItems =
-    Array.isArray(order.itemsList)
-        ? order.itemsList
-        : [];
-
-const items = [];
-
-for (const item of rawItems) {
-
-    let foundry =
+    if (
         item.foundry &&
         item.foundry !== "Unassigned"
-            ? item.foundry
-            : "";
+    ) {
+        return {
+            foundry: item.foundry,
+            source: "order"
+        };
+    }
 
-    if (!foundry && item.pattern) {
+    if (!item.pattern) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
 
-        const patternQuery =
-            query(
-                collection(db, "patternMaster"),
-                where(
-                    "pattern",
-                    "==",
-                    item.pattern
-                )
-            );
+    const patternQuery = query(
+        collection(db, "patternMaster"),
+        where(
+            "pattern",
+            "==",
+            item.pattern
+        )
+    );
 
-        const patternSnapshot =
-            await getDocs(patternQuery);
+    const patternSnapshot =
+        await getDocs(patternQuery);
 
-        if (!patternSnapshot.empty) {
+    if (patternSnapshot.empty) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
 
-            foundry =
-                patternSnapshot.docs[0]
-                    .data()
-                    .foundry || "";
+    const patternData =
+        patternSnapshot.docs[0].data();
+
+    if (patternData.foundry) {
+        return {
+            foundry: patternData.foundry,
+            source: "pattern-master"
+        };
+    }
+
+    return {
+        foundry: "",
+        source: "not-assigned"
+    };
+}
+
+
+async function buildFoundryAllocation() {
+
+    const allocation = [];
+
+    for (const order of orders) {
+
+        if (order.status === "Completed") {
+            continue;
+        }
+
+        const rawItems =
+            Array.isArray(order.itemsList)
+                ? order.itemsList
+                : [{
+                    pattern: order.pattern || "",
+                    grade: order.grade || "",
+                    quantity: order.qty || 0,
+                    received: order.received || 0,
+                    foundry: order.foundry || "Unassigned"
+                }];
+
+        for (
+            let itemIndex = 0;
+            itemIndex < rawItems.length;
+            itemIndex++
+        ) {
+
+            const item = rawItems[itemIndex];
+
+            const ordered =
+                Number(item.quantity || 0);
+
+            const received =
+                Number(item.received || 0);
+
+            const outstanding =
+                Math.max(
+                    0,
+                    ordered - received
+                );
+
+            if (outstanding <= 0) {
+                continue;
+            }
+
+            const result =
+                await resolveAllocationFoundry(item);
+
+            let foundry =
+                result.foundry;
+
+            if (!foundry) {
+
+                foundry =
+                    result.source === "not-assigned"
+                        ? "⚠ NOT ASSIGNED"
+                        : "⚠ PATTERN NOT IN MASTER";
+            }
+
+            allocation.push({
+
+                key:
+                    `${order.id}::${itemIndex}`,
+
+                orderId:
+                    order.id,
+
+                itemIndex:
+
+                    itemIndex,
+
+                foundry:
+
+                    foundry,
+
+                source:
+
+                    result.source,
+
+                pattern:
+
+                    item.pattern || "-",
+
+                grade:
+
+                    item.grade || "-",
+
+                quantity:
+
+                    outstanding,
+
+                targetDate:
+
+                    order.targetDate ||
+                    order.dueDate ||
+                    "-"
+
+            });
         }
     }
 
-    items.push({
-        ...item,
-        foundry:
-            foundry || "Unassigned"
-    });
+    return allocation;
 }
 
+
+function renderFoundryAllocation() {
+
+    const list =
+        document.getElementById(
+            "foundry-allocation-list"
+        );
+
+    if (!list) return;
+
+    const groups = {};
+
+    foundryAllocationItems.forEach(
+        item => {
+
+            if (!groups[item.foundry]) {
+                groups[item.foundry] = [];
+            }
+
+            groups[item.foundry].push(item);
+
+        }
+    );
+
+    const foundryNames =
+        Object.keys(groups);
+
     const totalQty =
-        items.reduce(
+        foundryAllocationItems.reduce(
             (sum, item) =>
-                sum + Number(item.quantity || 0),
+                sum + item.quantity,
             0
         );
 
-    const foundries =
-        [
-            ...new Set(
-                items
-                    .map(item => item.foundry)
-                    .filter(Boolean)
+    const selectedQty =
+        foundryAllocationItems
+            .filter(item =>
+                selectedFoundryAllocationItems
+                    .has(item.key)
             )
-        ];
-
-    const foundryText =
-        foundries.length
-            ? foundries.join(", ")
-            : "Unassigned";
-
-    const poNumber =
-        order.poNumber ||
-        order.id;
-
-    const dueDate =
-        order.dueDate ||
-        order.targetDate ||
-        "-";
-
+            .reduce(
+                (sum, item) =>
+                    sum + item.quantity,
+                0
+            );
 
     document
         .getElementById(
-            "dispatch-foundry-name"
+            "allocation-total-items"
         )
         .textContent =
-            foundryText;
-
-
-    document
-        .getElementById(
-            "dispatch-po-id"
-        )
-        .textContent =
-            poNumber;
-
+            foundryAllocationItems.length;
 
     document
         .getElementById(
-            "dispatch-pattern"
-        )
-        .textContent =
-            items.length
-                ? `${items.length} items`
-                : "No items";
-
-
-    document
-        .getElementById(
-            "dispatch-qty"
+            "allocation-total-qty"
         )
         .textContent =
             `${totalQty} pcs`;
 
-const groupedByFoundry = {};
+    document
+        .getElementById(
+            "allocation-total-foundries"
+        )
+        .textContent =
+            foundryNames.length;
 
-items.forEach(item => {
+    document
+        .getElementById(
+            "allocation-selected-qty"
+        )
+        .textContent =
+            `${selectedQty} pcs`;
 
-    const foundry =
-        item.foundry || "Unassigned";
+    if (!foundryNames.length) {
 
-    if (!groupedByFoundry[foundry]) {
-        groupedByFoundry[foundry] = [];
+        list.innerHTML = `
+            <div class="text-center py-10 text-slate-500">
+                No outstanding foundry work.
+            </div>
+        `;
+
+        return;
     }
 
-    groupedByFoundry[foundry].push(item);
+    list.innerHTML =
+        foundryNames.map(
+            foundry => {
 
-});
-    const itemLines =
-    Object.entries(groupedByFoundry)
-        .map(
-            ([foundry, foundryItems]) => {
+                const items =
+                    groups[foundry];
 
-                const lines =
-                    foundryItems.map(
-                        (item, index) => {
+                const qty =
+                    items.reduce(
+                        (sum, item) =>
+                            sum + item.quantity,
+                        0
+                    );
 
-                            return `${index + 1}. Pattern: ${
-                                item.pattern || "-"
-                            }
-Grade: ${
-                                item.grade || "-"
-                            }
-Quantity: ${
-                                Number(item.quantity || 0)
-                            } pcs
-Received: ${
-                                Number(item.received || 0)
-                            } pcs`;
+                const isProblem =
+                    foundry.startsWith("⚠");
 
-                        }
-                    ).join("\n\n");
+                return `
+                    <div
+                        class="rounded-xl border
+                               ${isProblem
+                                   ? "border-amber-500/30 bg-amber-500/5"
+                                   : "border-slate-700 bg-slate-900/60"}
+                               p-4">
 
-                return `===== ${foundry.toUpperCase()} =====
+                        <div
+                            class="flex items-center justify-between gap-3">
 
-${lines}`;
+                            <div>
+
+                                <div
+                                    class="text-sm font-bold
+                                           ${isProblem
+                                               ? "text-amber-300"
+                                               : "text-white"}">
+
+                                    ${escapeHtml(foundry)}
+
+                                </div>
+
+                                <div
+                                    class="text-xs text-slate-400 mt-1">
+
+                                    ${items.length}
+                                    item${items.length === 1 ? "" : "s"}
+                                    ·
+                                    ${qty} pcs outstanding
+
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="flex gap-2">
+
+                                <button
+                                    onclick="viewFoundryWork('${escapeHtml(foundry)}')"
+                                    class="px-3 py-1.5
+                                           bg-slate-800
+                                           hover:bg-slate-700
+                                           text-slate-200
+                                           text-xs rounded-lg">
+
+                                    View Work
+
+                                </button>
+
+                                ${
+                                    !isProblem
+                                    ? `
+                                        <button
+                                            onclick="selectAllFoundryWork('${escapeHtml(foundry)}')"
+                                            class="px-3 py-1.5
+                                                   bg-emerald-600
+                                                   hover:bg-emerald-500
+                                                   text-white
+                                                   text-xs rounded-lg">
+
+                                            Select
+
+                                        </button>
+                                      `
+                                    : ""
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
 
             }
-        ).join("\n\n");
-
-
-    const message =
-
-`PURCHASE ORDER NOTICE — FOUNDRY DISPATCH
-PO Ref: ${poNumber}
-Customer: ${order.customer || order.client || "-"}
-Order Date: ${order.orderDate || order.createdAt || "-"}
-Target Delivery: ${dueDate}
-
-TOTAL ITEMS: ${items.length}
-TOTAL QUANTITY: ${totalQty} pcs
-
-${itemLines}
-
-Please confirm order receipt & production scheduling.`;
-
-
-    document
-        .getElementById(
-            "dispatch-message-text"
-        )
-        .value =
-            message;
-
-
-    document
-        .getElementById(
-            "modal-send-foundry"
-        )
-        .classList.remove("hidden");
-
+        ).join("");
 
     lucide.createIcons();
 
 }
 
 
+function viewFoundryWork(foundry) {
 
+    const section =
+        document.getElementById(
+            "foundry-selected-work-section"
+        );
+
+    const list =
+        document.getElementById(
+            "foundry-selected-work-list"
+        );
+
+    const items =
+        foundryAllocationItems.filter(
+            item =>
+                item.foundry === foundry
+        );
+
+    if (!section || !list) return;
+
+    section.classList.remove("hidden");
+
+    list.innerHTML =
+        items.map(
+            item => {
+
+                const checked =
+                    selectedFoundryAllocationItems
+                        .has(item.key);
+
+                return `
+                    <label
+                        class="flex items-center gap-3
+                               p-3 rounded-lg
+                               border border-slate-800
+                               bg-slate-950/50
+                               cursor-pointer">
+
+                        <input
+                            type="checkbox"
+                            ${checked ? "checked" : ""}
+                            onchange="toggleFoundryAllocationItem('${escapeHtml(item.key)}')"
+                            class="accent-emerald-500">
+
+                        <div class="flex-1 min-w-0">
+
+                            <div
+                                class="text-xs font-semibold
+                                       text-white">
+
+                                ${escapeHtml(item.pattern)}
+
+                            </div>
+
+                            <div
+                                class="text-[11px]
+                                       text-slate-400 mt-1">
+
+                                Grade:
+                                ${escapeHtml(item.grade)}
+                                ·
+                                Qty:
+                                ${item.quantity} pcs
+                                ·
+                                Target:
+                                ${escapeHtml(item.targetDate)}
+
+                            </div>
+
+                        </div>
+
+                    </label>
+                `;
+
+            }
+        ).join("");
+
+    lucide.createIcons();
+
+}
+
+
+function toggleFoundryAllocationItem(key) {
+
+    if (
+        selectedFoundryAllocationItems.has(key)
+    ) {
+
+        selectedFoundryAllocationItems.delete(key);
+
+    } else {
+
+        selectedFoundryAllocationItems.add(key);
+
+    }
+
+    renderFoundryAllocation();
+
+}
+
+
+function selectAllFoundryWork(foundry) {
+
+    foundryAllocationItems
+        .filter(
+            item =>
+                item.foundry === foundry
+        )
+        .forEach(
+            item =>
+                selectedFoundryAllocationItems
+                    .add(item.key)
+        );
+
+    viewFoundryWork(foundry);
+
+    renderFoundryAllocation();
+
+}
+
+
+async function openFoundryAllocation() {
+
+    const modal =
+        document.getElementById(
+            "modal-send-foundry"
+        );
+
+    if (!modal) return;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    foundryAllocationItems =
+        await buildFoundryAllocation();
+
+    selectedFoundryAllocationItems =
+        new Set();
+
+    generatedFoundryPackage =
+        null;
+
+    renderFoundryAllocation();
+
+}
+
+
+function clearFoundrySelection() {
+
+    selectedFoundryAllocationItems =
+        new Set();
+
+    generatedFoundryPackage =
+        null;
+
+    const section =
+        document.getElementById(
+            "foundry-selected-work-section"
+        );
+
+    if (section) {
+        section.classList.add("hidden");
+    }
+
+    renderFoundryAllocation();
+
+}
+
+
+window.openFoundryAllocation =
+    openFoundryAllocation;
+        
         /* =========================================================
            PRINT
         ========================================================= */
