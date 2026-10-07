@@ -1,984 +1,390 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VortexFlow | Intelligent Supply & Fast Execution</title>
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-darkMode: 'class',
-theme: {
-extend: {
-colors: {
-brand: {
-50: '#f0f3ff',
-100: '#e0e7ff',
-500: '#6366f1',
-600: '#4f46e5',
-700: '#4338ca',
-900: '#312e81'
-}
-}
-}
-}
-};
-</script>
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest"></script>
-<style>
-.glass-panel {
-background: rgba(17, 24, 39, 0.75);
-backdrop-filter: blur(12px);
-border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.glass-modal {
-background: rgba(15, 23, 42, 0.94);
-backdrop-filter: blur(16px);
-border: 1px solid rgba(255, 255, 255, 0.12);
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VortexFlow | Intelligent Supply Chain Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0f3ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .glass-panel { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-modal { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.12); }
+        
+        /* PRINT SPECIFIC STYLES FOR PDF GENERATION */
+        @media print {
+            body * { visibility: hidden !important; }
+            #printable-po-area, #printable-po-area * { visibility: visible !important; }
+            #printable-po-area {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 20px !important;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-20 md:pb-6">
-<!-- AUTHENTICATION SCREEN -->
-<div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
-<div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-5">
-<div class="text-center space-y-2">
-<div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/30">
-<i data-lucide="layers" class="w-7 h-7 text-white"></i>
-</div>
-<h2 class="text-xl font-bold text-white tracking-tight">VortexFlow Portal</h2>
-<p class="text-xs text-slate-400">Intelligent Casting Execution & Order Management</p>
-</div>
-<!-- ONE-CLICK MASTER ADMIN LOGIN -->
-<button type="button" id="btn-instant-admin" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
-<i data-lucide="shield-check" class="w-4 h-4"></i> ⚡ 1-Click Login as Master Admin (shalu@x-engi.in)
-</button>
-<div class="relative flex items-center justify-center">
-<div class="border-t border-slate-800 w-full"></div>
-<span class="bg-slate-900 px-3 text-[10px] text-slate-500 uppercase tracking-widest absolute">Or Standard Login</span>
-</div>
-<div class="space-y-3.5">
-<div>
-<label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
-<input type="email" id="login-email" value="shalu@x-engi.in" placeholder="name@domain.com" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-<div>
-<div class="flex items-center justify-between mb-1">
-<label class="block text-xs font-medium text-slate-300">Password</label>
-<button type="button" onclick="openForgotPasswordModal()" class="text-[11px] text-indigo-400 hover:underline">Forgot Password?</button>
-</div>
-<input type="password" id="login-password" value="admin123" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-<div class="pt-1">
-<button type="button" onclick="loginUser()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
-<i data-lucide="log-in" class="w-4 h-4"></i> Sign In to Portal
-</button>
-</div>
-<div class="border-t border-slate-800 pt-3 text-center">
-<p class="text-[11px] text-slate-400">New Client Company? <button type="button" onclick="openRegisterModal()" class="text-indigo-400 font-semibold hover:underline">Request Account</button></p>
-</div>
-</div>
-</div>
-</div>
-<!-- MAIN WORKSPACE -->
-<div id="app-workspace" class="hidden">
-<header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3">
-<div class="max-w-7xl mx-auto flex items-center justify-between">
-<div class="flex items-center space-x-3">
-<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-<i data-lucide="layers" class="w-6 h-6 text-white"></i>
-</div>
-<div>
-<h1 class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
-VortexFlow
-<span id="role-badge" class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Admin Mode</span>
-</h1>
-<p class="text-xs text-slate-400">Logged in as: <span id="user-display-email" class="text-slate-200 font-mono"></span></p>
-</div>
-</div>
-<div class="flex items-center space-x-3">
-<button type="button" onclick="logoutUser()" class="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 border border-slate-800 transition">
-<i data-lucide="log-out" class="w-5 h-5"></i>
-</button>
-</div>
-</div>
-</header>
-<main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-<!-- Metrics Bar -->
-<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-<div class="glass-panel p-4 rounded-2xl border border-slate-800">
-<div class="flex items-center justify-between text-slate-400 mb-2">
-<span class="text-xs font-medium uppercase">Active Orders</span>
-<i data-lucide="shopping-bag" class="w-4 h-4 text-indigo-400"></i>
-</div>
-<div class="text-2xl font-bold text-white" id="stat-active-orders">0</div>
-<p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
-<i data-lucide="trending-up" class="w-3 h-3"></i> Sync Active
-</p>
-</div>
-<div class="glass-panel p-4 rounded-2xl border border-slate-800">
-<div class="flex items-center justify-between text-slate-400 mb-2">
-<span class="text-xs font-medium uppercase">Completed</span>
-<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-</div>
-<div class="text-2xl font-bold text-white" id="stat-completed">0 pcs</div>
-<p class="text-[11px] text-slate-400 mt-1">Dispatched to clients</p>
-</div>
-<div class="glass-panel p-4 rounded-2xl border border-slate-800">
-<div class="flex items-center justify-between text-slate-400 mb-2">
-<span class="text-xs font-medium uppercase">Pattern Catalog</span>
-<i data-lucide="database" class="w-4 h-4 text-purple-400"></i>
-</div>
-<div class="text-2xl font-bold text-white" id="stat-patterns">899</div>
-<p class="text-[11px] text-purple-300 mt-1">Pre-loaded from Book1</p>
-</div>
-<div class="glass-panel p-4 rounded-2xl border border-slate-800 role-admin-only">
-<div class="flex items-center justify-between text-slate-400 mb-2">
-<span class="text-xs font-medium uppercase">Clients Registered</span>
-<i data-lucide="users" class="w-4 h-4 text-indigo-400"></i>
-</div>
-<div class="text-2xl font-bold text-white" id="stat-clients">0</div>
-<p class="text-[11px] text-amber-400 mt-1" id="stat-pending-clients">0 Pending Approval</p>
-</div>
-</section>
-<!-- Admin Approvals -->
-<section class="role-admin-only space-y-4">
-<div class="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
-<div>
-<h3 class="text-sm font-semibold text-white">Database Management</h3>
-<p class="text-xs text-slate-400">Clear test records or purge test orders</p>
-</div>
-<button type="button" onclick="purgeAllData()" class="px-3 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 border border-rose-700/50 rounded-xl text-xs font-medium flex items-center gap-1.5 transition">
-<i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Purge Test Orders
-</button>
-</div>
-<div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
-<div class="p-4 border-b border-slate-800 flex items-center justify-between">
-<h3 class="text-sm font-semibold text-white flex items-center gap-2">
-<i data-lucide="user-check" class="w-4 h-4 text-indigo-400"></i> Client Approvals & Credentials
-</h3>
-</div>
-<div class="p-4 overflow-x-auto">
-<table class="w-full text-left text-xs min-w-[600px]">
-<thead class="text-slate-400 uppercase text-[10px] border-b border-slate-800">
-<tr>
-<th class="pb-2">Company Name</th>
-<th class="pb-2">Email</th>
-<th class="pb-2">Status</th>
-<th class="pb-2 text-right">Actions</th>
-</tr>
-</thead>
-<tbody id="clients-approval-tbody" class="divide-y divide-slate-800/60 text-slate-300">
-</tbody>
-</table>
-</div>
-</div>
-</section>
-<!-- Orders Ledger -->
-<section class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
-<div class="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-<div>
-<h2 class="text-base font-semibold text-white">Live Orders Ledger</h2>
-<p class="text-xs text-slate-400">Production progress, target dates, and dispatch logs</p>
-</div>
-<div class="flex items-center space-x-2">
-<button type="button" onclick="exportCSV()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-300 flex items-center gap-1.5 transition">
-<i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
-</button>
-<button type="button" onclick="openCreateOrderModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition">
-<i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
-</button>
-</div>
-</div>
-<div class="p-4">
-<div id="orders-card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4"></div>
-<div class="hidden lg:block overflow-x-auto">
-<table class="w-full text-left text-xs min-w-[900px]">
-<thead class="bg-slate-900/60 text-slate-400 uppercase tracking-wider text-[10px] border-b border-slate-800">
-<tr>
-<th class="p-4 w-32">PO Number</th>
-<th class="p-4 w-40 role-admin-only">Client Name</th>
-<th class="p-4">Pattern / Drawing No.</th>
-<th class="p-4 w-36">Grade</th>
-<th class="p-4 w-36">Ordered / Supplied</th>
-<th class="p-4 w-28">Target Date</th>
-<th class="p-4 w-40 role-admin-only">Foundry Partner</th>
-<th class="p-4 w-32">Status</th>
-<th class="p-4 text-right w-28">Actions</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-slate-800/60 text-slate-300" id="orders-tbl-body"></tbody>
-</table>
-</div>
-</div>
-</section>
-</main>
-</div>
-<!-- MODAL 1: CREATE ORDER -->
-<div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-<div class="glass-modal w-full max-w-3xl rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-<div class="p-4 border-b border-slate-800 flex items-center justify-between">
-<div class="flex items-center space-x-2">
-<div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
-<i data-lucide="file-plus" class="w-5 h-5"></i>
-</div>
-<div>
-<h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
-<p class="text-xs text-slate-400">Pattern automatically populates Foundry & Client</p>
-</div>
-</div>
-<button type="button" onclick="closeModal('modal-create-order')" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
-<i data-lucide="x" class="w-5 h-5"></i>
-</button>
-</div>
-<div class="p-5 space-y-4 overflow-y-auto flex-1">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="role-admin-only">
-<label class="block text-xs font-medium text-slate-300 mb-1">Target Client</label>
-<select id="po-client-select" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</select>
-</div>
-<div class="role-admin-only">
-<label class="block text-xs font-medium text-slate-300 mb-1">Foundry Partner Name</label>
-<input type="text" id="po-foundry-select" list="foundry-presets" placeholder="Select or type Foundry Name" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-<datalist id="foundry-presets">
-<option value="Castingcast"></option>
-<option value="Charbhuja"></option>
-<option value="Highton"></option>
-<option value="Sunshine"></option>
-<option value="Arvind"></option>
-<option value="Foundry"></option>
-<option value="Radhika Metal"></option>
-<option value="Shree Foundry"></option>
-<option value="Omesus"></option>
-<option value="MR Industries"></option>
-<option value="Shree Vinayaka"></option>
-<option value="Ahmedabad Engineers"></option>
-<option value="Ashutosh"></option>
-<option value="Vision"></option>
-<option value="Ambica"></option>
-<option value="Mansi"></option>
-<option value="Madhav"></option>
-</datalist>
-</div>
-<div class="col-span-2">
-<label class="block text-xs font-medium text-slate-300 mb-1">
-Target Delivery Date <span id="delivery-date-note" class="text-[10px] text-indigo-400">(Min +10 days constraint active)</span>
-</label>
-<input type="date" id="po-target-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-</div>
-<!-- MATRIX CONTAINER -->
-<div>
-<label class="block text-xs font-medium text-slate-300 mb-2">Pattern Details & Line Items</label>
-<div class="space-y-3" id="po-matrix-rows">
-<div class="grid grid-cols-12 gap-2 items-center matrix-row bg-slate-900/50 p-2.5 rounded-xl border border-slate-800">
-<div class="col-span-12 sm:col-span-5">
-<label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Pattern / Drawing No.</label>
-<input type="text" list="pattern-suggestions" placeholder="Type Pattern No. (e.g. 8560324)" class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-<datalist id="pattern-suggestions"></datalist>
-</div>
-<div class="col-span-7 sm:col-span-4">
-<label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Grade</label>
-<select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-<option value="" disabled selected>Select Grade...</option>
-<optgroup label="C.I (Cast Iron)">
-<option value="CI General">CI (General)</option>
-</optgroup>
-<optgroup label="C.I Grade">
-<option value="C.I FG-200">C.I FG-200</option>
-<option value="C.I FG-250">C.I FG-250</option>
-<option value="C.I FG-260">C.I FG-260</option>
-<option value="C.I FG-300">C.I FG-300</option>
-</optgroup>
-<optgroup label="SG Iron">
-<option value="SG 400/12">SG Iron SG 400/12</option>
-<option value="SG 400/15">SG Iron SG 400/15</option>
-<option value="SG 450/10">SG Iron SG 450/10</option>
-<option value="SG 500/7">SG Iron SG 500/7</option>
-<option value="SG 600/3">SG Iron SG 600/3</option>
-<option value="SG 700/2">SG Iron SG 700/2</option>
-</optgroup>
-<optgroup label="W.C.B Castings">
-<option value="W.C.B Standard">W.C.B Standard</option>
-<option value="W.C.B Grade A">W.C.B Grade A</option>
-<option value="W.C.B Grade B">W.C.B Grade B</option>
-<option value="W.C.B Grade C">W.C.B Grade C</option>
-<option value="W.C.B Low Alloy">W.C.B Low Alloy</option>
-</optgroup>
-</select>
-</div>
-<div class="col-span-3 sm:col-span-2">
-<label class="block text-[10px] text-slate-400 mb-0.5 sm:hidden">Qty</label>
-<input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-<div class="col-span-2 sm:col-span-1 text-right">
-<button type="button" onclick="removeMatrixRow(this)" class="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition">
-<i data-lucide="trash-2" class="w-4 h-4"></i>
-</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="p-4 border-t border-slate-800 bg-slate-900/40 flex items-center justify-end space-x-2">
-<button type="button" onclick="closeModal('modal-create-order')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
-<button type="button" onclick="submitOrder()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">Submit Purchase Order</button>
-</div>
-</div>
-</div>
-<!-- MODAL 2: FORGOT PASSWORD -->
-<div id="modal-forgot-password" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-<div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
-<div class="flex items-center justify-between border-b border-slate-800 pb-3">
-<h3 class="text-base font-semibold text-white flex items-center gap-2">
-<i data-lucide="key" class="w-5 h-5 text-indigo-400"></i> Reset Password
-</h3>
-<button type="button" onclick="closeModal('modal-forgot-password')" class="text-slate-400 hover:text-white">
-<i data-lucide="x" class="w-5 h-5"></i>
-</button>
-</div>
-<div class="space-y-3">
-<div>
-<label class="block text-xs text-slate-300 mb-1">Enter Account Email</label>
-<input type="email" id="reset-email" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-<div id="admin-reset-pin-box" class="hidden">
-<label class="block text-xs text-indigo-400 mb-1">Master Security Recovery PIN (for Admin)</label>
-<input type="password" id="reset-pin" placeholder="Enter Security PIN" class="w-full bg-slate-900 border border-indigo-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
-</div>
-<div>
-<label class="block text-xs text-slate-300 mb-1">New Password</label>
-<input type="password" id="reset-new-pass" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-</div>
-<div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
-<button type="button" onclick="closeModal('modal-forgot-password')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
-<button type="button" onclick="submitPasswordReset()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Update Password</button>
-</div>
-</div>
-</div>
-<!-- MODAL 3: REGISTRATION -->
-<div id="modal-register-client" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-<div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
-<div class="flex items-center justify-between border-b border-slate-800 pb-3">
-<h3 class="text-base font-semibold text-white flex items-center gap-2">
-<i data-lucide="building-2" class="w-5 h-5 text-indigo-400"></i> Request Client Account
-</h3>
-<button type="button" onclick="closeModal('modal-register-client')" class="text-slate-400 hover:text-white">
-<i data-lucide="x" class="w-5 h-5"></i>
-</button>
-</div>
-<div class="space-y-3">
-<div>
-<label class="block text-xs text-slate-300 mb-1">Company / Client Name</label>
-<input type="text" id="reg-company" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-<div>
-<label class="block text-xs text-slate-300 mb-1">Email Address</label>
-<input type="email" id="reg-email" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-<div>
-<label class="block text-xs text-slate-300 mb-1">Set Password</label>
-<input type="password" id="reg-password" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-</div>
-<div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
-<button type="button" onclick="closeModal('modal-register-client')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
-<button type="button" onclick="submitClientRegistration()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Submit Registration</button>
-</div>
-</div>
-</div>
-<!-- MODAL 4: LOG DISPATCH -->
-<div id="modal-log-dispatch" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-<div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-5 space-y-4">
-<div class="flex items-center justify-between border-b border-slate-800 pb-3">
-<h3 class="text-base font-semibold text-white flex items-center gap-2">
-<i data-lucide="truck" class="w-5 h-5 text-indigo-400"></i> Log Partial Supply
-</h3>
-<button type="button" onclick="closeModal('modal-log-dispatch')" class="text-slate-400 hover:text-white">
-<i data-lucide="x" class="w-5 h-5"></i>
-</button>
-</div>
-<div class="space-y-3">
-<p id="dispatch-po-id" class="text-xs font-semibold text-indigo-400">PO ID: --</p>
-<div>
-<label class="block text-xs text-slate-300 mb-1">Dispatched Quantity (pcs)</label>
-<input type="number" id="dispatch-qty-input" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-</div>
-</div>
-<div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
-<button type="button" onclick="closeModal('modal-log-dispatch')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Cancel</button>
-<button type="button" onclick="confirmDispatch()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Save Dispatch</button>
-</div>
-</div>
-</div>
-<!-- CORE JAVASCRIPT LOGIC -->
-<script>
-var MASTER_ADMIN_EMAIL = 'shalu@x-engi.in';
-var MASTER_RECOVERY_PIN = '2026-XENGI-RESET';
-var PATTERN_CATALOG = {"748-14-9091": {"client": "Ashirwad", "foundry": "Castingcast"}, "660-0551-778014": {"client": "Chirai", "foundry": "Castingcast"}, "04-10-304": {"client": "Chirai", "foundry": "Charbhuja"}, "05-10-256": {"client": "Chirai", "foundry": "Highton"}, "12-20-050": {"client": "Chirai", "foundry": "Highton"}, "110-140-50": {"client": "Chirai", "foundry": "Highton"}, "130/170/157": {"client": "Chirai", "foundry": "Highton"}, "170/210/75": {"client": "Chirai", "foundry": "Arvind"}, "175/200/30": {"client": "Chirai", "foundry": "Highton"}, "180/210/75": {"client": "Chirai", "foundry": "Foundry"}, "180/240/72": {"client": "Chirai", "foundry": "Highton"}, "190/225/53": {"client": "Chirai", "foundry": "Highton"}, "205/235/35": {"client": "Chirai", "foundry": "Highton"}, "210/260/20": {"client": "Chirai", "foundry": "Sunshine"}, "220/255/44": {"client": "Chirai", "foundry": "Sunshine"}, "230/280/15": {"client": "Chirai", "foundry": "Highton"}, "240/275/40": {"client": "Chirai", "foundry": "Highton"}, "240/275/75": {"client": "Chirai", "foundry": "Highton"}, "260/290/130": {"client": "Chirai", "foundry": "Highton"}, "265/310/95": {"client": "Chirai", "foundry": "Highton"}, "290-330-25 (CS)": {"client": "Chirai", "foundry": "Castingcast"}, "34-400-001": {"client": "Chirai", "foundry": "Highton"}, "448-31-004/B": {"client": "Chirai", "foundry": "Radhika Metal"}, "448-31-007/B": {"client": "Chirai", "foundry": "Radhika Metal"}, "448-31-047": {"client": "Chirai", "foundry": "Highton"}, "65/80/17": {"client": "Chirai", "foundry": "Charbhuja"}, "720-00-110": {"client": "Chirai", "foundry": "Highton"}, "720-00-120": {"client": "Chirai", "foundry": "Highton"}, "720-00-150": {"client": "Chirai", "foundry": "Highton"}, "720-05-462": {"client": "Chirai", "foundry": "Shree Foundry"}, "720-32-052": {"client": "Chirai", "foundry": "Highton"}, "720-32-062": {"client": "Chirai", "foundry": "Highton"}, "720-32-130": {"client": "Chirai", "foundry": "Highton"}, "720-43-260": {"client": "Chirai", "foundry": "Highton"}, "720-44-150": {"client": "Chirai", "foundry": "Highton"}, "721-83-544": {"client": "Chirai", "foundry": "Castingcast"}, "748-04-766": {"client": "Chirai", "foundry": "Omesus"}, "748-10-153": {"client": "Chirai", "foundry": "Castingcast"}, "748-12-563": {"client": "Chirai", "foundry": "Omesus"}, "748-14-1057": {"client": "Chirai", "foundry": "Highton"}, "748-14-1179": {"client": "Chirai", "foundry": "Sunshine"}, "748-14-1329": {"client": "Chirai", "foundry": "Castingcast"}, "748-14-1721": {"client": "Chirai", "foundry": "Highton"}, "748-14-2777": {"client": "Chirai", "foundry": "Castingcast"}, "748-14-4741": {"client": "Chirai", "foundry": "Omesus"}, "748-14-4761": {"client": "Chirai / Ashirwad", "foundry": "Mr Industries"}, "748-14-5955": {"client": "Chirai", "foundry": "Castingcast"}, "748-14-6208": {"client": "Chirai", "foundry": "Sunshine"}, "748-14-6209": {"client": "Chirai", "foundry": "Sunshine"}, "748-14-6210": {"client": "Chirai", "foundry": "Sunshine"}, "748-14-6257": {"client": "Chirai", "foundry": "Sunshine"}, "748-14-6312": {"client": "Chirai", "foundry": "Highton"}, "748-14-683": {"client": "Chirai", "foundry": "Sunshine"}, "748-14-7053": {"client": "Chirai", "foundry": "Shree Vinayaka"}, "748-14-7055": {"client": "Chirai", "foundry": "Highton"}, "748-14-7929": {"client": "Chirai", "foundry": "Charbhuja"}, "748-14-8185": {"client": "Chirai", "foundry": "Highton"}, "748-14-8186": {"client": "Chirai", "foundry": "Highton"}, "748-14-904": {"client": "Chirai", "foundry": "Highton"}, "748-14-905": {"client": "Chirai", "foundry": "Highton"}, "748-14-9071": {"client": "Chirai", "foundry": "Shree Foundry"}, "748-14-9076": {"client": "Chirai", "foundry": "Castingcast"}, "748-14-9090": {"client": "Uma", "foundry": "Omesus"}, "748-14-9420/A": {"client": "Chirai", "foundry": "Highton"}, "748-15-0241": {"client": "Chirai", "foundry": "Castingcast"}, "748-15-0246": {"client": "Chirai", "foundry": "Castingcast"}, "748-15-1235": {"client": "Megha", "foundry": "Omesus"}, "748-15-1237": {"client": "Chirai", "foundry": "Ahmedabad Engineers"}, "748-15-1457": {"client": "Chirai", "foundry": "Sunshine"}, "748-15-154": {"client": "Chirai", "foundry": "Castingcast"}, "748-15-1565": {"client": "Chirai", "foundry": "Castingcast"}, "748-15-1594": {"client": "Chirai", "foundry": "MR Industries"}, "748-15-1670": {"client": "Chirai", "foundry": "Castingcast"}, "748-15-2458": {"client": "Chirai", "foundry": "Omesus"}, "748-15-2464": {"client": "Chirai", "foundry": "Omesus"}, "748-15-2475": {"client": "Chirai", "foundry": "Highton"}, "748-15-2520": {"client": "Chirai", "foundry": "MR Industries"}, "748-15-2521": {"client": "Chirai", "foundry": "MR Industries"}, "748-15-433": {"client": "Chirai", "foundry": "Sunshine"}, "748-25-2368": {"client": "Chirai", "foundry": "Castingcast"}, "748-25-2418": {"client": "Chirai", "foundry": "Omesus"}, "748-25-2707": {"client": "Chirai", "foundry": "Castingcast"}, "748-25-3498": {"client": "Chirai", "foundry": "Omesus"}, "7713396": {"client": "Chirai", "foundry": "Omesus"}, "7729497": {"client": "MEG", "foundry": "MR Industries"}, "7730755": {"client": "Chirai", "foundry": "MR Industries"}, "7730762": {"client": "Chirai", "foundry": "MR Industries"}, "7732758": {"client": "Chirai", "foundry": "Omesus - Sun"}, "7737071": {"client": "Chirai", "foundry": "Omesus"}, "7737072": {"client": "Chirai", "foundry": "Omesus"}, "7737075": {"client": "Chirai", "foundry": "Omesus"}, "7737469": {"client": "Chirai", "foundry": "MR Industries"}, "7771163": {"client": "Chirai", "foundry": "Satish Bhai"}, "80-100-20": {"client": "Chirai", "foundry": "Om-Cc"}, "8532170": {"client": "Chirai", "foundry": "Sunshine"}, "8532206": {"client": "Chirai", "foundry": "Highton"}, "8533524/A": {"client": "Chirai", "foundry": "Charbhuja"}, "8535131": {"client": "Chirai", "foundry": "Sunshine"}, "8535140": {"client": "Chirai", "foundry": "Ashutosh"}, "8535141": {"client": "Chirai", "foundry": "Ashutosh"}, "8535246": {"client": "Chirai", "foundry": "Highton"}, "8535248": {"client": "Chirai", "foundry": "Highton"}, "8536556/3": {"client": "Chirai", "foundry": "Rm"}, "8536580/A": {"client": "Chirai", "foundry": "Highton"}, "8536586/A": {"client": "Chirai", "foundry": "Highton"}, "8539020": {"client": "Chirai", "foundry": "Vision"}, "8539028": {"client": "Chirai", "foundry": "Vision"}, "8539033": {"client": "Chirai", "foundry": "Ahmedabad Engineers"}, "8539041": {"client": "Chirai", "foundry": "Castingcast"}, "8539412": {"client": "Chirai", "foundry": "Castingcast"}, "8540184": {"client": "Chirai", "foundry": "Highton"}, "8540321": {"client": "Chirai", "foundry": "Highton"}, "8540331": {"client": "Chirai", "foundry": "Ambica Industries"}, "8544502": {"client": "Chirai", "foundry": "Sunshine"}, "8544523": {"client": "Chirai", "foundry": "MR Industries"}, "8544529": {"client": "Chirai", "foundry": "Highton"}, "8544530": {"client": "Chirai", "foundry": "Sunshine"}, "8553114": {"client": "Chirai", "foundry": "Sunshine"}, "8628011": {"client": "Chirai", "foundry": "Vision"}, "8628026": {"client": "Chirai", "foundry": "Cc-Sf-Vis"}, "8628027": {"client": "Chirai", "foundry": "Cc-Sf-Vis"}, "8628524": {"client": "Chirai", "foundry": "Ahmedabad Engineers"}, "8628525": {"client": "Chirai", "foundry": "Ahmedabad Engineers"}, "8628541": {"client": "Chirai", "foundry": "Castingcast"}, "916-142-221437": {"client": "Chirai", "foundry": "Sunshine"}, "925-0142-221399": {"client": "Chirai", "foundry": "Highton"}, "9528532": {"client": "Chirai", "foundry": "Castingcast"}, "9546482": {"client": "Chirai", "foundry": "Highton"}, "9546509": {"client": "Megha", "foundry": "Sunshine"}, "9546528": {"client": "Chirai", "foundry": "Highton"}, "9547500": {"client": "Chirai", "foundry": "Highton"}, "9547524": {"client": "Chirai", "foundry": "Sunshine"}, "9547533": {"client": "Megha", "foundry": "Highton"}, "9547537": {"client": "Chirai", "foundry": "Highton"}, "9549570": {"client": "Megha", "foundry": "Highton"}, "9550355": {"client": "Chirai", "foundry": "Highton"}, "9551176": {"client": "Chirai", "foundry": "Sunshine"}, "9555068": {"client": "Chirai", "foundry": "Ahmedabad Engineers"}, "9559351": {"client": "Chirai", "foundry": "MR Industries"}, "9559353": {"client": "Chirai", "foundry": "Vision"}, "9562853": {"client": "Chirai", "foundry": "Vision"}, "FC00978143/A": {"client": "Chirai", "foundry": "Castingcast"}, "FC01024808": {"client": "Chirai", "foundry": "Castingcast"}, "FC01037882": {"client": "Chirai", "foundry": "Highton"}, "FC01040701": {"client": "Chirai", "foundry": "Omesus"}, "FC01055432": {"client": "Chirai", "foundry": "Omesus-Vision"}, "S0017-3647": {"client": "Chirai", "foundry": "Ambica"}, "S0017-3649": {"client": "Chirai", "foundry": "Highton"}, "S0017-3960": {"client": "Chirai", "foundry": "Ambica"}, "S0017-3961": {"client": "Chirai", "foundry": "Ambica"}, "W0004-0434": {"client": "Chirai", "foundry": "Cc-Sf-Vision"}, "W0005-0435": {"client": "Chirai", "foundry": "Cc-Sf-Vision"}, "W0006-0436": {"client": "Chirai", "foundry": "Cc-Sf-Vision"}, "W0007-0451": {"client": "Chirai", "foundry": "Castingcast"}, "W0008-0442": {"client": "Chirai", "foundry": "Sunshine"}, "W0606-0321": {"client": "Chirai", "foundry": "Ambica"}, "07-10-200": {"client": "Kavil", "foundry": "Mansi"}, "07-25-262": {"client": "Kavil", "foundry": "Highton"}, "08-10-226": {"client": "Kavil", "foundry": "Highton"}, "10-20-120": {"client": "Kavil", "foundry": "Sunshine"}, "120-145-20": {"client": "Kavil", "foundry": "Charbhuja"}, "129-04-16-361": {"client": "Kavil", "foundry": "Sunshine"}, "129-04-16-362": {"client": "Kavil", "foundry": "Sunshine"}, "160-190-25": {"client": "Shreenathji", "foundry": "Vision"}, "170-200-25": {"client": "Shreenathji", "foundry": "Shree Vinayaka"}, "250-290-25": {"client": "Kavil", "foundry": "Ashutosh"}, "270-310-25": {"client": "Kavil", "foundry": "Highton"}, "300-340-25": {"client": "Kavil", "foundry": "Ashutosh"}, "310-350-025": {"client": "Kavil", "foundry": "Ashutosh"}, "37-04-2346": {"client": "Kavil", "foundry": "Highton"}, "460-510-30": {"client": "Kavil", "foundry": "Vision"}, "5503575": {"client": "Kavil", "foundry": "Highton"}, "720-20-540EE": {"client": "Kavil", "foundry": "Ambica"}, "748-10-0276/C": {"client": "Kavil", "foundry": "Ambica"}, "748-14-2815": {"client": "Kavil", "foundry": "Ambica"}, "748-15-1790": {"client": "Kavil", "foundry": "Mansi"}, "748-25-1320": {"client": "Kavil", "foundry": "Omesus"}, "748-25-1321": {"client": "Kavil", "foundry": "Omesus"}, "748-25-3646": {"client": "Kavil", "foundry": "Sunshine"}, "748-25-3647": {"client": "Kavil", "foundry": "Sunshine"}, "82-04-0060": {"client": "Kavil", "foundry": "Highton"}, "8533806": {"client": "Kavil", "foundry": "Sunshine"}, "8535106": {"client": "Kavil", "foundry": "Highton"}, "8536529 / 530": {"client": "Kavil", "foundry": "Highton"}, "8536570": {"client": "Kavil", "foundry": "Highton"}, "8536660": {"client": "Kavil", "foundry": "Highton"}, "8536742": {"client": "Kavil", "foundry": "Highton"}, "8538135 / 8538137": {"client": "Kavil", "foundry": "Sunshine"}, "8538145": {"client": "Kavil", "foundry": "Sunshine"}, "8538179": {"client": "Kavil", "foundry": "Highton"}, "8538180": {"client": "Kavil", "foundry": "Sunshine"}, "8560317": {"client": "RMP", "foundry": "Sunshine"}, "8628527": {"client": "Kavil", "foundry": "Vinducto"}, "9546453": {"client": "Kavil", "foundry": "Sunshine"}, "9548953": {"client": "Kavil", "foundry": "Charbhuja"}, "9549552": {"client": "Kavil", "foundry": "Highton"}, "960-0441-221423": {"client": "Kavil", "foundry": "Sunshine"}, "Adaptor - 05-55-410": {"client": "Kavil", "foundry": "Highton"}, "1018381": {"client": "Kavil", "foundry": "Castingcast"}, "FC01024809": {"client": "Kavil", "foundry": "Sun Casting"}, "FC01026445": {"client": "Kavil", "foundry": "Sunshine"}, "360-415-030": {"client": "Kavil", "foundry": "Highton-Sf"}, "S0005-2130": {"client": "Kavil", "foundry": "Sunshine"}, "S0005-2132": {"client": "Kavil", "foundry": "Sunshine"}, "S0005-2133": {"client": "Kavil", "foundry": "Sunshine"}, "S0012-2435": {"client": "Kavil", "foundry": "Ashutosh"}, "S0012-2541": {"client": "Kavil", "foundry": "Sunshine"}, "S008-3093": {"client": "Kavil", "foundry": "Sunshine"}, "S0125-3062": {"client": "Kavil", "foundry": "Sunshine"}, "S0125-3064": {"client": "Kavil", "foundry": "Sunshine"}, "S0125-3066": {"client": "Kavil", "foundry": "Sunshine"}, "VZ-20-81-02-01121-00": {"client": "Kavil", "foundry": "Highton"}, "932592": {"client": "Megha", "foundry": "Ambica"}, "932612": {"client": "Megha", "foundry": "Ambica"}, "934593": {"client": "Megha", "foundry": "Omesus"}, "01-GPF-10230": {"client": "Megha", "foundry": "Ambica"}, "01-GPF-10231": {"client": "Megha", "foundry": "Ambica"}, "01-GPF-9911": {"client": "Megha", "foundry": "Ambica"}, "01-GPF-9912": {"client": "Megha", "foundry": "Ambica"}, "04-GPF-14647": {"client": "Megha", "foundry": "Ambica"}, "06-10-099": {"client": "Megha", "foundry": "Sunshine"}, "08-GPF-0950(16G)": {"client": "Megha", "foundry": "Sun Casting"}, "10-22-260": {"client": "Megha", "foundry": "Highton"}, "10-26-220": {"client": "Megha", "foundry": "Ambica"}, "11-CPE-D0903": {"client": "Megha", "foundry": "Castingcast"}, "16-CPE-00517": {"client": "Megha", "foundry": "Omesus"}, "-17-GPF-1176(BOTTOM)": {"client": "Megha", "foundry": "Sun Casting"}, "17-GPF-1776(TOP)": {"client": "Megha", "foundry": "Sun Casting"}, "18-CPE-D0219": {"client": "Megha", "foundry": "Castingcast"}, "18-CPE-D0917": {"client": "Megha", "foundry": "Sunshine"}, "2024687": {"client": "Megha", "foundry": "Vision"}, "45099": {"client": "Megha", "foundry": "Castingcast"}, "23-GPF-0208": {"client": "Megha", "foundry": "Ambica"}, "27-40-0003": {"client": "Megha", "foundry": "Omesus"}, "41-509-02": {"client": "Megha", "foundry": "Ambica"}, "41-510-04": {"client": "Megha", "foundry": "Ambica Alloys"}, "41-513-04": {"client": "Megha", "foundry": "Ambica Alloys"}, "41-514-04": {"client": "Megha", "foundry": "Ambica"}, "41-613-02": {"client": "Megha", "foundry": "Ambica Alloys"}, "41-614-04": {"client": "Megha", "foundry": "Ambica"}, "47-03-2459": {"client": "Megha", "foundry": "Ambica"}, "47-03-2465": {"client": "Megha", "foundry": "Ambica"}, "57-03-1805": {"client": "Megha", "foundry": "Sunshine"}, "57-04-1542": {"client": "Megha", "foundry": "Ambica Alloys"}, "57-04-1542/A  &  37-04-2350": {"client": "Megha", "foundry": "Ambica Alloys"}, "6000133": {"client": "Megha", "foundry": "Castingcast"}, "660-0551-204961": {"client": "Megha", "foundry": "Sunshine"}, "660-0551-206076": {"client": "Megha", "foundry": "Sunshine"}, "700-221056-1569": {"client": "Megha", "foundry": "Highton"}, "700-221137-1407": {"client": "Megha", "foundry": "Ambica"}, "700-221447-457": {"client": "Megha", "foundry": "Sunshine"}, "720-40-340 EE": {"client": "Megha", "foundry": "Sunshine"}, "720-44-320 EE": {"client": "Megha", "foundry": "Highton"}, "721-83-553": {"client": "Megha", "foundry": "Castingcast"}, "748-13-836": {"client": "Megha", "foundry": "Mansi"}, "748-14-1183": {"client": "Megha", "foundry": "Sunshine"}, "748-14-1390": {"client": "Megha", "foundry": "Highton"}, "748-14-1645": {"client": "Megha", "foundry": "Sunshine"}, "748-14-248": {"client": "Megha", "foundry": "Sunshine"}, "748-14-2636": {"client": "Megha", "foundry": "Ambica"}, "748-14-4458": {"client": "Megha", "foundry": "Ambica"}, "748-14-5545": {"client": "Uma", "foundry": "Sunshine"}, "748-14-5548": {"client": "Megha", "foundry": "Mansi"}, "748-14-6201": {"client": "Megha", "foundry": "Astron"}, "748-14-6617/3": {"client": "Megha", "foundry": "Vision"}, "748-14-9457": {"client": "Megha", "foundry": "Mansi"}, "748-14-9715": {"client": "Megha", "foundry": "Highton"}, "748-15-0103": {"client": "Megha", "foundry": "Ambica"}, "748-15-0124": {"client": "Megha", "foundry": "Highton"}, "748-15-1335": {"client": "Megha", "foundry": "Sunshine"}, "748-15-2121": {"client": "", "foundry": "Sunshine"}, "748-15-2226": {"client": "Megha", "foundry": "Highton"}, "748-15-2240": {"client": "Megha", "foundry": "Ambica"}, "748-15-2640": {"client": "Megha", "foundry": "Ambica"}, "748-15-2682": {"client": "Megha", "foundry": "Ambica"}, "748-15-2721": {"client": "Megha", "foundry": "Ambica"}, "748-15-2739": {"client": "Megha", "foundry": "Ambica"}, "748-15-2880": {"client": "Megha", "foundry": "Omesus"}, "748-15-2998 MKD-2": {"client": "Megha", "foundry": "Castingcast"}, "748-15-3212": {"client": "Megha", "foundry": "Sunshine"}, "748-25-0582 / 6000133": {"client": "Megha", "foundry": "Sun Casting"}, "748-25-3663": {"client": "Megha", "foundry": "Sunshine"}, "7710542/3": {"client": "Megha", "foundry": "Castingcast"}, "7713637/3": {"client": "Megha", "foundry": "Ahmedabad Engineers"}, "7725680/21-C(MKD2)": {"client": "MEG", "foundry": "Sun Casting"}, "7725680/2I-C": {"client": "Megha", "foundry": "Sun Casting"}, "7725680/2 MKD 1": {"client": "Megha", "foundry": "Suncasting"}, "7725680/2 MKD 2": {"client": "Megha", "foundry": "Suncasting"}, "82-04-128": {"client": "Megha", "foundry": "Sunshine"}, "8532142 / 8532189": {"client": "Megha", "foundry": "Sunshine"}, "8532240": {"client": "Megha", "foundry": "Highton"}, "8535040/3": {"client": "Megha", "foundry": "Sunshine"}, "8535142/3": {"client": "Megha", "foundry": "Sunshine"}, "8535153/3": {"client": "Megha", "foundry": "Sunshine"}, "8535174/3": {"client": "Megha", "foundry": "Highton"}, "8535212": {"client": "Megha", "foundry": "Castingcast"}, "8535250": {"client": "Megha", "foundry": "Highton"}, "8536602 / 542 /541 / 543 / 664": {"client": "Megha", "foundry": "Charbhuja"}, "8536610": {"client": "Megha", "foundry": "Highton"}, "8536667": {"client": "Megha", "foundry": "Highton"}, "8536748": {"client": "Megha", "foundry": "Highton"}, "8536749": {"client": "Megha", "foundry": "Sunshine"}, "8536754": {"client": "Megha", "foundry": "Highton"}, "8536755": {"client": "Megha", "foundry": "Sunshine"}, "8538046 / 8538264": {"client": "Megha", "foundry": "Highton"}, "8538063/64/65/8538263": {"client": "Megha", "foundry": "Highton"}, "8538070 / 8538268": {"client": "Megha", "foundry": "Sunshine"}, "8538526": {"client": "Megha", "foundry": "Ambica"}, "8538715": {"client": "Megha", "foundry": "Ambica"}, "8546014/3": {"client": "Megha", "foundry": "Highton"}, "8552251": {"client": "Megha", "foundry": "Sunshine"}, "8628533": {"client": "Megha", "foundry": "Sun Casting"}, "903-4312-221190": {"client": "Megha", "foundry": "Madhav"}, "903-4382-221427": {"client": "Megha", "foundry": "Ambica"}, "903-4476-221410": {"client": "Megha", "foundry": "Ambica"}, "903-5476-221188": {"client": "Megha", "foundry": "Ambica"}, "942-0242-221186": {"client": "Megha", "foundry": "Sunshine"}, "9546456": {"client": "Megha", "foundry": "Sunshine"}, "9546458": {"client": "Megha", "foundry": "Sunshine"}, "9546520": {"client": "Megha", "foundry": "Sunshine"}, "9546554": {"client": "MEG", "foundry": "Asutosh"}, "9547458": {"client": "Megha", "foundry": "Ambica"}, "9547461": {"client": "Megha", "foundry": "Charbhuja"}, "9547483": {"client": "Megha", "foundry": "Highton"}, "9547485": {"client": "Megha", "foundry": "Sunshine"}, "9547575": {"client": "Megha", "foundry": "Sunshine"}, "9548963": {"client": "Megha", "foundry": "Ambica"}, "9549251": {"client": "Megha", "foundry": "Sunshine"}, "9549551": {"client": "Megha", "foundry": "Highton"}, "9549557": {"client": "Megha", "foundry": "Highton"}, "9555051": {"client": "Megha", "foundry": "Highton"}, "9559371": {"client": "Megha", "foundry": "Highton"}, "9559374": {"client": "Megha", "foundry": "Omesus"}, "9559375": {"client": "Megha", "foundry": "Omesus"}, "956-0242-221049": {"client": "Megha", "foundry": "Sunshine"}, "960-0242-221098": {"client": "Megha", "foundry": "Highton"}, "973940": {"client": "Megha", "foundry": "Sun Casting"}, "FC00981645": {"client": "Megha", "foundry": "Omesus"}, "FC01010981": {"client": "Megha", "foundry": "Omesus"}, "FC0102381": {"client": "Megha", "foundry": "Sunshine"}, "1030127": {"client": "Megha", "foundry": "Castingcast"}, "FC01034102": {"client": "Megha", "foundry": "Omesus"}, "FC01035425": {"client": "Megha", "foundry": "Omesus"}, "FC01037881": {"client": "Megha", "foundry": "Castingcast"}, "FC01055133": {"client": "Megha", "foundry": "Ambica"}, "FC01058873": {"client": "Megha", "foundry": "Castingcast"}, "FC01064213": {"client": "Megha", "foundry": "Vision"}, "GWS 704 DP - 410x460x240": {"client": "Megha", "foundry": "Charbhuja"}, "S0017-3643 / 3642": {"client": "Megha", "foundry": "Ambica"}, "S0020-1072": {"client": "Megha", "foundry": "Sunshine"}, "S0028-3693": {"client": "Megha", "foundry": "Ambica"}, "S0028-3694": {"client": "Megha", "foundry": "Ambica"}, "S0028-3714": {"client": "Megha", "foundry": "Ambica"}, "1228-3787": {"client": "Megha", "foundry": "Ambica"}, "1228-3835": {"client": "Megha", "foundry": "Ambica"}, "08-22-211 / 8-10-228": {"client": "Riya", "foundry": "Ambica"}, "08-22-260": {"client": "Riya", "foundry": "Sunshine"}, "09-10-228": {"client": "Riya", "foundry": "Charbhuja"}, "340-395-30 (CS)": {"client": "Riya", "foundry": "Shree Foundry"}, "360-415-30": {"client": "X-eNGI", "foundry": "Vision"}, "370-420-30": {"client": "Riya", "foundry": "Shree Foundry"}, "3-96651-1-0899": {"client": "Riya", "foundry": "Castingcast"}, "400-450-30(CS)": {"client": "Riya", "foundry": "Shree Foundry"}, "420-470-30(CS)": {"client": "Riya", "foundry": "Cc-Sf"}, "448-31-052": {"client": "Riya", "foundry": "Highton"}, "448-48-012": {"client": "Riya", "foundry": "Casting Cast"}, "448-48-022": {"client": "Riya", "foundry": "Casting Cast"}, "448-70-044": {"client": "Riya", "foundry": "Sunshine"}, "448-71-006": {"client": "Riya", "foundry": "Sunshine"}, "5500403": {"client": "Riya", "foundry": "Highton"}, "6006590": {"client": "Riya", "foundry": "Castingcast"}, "602-130": {"client": "Riya", "foundry": "Ahmedabad Engineers"}, "602-190": {"client": "Riya", "foundry": "Sun Casting"}, "602-200": {"client": "Riya", "foundry": "Castingcast"}, "602-240": {"client": "Riya", "foundry": "Omesus"}, "606-125": {"client": "Riya", "foundry": "Vinducto"}, "606-160": {"client": "Riya", "foundry": "Ahmedabad Engineers"}, "606-310": {"client": "Riya", "foundry": "Shree Foundry"}, "606-540": {"client": "Riya", "foundry": "Shree Foundry"}, "606-560": {"client": "Riya", "foundry": "Highton"}, "720-00-260": {"client": "Riya", "foundry": "Vinducto"}, "720-20-360": {"client": "Riya", "foundry": "Shree Foundry"}, "720-43-340": {"client": "Riya", "foundry": "Highton"}, "721-170-570": {"client": "Riya", "foundry": "Ahmedabad Engineers"}, "721-83-506": {"client": "Riya", "foundry": "Castingcast"}, "721-83-514": {"client": "Riya", "foundry": "Castingcast"}, "721-83-515": {"client": "Riya", "foundry": "Omesus"}, "721-83-516": {"client": "Riya", "foundry": "Omesus"}, "721-83-517": {"client": "Riya", "foundry": "Omesus"}, "748-14-1081": {"client": "Riya", "foundry": "Castingcast"}, "748-14-4311": {"client": "Riya", "foundry": "Sun Casting"}, "748-14-7374": {"client": "Riya", "foundry": "Castingcast"}, "03-10-010": {"client": "RMP", "foundry": "Charbhuja"}, "03-55-320": {"client": "RMP", "foundry": "Charbhuja"}, "04-10-019": {"client": "RMP", "foundry": "Sunshine"}, "04-10-074": {"client": "RMP", "foundry": "Charbhuja"}, "04-10-172/B": {"client": "RMP", "foundry": "Sunshine"}, "04-20-120": {"client": "RMP", "foundry": "Charbhuja"}, "04-20-170": {"client": "RMP", "foundry": "Charbhuja"}, "04-20-170/A": {"client": "RMP", "foundry": "Sunshine"}, "04-55-420": {"client": "RMP", "foundry": "Highton"}, "04-60-228": {"client": "RMP", "foundry": "Charbhuja"}, "05-10-019": {"client": "RMP", "foundry": "Sunshine"}, "05-10-172": {"client": "RMP", "foundry": "Sunshine"}, "05-10-243": {"client": "RMP", "foundry": "Shree Vinayaka"}, "05-10-250": {"client": "Shreenathji", "foundry": "Sunshine"}, "05-10-260": {"client": "RMP", "foundry": "Sunshine"}, "05-55-220/B": {"client": "RMP", "foundry": "Charbhuja"}, "06/10/040": {"client": "RMP", "foundry": "Sunshine"}, "06-10-124/A": {"client": "RMP", "foundry": "Shree Vinayaka"}, "06-10-172": {"client": "RMP", "foundry": "Sunshine"}, "07-20-120": {"client": "RMP", "foundry": "Sunshine"}, "07-20-250": {"client": "RMP", "foundry": "Shree Vinayaka"}, "07-20-260": {"client": "RMP", "foundry": "Shree Vinayaka"}, "075/115/010": {"client": "RMP", "foundry": "Charbhuja"}, "08-10-169 DP": {"client": "RMP", "foundry": "Sunshine"}, "08-20-250": {"client": "RMP", "foundry": "Sunshine"}, "08-20-260": {"client": "RMP", "foundry": "Sunshine"}, "08-22-060/A": {"client": "RMP", "foundry": "Sunshine"}, "090/130/010": {"client": "RMP", "foundry": "Charbhuja"}, "09-20-120": {"client": "RMP", "foundry": "Radhika"}, "09-21-170/A": {"client": "RMP", "foundry": "Sunshine"}, "09-40-050": {"client": "RMP", "foundry": "Charbhuja"}, "095/110/80": {"client": "RMP", "foundry": "Charbhuja"}, "100/120/14": {"client": "RMP", "foundry": "Sunshine"}, "100/120/241": {"client": "RMP", "foundry": "Sunshine"}, "100/120/32": {"client": "RMP", "foundry": "Sunshine"}, "10-10-050": {"client": "RMP", "foundry": "Sunshine"}, "10-10-121/A": {"client": "RMP", "foundry": "Shree Vinayaka"}, "10-10-170": {"client": "RMP", "foundry": "Sunshine"}, "10-10-252 / 09-10-067": {"client": "RMP", "foundry": "Shree Vinayaka"}, "10-10-262 / 09-10-066": {"client": "RMP", "foundry": "Shree Vinayaka"}, "10-20-250/G": {"client": "RMP", "foundry": "Ashutosh"}, "10-20-260": {"client": "RMP", "foundry": "Charbhuja"}, "10-21-030": {"client": "RMP", "foundry": "Charbhuja"}, "10-22-060": {"client": "RMP", "foundry": "Sunshine"}, "105/120/45": {"client": "RMP", "foundry": "Sunshine"}, "105/120/68": {"client": "RMP", "foundry": "Charbhuja"}, "105/120/74": {"client": "RMP", "foundry": "Sunshine"}, "110/130/30": {"client": "RMP", "foundry": "Charbhuja"}, "110/130/35": {"client": "RMP", "foundry": "Sunshine"}, "110/130/72": {"client": "RMP", "foundry": "Asutosh"}, "11-10-170": {"client": "RMP", "foundry": "Sunshine"}, "115/130/067": {"client": "RMP", "foundry": "Highton"}, "120/140/18": {"client": "RMP", "foundry": "Sunshine"}, "120/140/27": {"client": "RMP", "foundry": "Sunshine"}, "12-10-050": {"client": "RMP", "foundry": "Charbhuja"}, "12-10-060": {"client": "RMP", "foundry": "Sunshine"}, "12-20-170/E": {"client": "RMP", "foundry": "Sunshine"}, "12-21-030": {"client": "RMP", "foundry": "Charbhuja"}, "130/150/25": {"client": "RMP", "foundry": "Sunshine"}, "130/150/30": {"client": "RMP", "foundry": "Sunshine"}, "130/150/39": {"client": "RMP", "foundry": "Ashutosh"}, "140/205/020": {"client": "RMP", "foundry": "Charbhuja"}, "150/170/31": {"client": "RMP", "foundry": "Sunshine"}, "150/170/40": {"client": "RMP", "foundry": "Ashutosh"}, "150/220/030": {"client": "RMP", "foundry": "Charbhuja"}, "170/190/037": {"client": "RMP", "foundry": "Charbhuja"}, "170/190/25": {"client": "RMP", "foundry": "Charbhuja"}, "170/190/32": {"client": "RMP", "foundry": "Charbhuja"}, "170/190/39": {"client": "RMP", "foundry": "Ashutosh"}, "170/210/30": {"client": "RMP", "foundry": "Charbhuja"}, "170/210/32": {"client": "RMP", "foundry": "Charbhuja"}, "195/215/046": {"client": "RMP", "foundry": "Sunshine"}, "24-30-190/A": {"client": "RMP", "foundry": "Sunshine"}, "25-10-060/A": {"client": "RMP", "foundry": "Sunshine"}, "25-30-190/A": {"client": "RMP", "foundry": "Highton"}, "36-10-130": {"client": "RMP", "foundry": "Charbhuja"}, "448-46-002": {"client": "RMP", "foundry": "Charbhuja"}, "448-46-007": {"client": "RMP", "foundry": "Radhika Metal"}, "448-46-008": {"client": "RMP", "foundry": "Charbhuja"}, "448-47-015 (140/160/046)": {"client": "RMP", "foundry": "Charbhuja"}, "448-47-018 (180/200/020)": {"client": "RMP", "foundry": "Charbhuja"}, "448-47-021": {"client": "RMP", "foundry": "Charbhuja"}, "448-47-032": {"client": "RMP", "foundry": "Charbhuja"}, "48-30-060": {"client": "RMP", "foundry": "Charbhuja"}, "51-30-250": {"client": "RMP", "foundry": "Ashutosh"}, "51-30-256": {"client": "RMP", "foundry": "Highton"}, "51-30-452": {"client": "RMP", "foundry": "Sunshine"}, "61-30-450/C": {"client": "RMP", "foundry": "Charbhuja"}, "65/80/160": {"client": "RMP", "foundry": "Sunshine"}, "65/80/41": {"client": "RMP", "foundry": "Sunshine"}, "65/80/58": {"client": "RMP", "foundry": "Charbhuja"}, "65/80/84": {"client": "RMP", "foundry": "Asutosh"}, "748-15-1283": {"client": "RMP", "foundry": "Shree Vinayaka"}, "748-15-2549": {"client": "RMP", "foundry": "Sunshine"}, "75/90/144.5": {"client": "RMP", "foundry": "Sunshine"}, "75/90/28.25": {"client": "RMP", "foundry": "Sunshine"}, "8030029": {"client": "RMP", "foundry": "Sunshine"}, "80-Jaali": {"client": "RMP", "foundry": "Sunshine"}, "85/105/45": {"client": "RMP", "foundry": "Sunshine"}, "8540150": {"client": "RMP", "foundry": "Shree Vinayaka"}, "8540173": {"client": "RMP", "foundry": "Sunshine"}, "8540186": {"client": "RMP", "foundry": "Charbhuja"}, "8540187": {"client": "RMP", "foundry": "Highton"}, "8540210/4": {"client": "RMP", "foundry": "Charbhuja"}, "8540211": {"client": "RMP", "foundry": "Sunshine"}, "8540215": {"client": "RMP", "foundry": "Sunshine"}, "8540234  (105/120/25)": {"client": "RMP", "foundry": "Charbhuja"}, "8540241": {"client": "RMP", "foundry": "Charbhuja"}, "8540280 / 4": {"client": "RMP", "foundry": "Sunshine"}, "8540288/4": {"client": "RMP", "foundry": "Highton"}, "8540302": {"client": "RMP", "foundry": "Sunshine"}, "8540304": {"client": "RMP", "foundry": "Highton"}, "8540308/4": {"client": "RMP", "foundry": "Sunshine"}, "8540314": {"client": "RMP", "foundry": "Shree Vinayaka"}, "8560310": {"client": "RMP", "foundry": "Sunshine"}, "8560312": {"client": "Shreenathji", "foundry": "Charbhuja"}, "8560313": {"client": "RMP", "foundry": "Charbhuja"}, "8560314": {"client": "RMP", "foundry": "Highton"}, "8560316": {"client": "RMP", "foundry": "Shree Vinayaka"}, "8560318/3": {"client": "Shreenathji", "foundry": "Charbhuja"}, "8560319": {"client": "RMP", "foundry": "Charbhuja"}, "8560322/3": {"client": "RMP", "foundry": "Sunshine"}, "8560323": {"client": "RMP", "foundry": "Asutosh"}, "8560324": {"client": "RMP", "foundry": "Charbhuja"}, "8560325": {"client": "RMP", "foundry": "Charbhuja"}, "8560327": {"client": "RMP", "foundry": "Sunshine"}, "8560328": {"client": "RMP", "foundry": "Sunshine"}, "8560329/3": {"client": "RMP", "foundry": "Sunshine"}, "8560330/3": {"client": "RMP", "foundry": "Sunshine"}, "8560331/D": {"client": "RMP", "foundry": "Highton"}, "8560335": {"client": "RMP", "foundry": "Sunshine"}, "8560336": {"client": "RMP", "foundry": "Sunshine"}, "8560339": {"client": "RMP", "foundry": "Sunshine"}, "8560340": {"client": "RMP", "foundry": "Charbhuja"}, "8560343": {"client": "RMP", "foundry": "Sunshine"}, "8560345": {"client": "RMP", "foundry": "Sunshine"}, "8560350": {"client": "RMP", "foundry": "Sunshine"}, "8560351": {"client": "RMP", "foundry": "Charbhuja"}, "8560353": {"client": "RMP", "foundry": "Sunshine"}, "8560354": {"client": "RMP", "foundry": "Sunshine"}, "8560356/3/B": {"client": "RMP", "foundry": "Sunshine"}, "8560357": {"client": "RMP", "foundry": "Charbhuja"}, "8560358/3": {"client": "RMP", "foundry": "Sunshine"}, "8560360": {"client": "RMP", "foundry": "Sunshine"}, "8560363": {"client": "RMP", "foundry": "Sunshine"}, "8560365": {"client": "RMP", "foundry": "Ashutosh"}, "8560369": {"client": "RMP", "foundry": "Sunshine"}, "8560371": {"client": "RMP", "foundry": "Charbhuja"}, "8560372": {"client": "RMP", "foundry": "Charbhuja"}, "8560380": {"client": "RMP", "foundry": "Sunshine"}, "8560382": {"client": "RMP", "foundry": "Charbhuja"}, "8560386": {"client": "RMP", "foundry": "Shree Vinayaka"}, "8560390": {"client": "RMP", "foundry": "Charbhuja"}, "8560391": {"client": "RMP", "foundry": "Charbhuja"}, "8560393/3": {"client": "RMP", "foundry": "Sunshine"}, "8560395": {"client": "RMP", "foundry": "Sunshine"}, "8560396": {"client": "RMP", "foundry": "Charbhuja"}, "8560406": {"client": "RMP", "foundry": "Charbhuja"}, "8560408": {"client": "RMP", "foundry": "Sunshine"}, "8560415": {"client": "RMP", "foundry": "Charbhuja"}, "8626003": {"client": "RMP", "foundry": "Charbhuja"}, "8626004": {"client": "RMP", "foundry": "Charbhuja"}, "8626008": {"client": "RMP", "foundry": "Sunshine"}, "8626023": {"client": "RMP", "foundry": "Charbhuja"}, "8626024": {"client": "RMP", "foundry": "Charbhuja"}, "8626030": {"client": "RMP", "foundry": "Charbhuja"}, "8626031": {"client": "RMP", "foundry": "Charbhuja"}, "8626032": {"client": "RMP", "foundry": "Charbhuja"}, "8626037": {"client": "RMP", "foundry": "Highton"}, "90/100/25": {"client": "RMP", "foundry": "Sunshine"}, "90/110/27": {"client": "RMP", "foundry": "Sunshine"}, "90/110/35": {"client": "RMP", "foundry": "Sunshine"}, "95/110/18": {"client": "RMP", "foundry": "Ashutosh"}, "95/110/30.5": {"client": "RMP", "foundry": "Highton"}, "95/110/54.5": {"client": "RMP", "foundry": "Sunshine"}, "BUSH": {"client": "RMP", "foundry": "Highton"}, "S0004-0441": {"client": "RMP", "foundry": "Sunshine"}, "S0004-0445": {"client": "RMP", "foundry": "Sunshine"}, "S0008-0176": {"client": "RMP", "foundry": "Charbhuja"}, "S0014-1453/A": {"client": "RMP", "foundry": "Mr Industries"}, "S0260-4096": {"client": "RMP", "foundry": "Sunshine"}, "05-10-122": {"client": "Shreenathji", "foundry": "Shree Vinayaka"}, "05-10-237 - BH": {"client": "Shreenathji", "foundry": "Highton"}, "06-10-216": {"client": "Shreenathji", "foundry": "Highton"}, "07-10-126": {"client": "Shreenathji", "foundry": "Sunshine"}, "07-25-210": {"client": "Shreenathji", "foundry": "Highton"}, "100-120-20": {"client": "Shreenathji", "foundry": "Sunshine"}, "100-120-20 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "10-40-52": {"client": "Shreenathji", "foundry": "Highton"}, "120-145-25": {"client": "Shreenathji", "foundry": "Charbhuja"}, "120-145-25(CS)": {"client": "Shreenathji", "foundry": "Vision"}, "125-150-20": {"client": "Shreenathji", "foundry": "Vision"}, "130-155-20": {"client": "Shreenathji", "foundry": "Vision"}, "130-155-20 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "140-170-25": {"client": "Shreenathji", "foundry": "Vision"}, "150-180-25 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "160/190/25": {"client": "Shreenathji", "foundry": "Highton"}, "170-200-25(CS)": {"client": "Shreenathji", "foundry": "Vision"}, "180-215-025": {"client": "Shreenathji", "foundry": "Charbhuja"}, "180-215-25 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "190-225-025 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "190-225-25": {"client": "Shreenathji", "foundry": "Charbhuja"}, "200-235-025 (CI)": {"client": "Shreenathji", "foundry": "Charbhuja"}, "200-235-25 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "203-01-03-949": {"client": "Shreenathji", "foundry": "Highton"}, "210-245-25(CS)": {"client": "Shreenathji", "foundry": "Vision"}, "215-250-025": {"client": "Shreenathji", "foundry": "Charbhuja"}, "215-250-025 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "225-260-25 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "230-265-25": {"client": "Shreenathji", "foundry": "Vision"}, "240-280-25": {"client": "Shreenathji", "foundry": "Vision"}, "250-290-25(CS)": {"client": "Shreenathji", "foundry": "Vision"}, "260-300-25 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "270-310-25 (CS)": {"client": "Shreenathji", "foundry": "Castingcast"}, "448-01-005": {"client": "Shreenathji", "foundry": "Highton"}, "448-10-011": {"client": "Shreenathji", "foundry": "Sunshine"}, "448-10-14": {"client": "Shreenathji", "foundry": "Shalu"}, "448-30-001": {"client": "Shreenathji", "foundry": "Highton"}, "448-30-008": {"client": "Shreenathji", "foundry": "Highton"}, "5-10-237": {"client": "Shreenathji", "foundry": "Highton"}, "52-65-15": {"client": "Shreenathji", "foundry": "Vision"}, "5 - DP": {"client": "Shreenathji", "foundry": "Charbhuja"}, "62-75-15": {"client": "Shreenathji", "foundry": "Vision"}, "6-DP": {"client": "Shreenathji", "foundry": "Charbhuja"}, "720-00-062": {"client": "Shreenathji", "foundry": "Charbhuja"}, "720-05-460 EE": {"client": "Shreenathji", "foundry": "Ashutosh"}, "720-05-461": {"client": "Shreenathji", "foundry": "Ashutosh"}, "720-32-090 EEC": {"client": "Shreenathji", "foundry": "Charbhuja"}, "720-32-80": {"client": "Shreenathji", "foundry": "Sunshine"}, "72-65-15": {"client": "Shreenathji", "foundry": "Vision"}, "748-14-3951": {"client": "Shreenathji", "foundry": "Sunshine"}, "748-14-5103": {"client": "Uma", "foundry": "Sunshine"}, "748-15-0524": {"client": "Shreenathji", "foundry": "Sun Casting"}, "748-15-1086": {"client": "Shreenathji", "foundry": "Vision"}, "748-15-1089": {"client": "Shreenathji", "foundry": "Vinducto"}, "748-15-122": {"client": "Shreenathji", "foundry": "Castingcast"}, "748-15-1304": {"client": "Shreenathji", "foundry": "Mr/Ms"}, "748-15-515": {"client": "Shreenathji", "foundry": "Vision"}, "7727055/4": {"client": "Shreenathji", "foundry": "Charbhuja"}, "7735580/4": {"client": "Shreenathji", "foundry": "Castingcast"}, "85-105-20 CS": {"client": "Shreenathji", "foundry": "Vision"}, "8528550": {"client": "Shreenathji", "foundry": "Vision"}, "8532109": {"client": "Shreenathji", "foundry": "Sunshine"}, "8532110": {"client": "Shreenathji", "foundry": "Sunshine"}, "8532121/3": {"client": "Uma", "foundry": "Shree Vinayaka"}, "8532122": {"client": "Shreenathji", "foundry": "Highton"}, "8532173/3": {"client": "Shreenathji", "foundry": "Highton"}, "8533520": {"client": "Shreenathji", "foundry": "Charbhuja"}, "8533532": {"client": "Shreenathji", "foundry": "Sunshine"}, "8535017/3": {"client": "Shreenathji", "foundry": "Sunshine"}, "8535041": {"client": "Shreenathji", "foundry": "Highton"}, "8535117/3": {"client": "Shreenathji", "foundry": "Highton"}, "8535185": {"client": "Shreenathji", "foundry": "Vision"}, "8535262": {"client": "Shreenathji", "foundry": "Sunshine"}, "8536507": {"client": "Shreenathji", "foundry": "Charbhuja"}, "8536524": {"client": "Uma", "foundry": "Sunshine"}, "8536595": {"client": "Shreenathji", "foundry": "Charbhuja"}, "8538401": {"client": "Shreenathji", "foundry": "Highton"}, "8538405/3": {"client": "Shreenathji", "foundry": "Highton"}, "8544524": {"client": "Shreenathji", "foundry": "Mr/Ms"}, "8546532": {"client": "Shreenathji", "foundry": "Sunshine"}, "8546535": {"client": "Shreenathji", "foundry": "Charbhuja"}, "8560314/3": {"client": "Shreenathji", "foundry": "Highton"}, "8560322": {"client": "Shreenathji", "foundry": "Charbhuja"}, "8560332": {"client": "Shreenathji", "foundry": "Highton"}, "8560341": {"client": "Shreenathji", "foundry": "Highton"}, "8560349": {"client": "Shreenathji", "foundry": "Ashutosh"}, "8628502": {"client": "Shreenathji", "foundry": "Cc-Vi"}, "8628516": {"client": "Shreenathji", "foundry": "Vision"}, "8628546": {"client": "Shreenathji", "foundry": "Vision"}, "8628550": {"client": "Shreenathji", "foundry": "Vision"}, "90-110-20 (CI)": {"client": "Shreenathji", "foundry": "Charbhuja"}, "90-110-20 (CS)": {"client": "Shreenathji", "foundry": "Vision"}, "SG-Iron": {"client": "Shreenathji", "foundry": "Highton"}, "W0009-0457": {"client": "Shreenathji", "foundry": "Highton"}, "W0604-0320": {"client": "Shreenathji", "foundry": "Highton"}, "Z-459-010-000 Flywheel": {"client": "Shreenathji", "foundry": "Sunshine"}, "Z-701318": {"client": "Shreenathji", "foundry": "Highton"}, "06-22-211": {"client": "TechTools", "foundry": "Ambica"}, "27-03-1269": {"client": "TechTools", "foundry": "Castingcast"}, "300 x 330 x 20": {"client": "TechTools", "foundry": "Castingcast"}, "305/335/85": {"client": "TechTools", "foundry": "Highton"}, "340/380/85": {"client": "TechTools", "foundry": "Highton"}, "360 x 400 x 40": {"client": "TechTools", "foundry": "Castingcast"}, "57-03-4359": {"client": "TechTools", "foundry": "Ambica"}, "6004902": {"client": "TechTools", "foundry": "Castingcast"}, "6006584": {"client": "TechTools", "foundry": "Castingcast"}, "6007813": {"client": "TechTools", "foundry": "Omesus"}, "700-221116-2001": {"client": "TechTools", "foundry": "Ambica"}, "748-04-375": {"client": "TechTools", "foundry": "Castingcast"}, "748-14-6275": {"client": "TechTools", "foundry": "Castingcast"}, "748-14-8763": {"client": "TechTools", "foundry": "Castingcast"}, "748-14-9657": {"client": "TechTools", "foundry": "Highton"}, "748-15-0552": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-0553": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-0719": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-2852": {"client": "TechTools", "foundry": "Ambica"}, "748-15-2946": {"client": "TechTools", "foundry": "Sunshine"}, "748-15-3092": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-3096": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-3108": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-3119": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-3225": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-3228": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-3459": {"client": "TechTools", "foundry": "Casting Cast"}, "748-15-3522": {"client": "TechTools", "foundry": "Castingcast"}, "748-15-3543": {"client": "TechTools", "foundry": "Castingcast"}, "748-25-2630": {"client": "TechTools", "foundry": "Ahmedabad Engineers"}, "748-25-3180": {"client": "TechTools", "foundry": "Sun Casting"}, "7714960/3": {"client": "TechTools", "foundry": "Sun Casting"}, "7731442/3": {"client": "TechTools", "foundry": "Castingcast"}, "7732954/3": {"client": "TechTools", "foundry": "Castingcast"}, "7732979": {"client": "TechTools", "foundry": "Castingcast"}, "7733509": {"client": "TechTools", "foundry": "Castingcast"}, "7736556": {"client": "TechTools", "foundry": "Castingcast"}, "7737256/4": {"client": "TechTools", "foundry": "Sun Casting"}, "7743545": {"client": "TechTools", "foundry": "Casting Cast"}, "7771161/3": {"client": "TechTools", "foundry": "Omesus"}, "7774813": {"client": "TechTools", "foundry": "Castingcast"}, "8539021/4": {"client": "TechTools", "foundry": "Vision"}, "8552313": {"client": "TechTools", "foundry": "Sunshine"}, "8571094": {"client": "TechTools", "foundry": "Ambica"}, "9546508": {"client": "TechTools", "foundry": "Highton"}, "9549573": {"client": "TechTools", "foundry": "Sunshine"}, "9559355": {"client": "TechTools", "foundry": "Castingcast"}, "C19683/2": {"client": "TechTools", "foundry": "MR Industries"}, "DRG-NO-108": {"client": "TechTools", "foundry": "Mr/Ms"}, "E06221": {"client": "TechTools", "foundry": "Vision"}, "E77269 (1)": {"client": "TechTools", "foundry": "Castingcast"}, "E77269 (2)": {"client": "TechTools", "foundry": "Castingcast"}, "FC00981133": {"client": "TechTools", "foundry": "Castingcast"}, "FC00992382": {"client": "TechTools", "foundry": "Castingcast"}, "FC01016532": {"client": "TechTools", "foundry": "Castingcast"}, "FC01016612": {"client": "TechTools", "foundry": "Castingcast"}, "FC01020827": {"client": "TechTools", "foundry": "Castingcast"}, "FC01024402": {"client": "TechTools", "foundry": "Castingcast"}, "FC01037641": {"client": "TechTools", "foundry": "Castingcast"}, "FC01047741": {"client": "TechTools", "foundry": "Omesus"}, "FC01050333": {"client": "TechTools", "foundry": "Castingcast"}, "FC01057194": {"client": "TechTools", "foundry": "Castingcast"}, "FC01057552": {"client": "TechTools", "foundry": "Castingcast"}, "FC01058172": {"client": "TechTools", "foundry": "Castingcast"}, "FC01058632": {"client": "TechTools", "foundry": "Castingcast"}, "FC01058972": {"client": "TechTools", "foundry": "Castingcast"}, "FC01059356": {"client": "TechTools", "foundry": "Castingcast"}, "FC01061114": {"client": "TechTools", "foundry": "Castingcast"}, "FC01062412": {"client": "TechTools", "foundry": "Castingcast"}, "FC01062477": {"client": "TechTools", "foundry": "Castingcast"}, "FC01062552": {"client": "TechTools", "foundry": "Castingcast"}, "FC01062652": {"client": "TechTools", "foundry": "Castingcast"}, "FC01062672": {"client": "TechTools", "foundry": "Castingcast"}, "FC01062734": {"client": "TechTools", "foundry": "Castingcast"}, "FC01063534": {"client": "TechTools", "foundry": "Castingcast"}, "FC01063813": {"client": "TechTools", "foundry": "Castingcast"}, "FC01066384": {"client": "TechTools", "foundry": "Castingcast"}, "FC01066394": {"client": "TechTools", "foundry": "Castingcast"}, "FC01066854": {"client": "TechTools", "foundry": "Casting Cast"}, "FC01070292": {"client": "TechTools", "foundry": "Ahmedabad Engineers"}, "FC01070312": {"client": "TechTools", "foundry": "Ahmedabad Engineers"}, "FC01072615": {"client": "TechTools", "foundry": "Vinducto"}, "FC01073694": {"client": "TechTools", "foundry": "Castingcast"}, "FC01074412": {"client": "TechTools", "foundry": "Omesus"}, "FC01074457": {"client": "TechTools", "foundry": "Omesus"}, "FC01075153": {"client": "TechTools", "foundry": "Castingcast"}, "FC01080734": {"client": "TechTools", "foundry": "Castingcast"}, "FC01080892": {"client": "TechTools", "foundry": "Castingcast"}, "FC01081354": {"client": "TechTools", "foundry": "Castingcast"}, "FC01082354": {"client": "TechTools", "foundry": "Castingcast"}, "FC01082912": {"client": "TechTools", "foundry": "Castingcast"}, "FC01083413": {"client": "TechTools", "foundry": "Castingcast"}, "FC01085994": {"client": "TechTools", "foundry": "Castingcast"}, "FC01086013": {"client": "TechTools", "foundry": "Castingcast"}, "FC01086015": {"client": "TechTools", "foundry": "Castingcast"}, "FC01086016": {"client": "TechTools", "foundry": "Castingcast"}, "FC01088906": {"client": "TechTools", "foundry": "Castingcast"}, "FC01088915": {"client": "TechTools", "foundry": "Castingcast"}, "FC01088919": {"client": "TechTools", "foundry": "Castingcast"}, "LRT 03/27": {"client": "TechTools", "foundry": "Ambica"}, "M02077/4": {"client": "TechTools", "foundry": "Vision"}, "M11875/4": {"client": "TechTools", "foundry": "Vinducto"}, "M15832/4": {"client": "TechTools", "foundry": "Shree Foundry"}, "TP106621": {"client": "TechTools", "foundry": "Omesus"}, "8536562-": {"client": "Uma", "foundry": "Mr Industries"}, "07-10-364-Base Plate (With Core)": {"client": "Uma", "foundry": "Highton"}, "09-10-064": {"client": "Uma", "foundry": "Arvind"}, "435-141-202372-": {"client": "Uma", "foundry": "Mr Industries"}, "55005014/A-": {"client": "Uma", "foundry": "Mr Industries"}, "5500600": {"client": "Uma", "foundry": "Mr Industries"}, "5500727": {"client": "Uma", "foundry": "Mr Industries"}, "5503350": {"client": "Uma", "foundry": "Mr Industries"}, "5503428": {"client": "Uma", "foundry": "Mr Industries"}, "5503476": {"client": "Uma", "foundry": "Sunshine"}, "5503500": {"client": "Uma", "foundry": "Mr Industries"}, "748-14-6123": {"client": "Uma", "foundry": "Highton"}, "700-204324-282": {"client": "Uma", "foundry": "Mr Industries"}, "720-00-170 EE": {"client": "Uma", "foundry": "Mr Industries"}, "720-44-180 EE": {"client": "Uma", "foundry": "Mr Industries"}, "748-10-0220": {"client": "Uma", "foundry": "Ambica"}, "748-14-0032": {"client": "Uma", "foundry": "Ambica"}, "748-14-1256": {"client": "Uma", "foundry": "Sunshine"}, "748-14-1565": {"client": "Uma", "foundry": "Mr Industries"}, "748-14-3507": {"client": "Uma", "foundry": "Sunshine"}, "748-14-5071": {"client": "Uma", "foundry": "Sunshine"}, "748-14-5079": {"client": "Uma", "foundry": "Sunshine"}, "748-14-6329": {"client": "Uma", "foundry": "Sunshine"}, "748-14-8145": {"client": "Uma", "foundry": "Ashutosh"}, "748-14-8148": {"client": "Uma", "foundry": "Ashutosh"}, "748-14-9077": {"client": "Uma", "foundry": "Sunshine"}, "748-14-9517": {"client": "Uma", "foundry": "Highton"}, "748-15-1175": {"client": "Uma", "foundry": "Ambica"}, "748-15-1196": {"client": "Uma", "foundry": "Omesus"}, "8532142/3": {"client": "Uma", "foundry": "Sunshine"}, "8532196": {"client": "Uma", "foundry": "Sunshine"}, "8532201": {"client": "Uma", "foundry": "Highton"}, "8533514/3": {"client": "Uma", "foundry": "Charbhuja"}, "8533516/3": {"client": "Uma", "foundry": "Charbhuja"}, "8533517": {"client": "Uma", "foundry": "Sunshine"}, "8533518": {"client": "Uma", "foundry": "Charbhuja"}, "8533519": {"client": "Uma", "foundry": "Highton"}, "8533528": {"client": "Uma", "foundry": "Sunshine"}, "8533533": {"client": "Uma", "foundry": "Sunshine"}, "8535010/3": {"client": "Uma", "foundry": "Sunshine"}, "8535013": {"client": "Uma", "foundry": "Sunshine"}, "8535017": {"client": "Uma", "foundry": "Charbhuja"}, "8535018": {"client": "Uma", "foundry": "Charbhuja"}, "8535019": {"client": "Uma", "foundry": "Sunshine"}, "8535025/3": {"client": "Uma", "foundry": "Highton"}, "8535026": {"client": "Uma", "foundry": "Charbhuja"}, "8535186": {"client": "Uma", "foundry": "Sunshine"}, "8536516/B": {"client": "Uma", "foundry": "Sunshine"}, "8536518": {"client": "Uma", "foundry": "Charbhuja"}, "8536520": {"client": "Uma", "foundry": "Sunshine"}, "8536566/3": {"client": "Uma", "foundry": "Charbhuja"}, "8536575": {"client": "Uma", "foundry": "Sunshine"}, "8536592": {"client": "Uma", "foundry": "Charbhuja"}, "8536620": {"client": "Uma", "foundry": "Shree Vinayaka"}, "8536645": {"client": "Uma", "foundry": "Ashutosh"}, "8536656": {"client": "Uma", "foundry": "Sunshine"}, "8538018": {"client": "Uma", "foundry": "Sunshine"}, "8544509": {"client": "Uma", "foundry": "Sunshine"}, "942-0242-221192": {"client": "Uma", "foundry": "Sunshine"}, "9546459": {"client": "Uma", "foundry": "Highton"}, "9546460": {"client": "Uma", "foundry": "Sunshine"}, "9547453": {"client": "Uma", "foundry": "Sunshine"}, "9547531": {"client": "Uma", "foundry": "Highton"}, "9552954": {"client": "Uma", "foundry": "Sunshine"}, "FC01125037": {"client": "Megha", "foundry": "Vision"}, "240/280/128": {"client": "Chirai", "foundry": "Sunshine"}, "FC01125294": {"client": "Techtools", "foundry": "Vision"}, "240/260/20": {"client": "RMP", "foundry": "Ashutosh"}, "M19580": {"client": "TechTools", "foundry": "Vision"}, "720-32-200": {"client": "Chirai", "foundry": "Ashutosh"}, "720-40-225": {"client": "Chirai", "foundry": "Ashutosh"}, "720-19-250": {"client": "Chirai", "foundry": "Ashutosh"}, "720-19-230": {"client": "Chirai", "foundry": "Ashutosh"}, "FC01017801": {"client": "Chirai", "foundry": "Vision"}, "8535021": {"client": "Uma", "foundry": "Ashutosh"}, "8535027": {"client": "Uma", "foundry": "Ashutosh"}, "9559357": {"client": "Kavil", "foundry": "Vision"}, "400-450-30 CS": {"client": "Kavil", "foundry": "Vision"}, "14-53-170/A": {"client": "RMP", "foundry": "Asutosh"}, "9546521": {"client": "Kavil", "foundry": "Vision"}, "5500380": {"client": "Kavil", "foundry": "Ashutosh"}, "8533525": {"client": "Kavil", "foundry": "Asutosh"}, "8536590": {"client": "Kavil", "foundry": "Asutosh"}, "8538429": {"client": "Kavil", "foundry": "Asutosh"}, "Round Bar": {"client": "TechTools", "foundry": "Charbhuja"}, "748-15-4998": {"client": "Chirai", "foundry": "Charbhuja"}, "8540240/4/A": {"client": "RMP", "foundry": "Charbhuja"}, "8560330": {"client": "RMP", "foundry": "Charbhuja"}, "130/150/40": {"client": "RMP", "foundry": "Charbhuja"}, "460-510-30 (CI)": {"client": "Kavil", "foundry": "Asutosh"}, "748-15-6535": {"client": "Uma", "foundry": "Madhav"}, "748-15-6536": {"client": "Uma", "foundry": "Asutosh"}, "57-04-4947": {"client": "Chirai", "foundry": "Madhav"}, "9549255": {"client": "Chirai", "foundry": "Vision"}, "8535047": {"client": "UMA", "foundry": "Asutosh"}, "8535020": {"client": "UMA", "foundry": "Asutosh"}, "9548551": {"client": "Kavil", "foundry": "Arvind"}, "660-0550-205127": {"client": "Kavil", "foundry": "Asutosh"}, "748-15-6529": {"client": "Kavil", "foundry": "Asutosh"}, "LH": {"client": "Siddhi", "foundry": "Vision"}, "RH": {"client": "Siddhi", "foundry": "Vision"}, "720-20-260": {"client": "Riya", "foundry": "Vision"}, "8538825": {"client": "Kavil", "foundry": "Asutosh"}, "8535039": {"client": "Kavil", "foundry": "Asutosh"}, "9546465": {"client": "Kavil", "foundry": "Asutosh"}, "320-360-25": {"client": "Kavil", "foundry": "Asutosh"}, "9559359": {"client": "Kavil", "foundry": "Asutosh"}, "S0005-0711/A": {"client": "RMP", "foundry": "Asutosh"}, "18-CPE-D1154 MG": {"client": "Megha", "foundry": "Vision"}, "04-10-262 / 04-10-077": {"client": "Kavil", "foundry": "Asutosh"}, "8536577": {"client": "Kavil", "foundry": "Asutosh"}, "8538414": {"client": "Kavil", "foundry": "Asutosh"}, "8535020 CI PaTechToolsern": {"client": "UMA", "foundry": "Asutosh"}, "05-10-256/A": {"client": "XENGI", "foundry": "Asutosh"}, "748-15-2929": {"client": "Megha", "foundry": "Vision"}, "9547456": {"client": "Kavil", "foundry": "Asutosh"}, "52-01-0027": {"client": "Kavil", "foundry": "Asutosh"}, "8535044": {"client": "Kavil", "foundry": "Asutosh"}, "FC01024941/GWS-270": {"client": "Riya", "foundry": "Castingcast"}, "748-14-8783": {"client": "Chirai", "foundry": "Vision"}, "9559358": {"client": "Kavil", "foundry": "Vision"}, "8535309": {"client": "Kavil", "foundry": "Asutosh"}, "5500102": {"client": "Kavil", "foundry": "Asutosh"}, "606-200": {"client": "Riya", "foundry": "Vision"}, "8540186 - Taper Cut": {"client": "RMP", "foundry": "Asutosh"}};
-var currentUser = null;
-var activeDispatchPo = null;
-var dbOrders = JSON.parse(localStorage.getItem('vf_db_orders') || '[]');
-var dbClients = JSON.parse(localStorage.getItem('vf_db_clients') || '[]');
-var dbLearnedPatterns = JSON.parse(localStorage.getItem('vf_db_patterns') || '[]');
-function instantAdminLogin() {
-currentUser = {
-email: MASTER_ADMIN_EMAIL,
-role: 'admin',
-companyName: 'Operations Admin'
-};
-localStorage.setItem('vf_active_session', JSON.stringify(currentUser));
-launchWorkspace();
-}
-window.instantAdminLogin = instantAdminLogin;
-document.addEventListener('DOMContentLoaded', function() {
-var btnAdmin = document.getElementById('btn-instant-admin');
-if (btnAdmin) {
-btnAdmin.addEventListener('click', instantAdminLogin);
-}
-if (window.lucide && lucide.createIcons) {
-try { lucide.createIcons(); } catch(e){}
-}
-setupDateConstraints();
-renderPatternSuggestions();
-var savedSession = localStorage.getItem('vf_active_session');
-if (savedSession) {
-try {
-currentUser = JSON.parse(savedSession);
-launchWorkspace();
-return;
-} catch(e) {}
-}
-var resetEmailInput = document.getElementById('reset-email');
-if (resetEmailInput) {
-resetEmailInput.addEventListener('input', function(e) {
-var pinBox = document.getElementById('admin-reset-pin-box');
-if (e.target.value.trim().toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase()) {
-pinBox.classList.remove('hidden');
-} else {
-pinBox.classList.add('hidden');
-}
-});
-}
-});
-function handlePatternAutoFill(patternInput) {
-var rawVal = patternInput.value.trim();
-if (!rawVal) return;
-var match = PATTERN_CATALOG[rawVal];
-if (!match) {
-var lower = rawVal.toLowerCase();
-var matchedKey = Object.keys(PATTERN_CATALOG).find(function(k) { return k.toLowerCase() === lower; });
-if (matchedKey) match = PATTERN_CATALOG[matchedKey];
-}
-if (!match) {
-var foundryMap = JSON.parse(localStorage.getItem('vf_foundry_map') || '{}');
-if (foundryMap[rawVal]) {
-match = { client: 'Direct Client', foundry: foundryMap[rawVal] };
-}
-}
-if (match) {
-var foundryInput = document.getElementById('po-foundry-select');
-if (foundryInput && match.foundry) {
-foundryInput.value = match.foundry;
-}
-var clientSelect = document.getElementById('po-client-select');
-if (clientSelect && match.client && currentUser && currentUser.role === 'admin') {
-var exists = false;
-for (var i = 0; i < clientSelect.options.length; i++) {
-if (clientSelect.options[i].value.toLowerCase() === match.client.toLowerCase()) {
-clientSelect.selectedIndex = i;
-exists = true;
-break;
-}
-}
-if (!exists) {
-var opt = document.createElement('option');
-opt.value = match.client;
-opt.innerText = match.client;
-clientSelect.appendChild(opt);
-clientSelect.value = match.client;
-}
-}
-}
-}
-document.addEventListener('input', function(e) {
-if (e.target.classList.contains('input-pattern')) {
-handlePatternAutoFill(e.target);
-}
-if (e.target.classList.contains('input-pattern') || e.target.classList.contains('input-qty')) {
-var rows = document.querySelectorAll('.matrix-row');
-var lastRow = rows[rows.length - 1];
-var patternVal = lastRow.querySelector('.input-pattern').value.trim();
-var qtyVal = lastRow.querySelector('.input-qty').value;
-if (patternVal !== '' || qtyVal !== '') {
-spawnAutoMatrixRow();
-}
-}
-});
-function spawnAutoMatrixRow() {
-var container = document.getElementById('po-matrix-rows');
-var rows = document.querySelectorAll('.matrix-row');
-var lastRow = rows[rows.length - 1];
-var lastPattern = lastRow.querySelector('.input-pattern').value.trim();
-var lastQty = lastRow.querySelector('.input-qty').value;
-if (lastPattern === '' && lastQty === '') return;
-var row = document.createElement('div');
-row.className = 'grid grid-cols-12 gap-2 items-center matrix-row bg-slate-900/50 p-2.5 rounded-xl border border-slate-800 transition-all';
-row.innerHTML = ''
-+ '<div class="col-span-12 sm:col-span-5">'
-+ '    <input type="text" list="pattern-suggestions" placeholder="Type Pattern No." class="input-pattern w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">'
-+ '</div>'
-+ '<div class="col-span-7 sm:col-span-4">'
-+ '    <select class="input-grade w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">'
-+ '        <option value="" disabled selected>Select Grade...</option>'
-+ '        <optgroup label="C.I (Cast Iron)">'
-+ '            <option value="CI General">CI (General)</option>'
-+ '        </optgroup>'
-+ '        <optgroup label="C.I Grade">'
-+ '            <option value="C.I FG-200">C.I FG-200</option>'
-+ '            <option value="C.I FG-250">C.I FG-250</option>'
-+ '            <option value="C.I FG-260">C.I FG-260</option>'
-+ '            <option value="C.I FG-300">C.I FG-300</option>'
-+ '        </optgroup>'
-+ '        <optgroup label="SG Iron">'
-+ '            <option value="SG 400/12">SG Iron SG 400/12</option>'
-+ '            <option value="SG 400/15">SG Iron SG 400/15</option>'
-+ '            <option value="SG 450/10">SG Iron SG 450/10</option>'
-+ '            <option value="SG 500/7">SG Iron SG 500/7</option>'
-+ '            <option value="SG 600/3">SG Iron SG 600/3</option>'
-+ '            <option value="SG 700/2">SG Iron SG 700/2</option>'
-+ '        </optgroup>'
-+ '        <optgroup label="W.C.B Castings">'
-+ '            <option value="W.C.B Standard">W.C.B Standard</option>'
-+ '            <option value="W.C.B Grade A">W.C.B Grade A</option>'
-+ '            <option value="W.C.B Grade B">W.C.B Grade B</option>'
-+ '            <option value="W.C.B Grade C">W.C.B Grade C</option>'
-+ '            <option value="W.C.B Low Alloy">W.C.B Low Alloy</option>'
-+ '        </optgroup>'
-+ '    </select>'
-+ '</div>'
-+ '<div class="col-span-3 sm:col-span-2">'
-+ '    <input type="number" placeholder="Qty" class="input-qty w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">'
-+ '</div>'
-+ '<div class="col-span-2 sm:col-span-1 text-right">'
-+ '    <button type="button" onclick="removeMatrixRow(this)" class="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition">'
-+ '        <i data-lucide="trash-2" class="w-4 h-4"></i>'
-+ '    </button>'
-+ '</div>';
-container.appendChild(row);
-if (window.lucide && lucide.createIcons) {
-try { lucide.createIcons(); } catch(e){}
-}
-}
-function removeMatrixRow(btn) {
-var rows = document.querySelectorAll('.matrix-row');
-if (rows.length > 1) {
-btn.closest('.matrix-row').remove();
-} else {
-alert("At least one line item is required.");
-}
-}
-function loginUser() {
-var emailInput = document.getElementById('login-email');
-var passInput = document.getElementById('login-password');
-var email = (emailInput ? emailInput.value : '').trim().toLowerCase();
-var rawPassword = (passInput ? passInput.value : '').trim();
-if (email === MASTER_ADMIN_EMAIL.toLowerCase() || email === 'shalu' || email.indexOf('x-engi') !== -1) {
-instantAdminLogin();
-return;
-}
-if (!email) {
-alert("Please enter your email.");
-return;
-}
-var matchedClient = dbClients.find(function(c) {
-return c.email.toLowerCase() === email && c.password === rawPassword;
-});
-if (!matchedClient) {
-alert("Invalid email or password. Tap '⚡ 1-Click Login' for Admin access.");
-return;
-}
-if (!matchedClient.approved) {
-alert("ACCESS DENIED: Your client account is currently pending Admin approval.");
-return;
-}
-currentUser = {
-email: matchedClient.email,
-role: 'client',
-companyName: matchedClient.companyName
-};
-localStorage.setItem('vf_active_session', JSON.stringify(currentUser));
-launchWorkspace();
-}
-function launchWorkspace() {
-document.getElementById('auth-screen').classList.add('hidden');
-document.getElementById('app-workspace').classList.remove('hidden');
-document.getElementById('user-display-email').innerText = currentUser.email;
-var badge = document.getElementById('role-badge');
-var adminElements = document.querySelectorAll('.role-admin-only');
-if (currentUser.role === 'admin') {
-badge.innerText = 'Master Admin';
-badge.className = 'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
-adminElements.forEach(function(el) { el.classList.remove('hidden'); });
-} else {
-badge.innerText = 'Client View';
-badge.className = 'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
-adminElements.forEach(function(el) { el.classList.add('hidden'); });
-}
-renderClientApprovals();
-renderOrdersDisplay();
-renderClientDropdown();
-updateStats();
-if (window.lucide && lucide.createIcons) {
-try { lucide.createIcons(); } catch(e){}
-}
-}
-function logoutUser() {
-currentUser = null;
-localStorage.removeItem('vf_active_session');
-document.getElementById('app-workspace').classList.add('hidden');
-document.getElementById('auth-screen').classList.remove('hidden');
-}
-function submitOrder() {
-var targetClient = currentUser.role === 'admin' ? (document.getElementById('po-client-select').value || 'Direct Client') : currentUser.companyName;
-var targetFoundry = currentUser.role === 'admin' ? (document.getElementById('po-foundry-select').value || 'Unassigned') : 'Unassigned';
-var targetDate = document.getElementById('po-target-date').value;
-var rows = document.querySelectorAll('.matrix-row');
-var createdCount = 0;
-var foundryMap = JSON.parse(localStorage.getItem('vf_foundry_map') || '{}');
-rows.forEach(function(row, idx) {
-var pattern = row.querySelector('.input-pattern').value.trim();
-var grade = row.querySelector('.input-grade').value;
-var qty = parseInt(row.querySelector('.input-qty').value) || 0;
-if (pattern && qty > 0) {
-var effectiveFoundry = targetFoundry;
-if (currentUser.role !== 'admin' && PATTERN_CATALOG[pattern]) {
-effectiveFoundry = PATTERN_CATALOG[pattern].foundry || 'Unassigned';
-}
-var newPo = {
-po: 'PO-2026-' + Math.floor(100 + Math.random() * 900) + (rows.length > 1 ? '-' + (idx + 1) : ''),
-client: targetClient,
-pattern: pattern,
-grade: grade || 'C.I FG-250',
-ordered: qty,
-supplied: 0,
-targetDate: targetDate,
-foundry: effectiveFoundry,
-status: 'In Production'
-};
-dbOrders.unshift(newPo);
-createdCount++;
-if (!dbLearnedPatterns.includes(pattern)) {
-dbLearnedPatterns.push(pattern);
-}
-if (targetFoundry && targetFoundry !== 'Unassigned') {
-foundryMap[pattern] = targetFoundry;
-}
-}
-});
-if (createdCount === 0) {
-alert("Please fill in at least one valid pattern name and quantity.");
-return;
-}
-localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
-localStorage.setItem('vf_db_patterns', JSON.stringify(dbLearnedPatterns));
-localStorage.setItem('vf_foundry_map', JSON.stringify(foundryMap));
-renderPatternSuggestions();
-renderOrdersDisplay();
-updateStats();
-closeModal('modal-create-order');
-alert('Successfully submitted ' + createdCount + ' order item(s)!');
-}
-function openForgotPasswordModal() {
-document.getElementById('modal-forgot-password').classList.remove('hidden');
-}
-function submitPasswordReset() {
-var email = (document.getElementById('reset-email').value || '').trim().toLowerCase();
-var newPass = (document.getElementById('reset-new-pass').value || '').trim();
-var pin = (document.getElementById('reset-pin').value || '').trim();
-if (!email || !newPass) {
-alert("Please fill in email and new password.");
-return;
-}
-if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
-if (pin !== MASTER_RECOVERY_PIN) {
-alert("SECURITY REJECTION: Invalid Recovery PIN for Admin reset.");
-return;
-}
-localStorage.setItem('vf_admin_pass', newPass);
-alert("Master Admin password successfully updated!");
-closeModal('modal-forgot-password');
-return;
-}
-var client = dbClients.find(function(c) { return c.email.toLowerCase() === email; });
-if (client) {
-client.password = newPass;
-localStorage.setItem('vf_db_clients', JSON.stringify(dbClients));
-alert('Password updated successfully for ' + client.companyName + '!');
-closeModal('modal-forgot-password');
-} else {
-alert("No account found with that email address.");
-}
-}
-function openRegisterModal() {
-document.getElementById('modal-register-client').classList.remove('hidden');
-}
-function submitClientRegistration() {
-var company = (document.getElementById('reg-company').value || '').trim();
-var email = (document.getElementById('reg-email').value || '').trim();
-var password = (document.getElementById('reg-password').value || '').trim();
-if (!company || !email || !password) {
-alert("Please fill in all registration fields.");
-return;
-}
-var newReg = {
-id: 'client_' + Date.now(),
-companyName: company,
-email: email,
-password: password,
-approved: false
-};
-dbClients.push(newReg);
-localStorage.setItem('vf_db_clients', JSON.stringify(dbClients));
-closeModal('modal-register-client');
-alert("Registration submitted! Your account is pending Admin approval.");
-}
-function approveClient(clientId) {
-var client = dbClients.find(function(c) { return c.id === clientId; });
-if (client) {
-client.approved = true;
-localStorage.setItem('vf_db_clients', JSON.stringify(dbClients));
-renderClientApprovals();
-renderClientDropdown();
-updateStats();
-alert('Account for ' + client.companyName + ' APPROVED!');
-}
-}
-function deleteClient(clientId) {
-dbClients = dbClients.filter(function(c) { return c.id !== clientId; });
-localStorage.setItem('vf_db_clients', JSON.stringify(dbClients));
-renderClientApprovals();
-renderClientDropdown();
-updateStats();
-}
-function renderClientApprovals() {
-var tbody = document.getElementById('clients-approval-tbody');
-tbody.innerHTML = '';
-if (dbClients.length === 0) {
-tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-500">No client registrations found.</td></tr>';
-return;
-}
-dbClients.forEach(function(c) {
-var tr = document.createElement('tr');
-tr.innerHTML = ''
-+ '<td class="py-2.5 font-semibold text-white">' + c.companyName + '</td>'
-+ '<td class="py-2.5 text-slate-400 font-mono">' + c.email + '</td>'
-+ '<td class="py-2.5">'
-+ '    <span class="px-2 py-0.5 rounded text-[10px] ' + (c.approved ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400') + '">'
-+ (c.approved ? 'Approved' : 'Pending Approval')
-+ '    </span>'
-+ '</td>'
-+ '<td class="py-2.5 text-right space-x-1">'
-+ (!c.approved ? '<button type="button" onclick="approveClient(\'' + c.id + '\')" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px]">Approve</button>' : '')
-+ '    <button type="button" onclick="deleteClient(\'' + c.id + '\')" class="px-2 py-1 bg-rose-900/40 text-rose-300 hover:bg-rose-900/60 rounded text-[10px]">Delete</button>'
-+ '</td>';
-tbody.appendChild(tr);
-});
-}
-function renderClientDropdown() {
-var select = document.getElementById('po-client-select');
-select.innerHTML = '';
-var catalogClients = ['RMP', 'Chirai', 'Megha', 'TechTools', 'Uma', 'Shreenathji', 'Kavil', 'Riya', 'Ashirwad', 'X-eNGI'];
-catalogClients.forEach(function(c) {
-var opt = document.createElement('option');
-opt.value = c;
-opt.innerText = c;
-select.appendChild(opt);
-});
-dbClients.filter(function(c) { return c.approved; }).forEach(function(c) {
-if (!catalogClients.includes(c.companyName)) {
-var opt = document.createElement('option');
-opt.value = c.companyName;
-opt.innerText = c.companyName;
-select.appendChild(opt);
-}
-});
-}
-function renderOrdersDisplay() {
-var tbody = document.getElementById('orders-tbl-body');
-var cardGrid = document.getElementById('orders-card-grid');
-tbody.innerHTML = '';
-cardGrid.innerHTML = '';
-var displayOrders = dbOrders;
-if (currentUser && currentUser.role === 'client') {
-displayOrders = dbOrders.filter(function(o) {
-return o.client.toLowerCase() === currentUser.companyName.toLowerCase();
-});
-}
-if (displayOrders.length === 0) {
-tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-500">No active purchase orders found. Click "Create Purchase Order" to get started.</td></tr>';
-cardGrid.innerHTML = '<div class="col-span-full p-6 text-center text-slate-500 glass-panel rounded-xl">No active purchase orders found.</div>';
-return;
-}
-displayOrders.forEach(function(o) {
-var pct = o.ordered > 0 ? Math.round((o.supplied / o.ordered) * 100) : 0;
-var tr = document.createElement('tr');
-tr.className = 'hover:bg-slate-900/40 transition';
-tr.innerHTML = ''
-+ '<td class="p-4 font-semibold text-indigo-400">' + o.po + '</td>'
-+ '<td class="p-4 role-admin-only font-medium text-slate-200 ' + (currentUser.role === 'client' ? 'hidden' : '') + '">' + o.client + '</td>'
-+ '<td class="p-4"><div class="font-medium text-slate-100">' + o.pattern + '</div></td>'
-+ '<td class="p-4"><span class="px-2.5 py-1 rounded bg-slate-800/90 text-slate-200 font-mono text-[11px] border border-slate-700/80">' + o.grade + '</span></td>'
-+ '<td class="p-4">'
-+ '    <div class="font-semibold text-white">' + o.supplied + ' / ' + o.ordered + ' pcs</div>'
-+ '    <div class="w-24 bg-slate-800 h-1.5 rounded-full mt-1.5 overflow-hidden">'
-+ '        <div class="bg-amber-500 h-full rounded-full" style="width: ' + pct + '%"></div>'
-+ '    </div>'
-+ '</td>'
-+ '<td class="p-4 text-slate-300 font-mono text-[11px]">' + o.targetDate + '</td>'
-+ '<td class="p-4 role-admin-only text-slate-300 ' + (currentUser.role === 'client' ? 'hidden' : '') + '"><span class="text-indigo-300 font-medium">' + (o.foundry || 'Unassigned') + '</span></td>'
-+ '<td class="p-4">'
-+ '    <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-medium inline-flex items-center gap-1.5">'
-+ '        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>'
-+ o.status
-+ '    </span>'
-+ '</td>'
-+ '<td class="p-4 text-right space-x-1">'
-+ (currentUser.role === 'admin' ? '<button type="button" onclick="logDispatch(\'' + o.po + '\')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] border border-slate-700 transition">Dispatch</button>' : '')
-+ (currentUser.role === 'admin' ? '<button type="button" onclick="deleteOrder(\'' + o.po + '\')" class="p-1 bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 rounded border border-rose-800 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>' : '')
-+ '</td>';
-tbody.appendChild(tr);
-var card = document.createElement('div');
-card.className = 'glass-panel p-4 rounded-xl border border-slate-800 space-y-3';
-card.innerHTML = ''
-+ '<div class="flex items-center justify-between border-b border-slate-800 pb-2">'
-+ '    <div>'
-+ '        <span class="text-xs font-bold text-indigo-400">' + o.po + '</span>'
-+ (currentUser.role === 'admin' ? '<p class="text-[11px] text-slate-300 font-medium">' + o.client + '</p>' : '')
-+ '    </div>'
-+ '    <span class="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-medium flex items-center gap-1">'
-+ '        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>'
-+ o.status
-+ '    </span>'
-+ '</div>'
-+ '<div class="space-y-1">'
-+ '    <p class="text-xs font-semibold text-white">' + o.pattern + '</p>'
-+ '    <div class="flex items-center gap-2 pt-1">'
-+ '        <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">' + o.grade + '</span>'
-+ '        <span class="text-[11px] text-slate-400">Target: <span class="text-slate-200 font-mono">' + o.targetDate + '</span></span>'
-+ '    </div>'
-+ '</div>'
-+ (currentUser.role === 'admin' ? '<p class="text-[11px] text-slate-400">Foundry: <span class="text-indigo-300 font-medium">' + (o.foundry || 'Unassigned') + '</span></p>' : '')
-+ '<div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">'
-+ '    <div>'
-+ '        <span class="text-xs font-bold text-white">' + o.supplied + ' / ' + o.ordered + ' pcs</span>'
-+ '        <div class="w-28 bg-slate-800 h-1.5 rounded-full mt-1 overflow-hidden">'
-+ '            <div class="bg-amber-500 h-full rounded-full" style="width: ' + pct + '%"></div>'
-+ '        </div>'
-+ '    </div>'
-+ '    <div class="space-x-1">'
-+ (currentUser.role === 'admin' ? '<button type="button" onclick="logDispatch(\'' + o.po + '\')" class="px-2.5 py-1 bg-slate-800 text-slate-200 rounded text-[11px] border border-slate-700">Dispatch</button>' : '')
-+ (currentUser.role === 'admin' ? '<button type="button" onclick="deleteOrder(\'' + o.po + '\')" class="p-1 bg-rose-900/40 text-rose-300 rounded border border-rose-800"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>' : '')
-+ '    </div>'
-+ '</div>';
-cardGrid.appendChild(card);
-});
-if (window.lucide && lucide.createIcons) {
-try { lucide.createIcons(); } catch(e){}
-}
-}
-function openCreateOrderModal() {
-document.getElementById('modal-create-order').classList.remove('hidden');
-}
-function deleteOrder(po) {
-dbOrders = dbOrders.filter(function(o) { return o.po !== po; });
-localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
-renderOrdersDisplay();
-updateStats();
-}
-function logDispatch(po) {
-activeDispatchPo = po;
-document.getElementById('dispatch-po-id').innerText = 'PO ID: ' + po;
-document.getElementById('modal-log-dispatch').classList.remove('hidden');
-}
-function confirmDispatch() {
-var qty = parseInt(document.getElementById('dispatch-qty-input').value) || 0;
-var item = dbOrders.find(function(o) { return o.po === activeDispatchPo; });
-if (item) {
-item.supplied = Math.min(item.ordered, item.supplied + qty);
-if (item.supplied === item.ordered) item.status = 'Completed';
-else item.status = 'Partially Supplied';
-}
-localStorage.setItem('vf_db_orders', JSON.stringify(dbOrders));
-renderOrdersDisplay();
-updateStats();
-closeModal('modal-log-dispatch');
-}
-function renderPatternSuggestions() {
-var datalist = document.getElementById('pattern-suggestions');
-if (!datalist) return;
-datalist.innerHTML = '';
-Object.keys(PATTERN_CATALOG).forEach(function(p) {
-var opt = document.createElement('option');
-opt.value = p;
-datalist.appendChild(opt);
-});
-dbLearnedPatterns.forEach(function(p) {
-if (!PATTERN_CATALOG[p]) {
-var opt = document.createElement('option');
-opt.value = p;
-datalist.appendChild(opt);
-}
-});
-}
-function purgeAllData() {
-if (confirm("Are you sure you want to purge test orders? Your 899+ pattern catalog remains intact.")) {
-localStorage.removeItem('vf_db_orders');
-dbOrders = [];
-renderOrdersDisplay();
-updateStats();
-alert("Test orders purged.");
-}
-}
-function updateStats() {
-document.getElementById('stat-active-orders').innerText = dbOrders.length;
-var completedSum = dbOrders.reduce(function(sum, o) { return sum + o.supplied; }, 0);
-document.getElementById('stat-completed').innerText = completedSum + ' pcs';
-var totalCatalogCount = Object.keys(PATTERN_CATALOG).length + dbLearnedPatterns.filter(function(p) { return !PATTERN_CATALOG[p]; }).length;
-document.getElementById('stat-patterns').innerText = totalCatalogCount;
-document.getElementById('stat-clients').innerText = dbClients.length;
-var pendingCount = dbClients.filter(function(c) { return !c.approved; }).length;
-document.getElementById('stat-pending-clients').innerText = pendingCount + ' Pending Approval';
-}
-function setupDateConstraints() {
-var dateInput = document.getElementById('po-target-date');
-if (!dateInput) return;
-var today = new Date();
-var minDate = new Date(today);
-minDate.setDate(minDate.getDate() + 10);
-var minStr = minDate.toISOString().split('T')[0];
-dateInput.min = minStr;
-dateInput.value = minStr;
-}
-function closeModal(id) {
-document.getElementById(id).classList.add('hidden');
-}
-function exportCSV() {
-var csv = "PO Number,Client Name,Pattern Spec,Grade,Ordered,Supplied,Target Date,Foundry Partner\n";
-dbOrders.forEach(function(o) {
-csv += o.po + ',' + o.client + ',"' + o.pattern + '",' + o.grade + ',' + o.ordered + ',' + o.supplied + ',' + o.targetDate + ',' + (o.foundry || 'Unassigned') + '\n';
-});
-var blob = new Blob([csv], { type: 'text/csv' });
-var url = window.URL.createObjectURL(blob);
-var a = document.createElement('a');
-a.href = url;
-a.download = "VortexFlow_Orders.csv";
-a.click();
-}
-</script>
+
+    <!-- AUTHENTICATION OVERLAY -->
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl no-print">
+        <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-5">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i data-lucide="layers" class="w-7 h-7 text-white"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white tracking-tight">VortexFlow Portal</h2>
+                <p class="text-xs text-slate-400">Select Login Role</p>
+            </div>
+
+            <!-- ROLE SELECTOR TABS -->
+            <div class="grid grid-cols-2 p-1 bg-slate-900 rounded-xl border border-slate-800">
+                <button type="button" id="tab-role-admin" class="py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition">Master Admin</button>
+                <button type="button" id="tab-role-client" class="py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">Client Access</button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- MASTER ADMIN ONE-CLICK BYPASS (VISIBLE ONLY IN ADMIN TAB) -->
+                <div id="admin-bypass-wrapper">
+                    <button type="button" id="btn-direct-admin" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> ⚡ 1-Click Login as Master Admin (shalu@x-engi.in)
+                    </button>
+                    <div class="relative flex py-3 items-center">
+                        <div class="flex-grow border-t border-slate-800"></div>
+                        <span class="flex-shrink mx-3 text-[10px] text-slate-500 uppercase font-semibold">Or Password Login</span>
+                        <div class="flex-grow border-t border-slate-800"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                    <input type="email" id="login-email" value="shalu@x-engi.in" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                    <input type="password" id="login-password" value="admin123" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <button type="button" id="btn-standard-login" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition">
+                    Sign In
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WORKSPACE -->
+    <div id="app-workspace" class="hidden">
+        <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3 no-print">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+                            VortexFlow
+                            <span id="role-badge" class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Master Admin</span>
+                        </h1>
+                        <p class="text-xs text-slate-400">Logged in as: <span id="user-display-email" class="text-slate-200 font-mono">shalu@x-engi.in</span></p>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-logout" class="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 border border-slate-800 transition">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4 no-print">
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                    <span class="text-xs font-medium uppercase text-slate-400">Active Orders</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="stat-active-orders">0</div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                    <span class="text-xs font-medium uppercase text-slate-400">Completed</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="stat-completed">0 pcs</div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                    <span class="text-xs font-medium uppercase text-slate-400">Pattern Catalog</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="stat-patterns">899</div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800">
+                    <span class="text-xs font-medium uppercase text-slate-400">Clients Loaded</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="stat-clients">12</div>
+                </div>
+            </section>
+
+            <section class="glass-panel rounded-2xl border border-slate-800 p-4">
+                <div class="flex items-center justify-between mb-4 no-print">
+                    <div>
+                        <h2 class="text-base font-semibold text-white">Purchase Orders Ledger</h2>
+                        <p class="text-xs text-slate-400">Real-time status and supplier tracking</p>
+                    </div>
+                    <button type="button" id="btn-open-create-modal" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Create Purchase Order
+                    </button>
+                </div>
+                <div id="orders-card-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- CREATE PO MODAL -->
+    <div id="modal-create-order" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
+        <div class="glass-modal w-full max-w-2xl rounded-2xl border border-slate-800 p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-semibold text-white">Create Purchase Order</h3>
+                <button type="button" id="btn-close-modal" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Target Client</label>
+                    <input type="text" id="po-client" placeholder="e.g. Ashirwad / Chirai" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+                </div>
+                <div id="foundry-field-container">
+                    <label class="block text-xs text-slate-300 mb-1">Foundry Partner Name</label>
+                    <input type="text" id="po-foundry" placeholder="Auto-fills on pattern typing" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs text-slate-300 mb-1">Pattern / Drawing No.</label>
+                    <input type="text" id="po-pattern" placeholder="Type pattern no. e.g. 748-14-9091" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Quantity</label>
+                    <input type="number" id="po-qty" value="10" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Target Date</label>
+                    <input type="date" id="po-date" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+                <button type="button" id="btn-cancel-modal" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancel</button>
+                <button type="button" id="btn-submit-po" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">Submit Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRINTABLE PDF CONTAINER -->
+    <div id="printable-po-area" class="hidden"></div>
+
+    <script>
+        const PATTERN_CATALOG = {
+            "748-14-9091": {"client": "Ashirwad", "foundry": "Castingcast"},
+            "660-0551-778014": {"client": "Chirai", "foundry": "Castingcast"},
+            "04-10-304": {"client": "Chirai", "foundry": "Charbhuja"},
+            "05-10-256": {"client": "Chirai", "foundry": "Highton"},
+            "8560324": {"client": "RMP", "foundry": "Charbhuja"},
+            "8560325": {"client": "RMP", "foundry": "Charbhuja"},
+            "720-32-200": {"client": "Chirai", "foundry": "Ashutosh"}
+        };
+
+        const MASTER_ADMIN = 'shalu@x-engi.in';
+        let currentUser = null;
+        let orders = [];
+
+        function setLoginRole(role) {
+            const adminTab = document.getElementById('tab-role-admin');
+            const clientTab = document.getElementById('tab-role-client');
+            const bypassWrapper = document.getElementById('admin-bypass-wrapper');
+            const emailInput = document.getElementById('login-email');
+
+            if (role === 'admin') {
+                adminTab.className = "py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition";
+                clientTab.className = "py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition";
+                bypassWrapper.classList.remove('hidden');
+                emailInput.value = MASTER_ADMIN;
+            } else {
+                clientTab.className = "py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition";
+                adminTab.className = "py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition";
+                bypassWrapper.classList.add('hidden'); // HIDE BYPASS FOR CLIENT
+                emailInput.value = 'client@example.com';
+            }
+        }
+
+        function loginUser(role) {
+            const email = document.getElementById('login-email').value.trim() || (role === 'admin' ? MASTER_ADMIN : 'client@example.com');
+            currentUser = { email: email, role: role };
+            
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-workspace').classList.remove('hidden');
+            document.getElementById('user-display-email').textContent = email;
+            document.getElementById('role-badge').textContent = role === 'admin' ? 'Master Admin' : 'Client Access';
+
+            if (role === 'client') {
+                document.getElementById('foundry-field-container').classList.add('hidden');
+            } else {
+                document.getElementById('foundry-field-container').classList.remove('hidden');
+            }
+
+            renderOrders();
+            lucide.createIcons();
+        }
+
+        function printOrderPDF(poId) {
+            const order = orders.find(o => o.id === poId);
+            if (!order) return;
+
+            const isClient = currentUser && currentUser.role === 'client';
+            const area = document.getElementById('printable-po-area');
+            
+            area.innerHTML = `
+                <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; border: 2px solid #000;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                        <div>
+                            <h1 style="margin: 0; font-size: 24px; text-transform: uppercase;">VortexFlow Supply Chain</h1>
+                            <p style="margin: 2px 0; font-size: 12px; color: #555;">Purchase Order Document</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 style="margin: 0; font-size: 18px;">${order.id}</h2>
+                            <p style="margin: 2px 0; font-size: 12px;">Date: ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+
+                    <div style="margin: 20px 0; display: flex; justify-content: space-between;">
+                        <div>
+                            <strong>Target Client:</strong> ${order.client}<br>
+                            <strong>Target Delivery Date:</strong> ${order.targetDate}
+                        </div>
+                        ${!isClient ? `<div><strong>Assigned Foundry:</strong> ${order.foundry}</div>` : ''}
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;" border="1" cellpadding="8">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th>Pattern / Drawing No.</th>
+                                <th>Ordered Qty</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: center;">${order.pattern}</td>
+                                <td style="text-align: center;">${order.qty} pcs</td>
+                                <td style="text-align: center;">In Production</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 11px; text-align: center; color: #777;">
+                        Computer Generated Document - VortexFlow Operations
+                    </div>
+                </div>
+            `;
+
+            area.classList.remove('hidden');
+            window.print();
+            area.classList.add('hidden');
+        }
+
+        function renderOrders() {
+            const cardGrid = document.getElementById('orders-card-grid');
+            const isClient = currentUser && currentUser.role === 'client';
+
+            if (orders.length === 0) {
+                cardGrid.innerHTML = '<p class="text-xs text-slate-400 col-span-2">No purchase orders created yet.</p>';
+                return;
+            }
+
+            cardGrid.innerHTML = orders.map(function (o) {
+                return `
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-indigo-400">${o.id}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">In Production</span>
+                        </div>
+                        <p class="text-xs font-semibold text-white">Pattern: ${o.pattern}</p>
+                        <p class="text-[11px] text-slate-400">
+                            Client: ${o.client} 
+                            ${!isClient ? `| Foundry: <span class="text-indigo-300 font-semibold">${o.foundry}</span>` : ''}
+                        </p>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-800/60">
+                            <span class="text-xs text-slate-300">Qty: ${o.qty} pcs</span>
+                            <button onclick="printOrderPDF('${o.id}')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg flex items-center gap-1">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print / PDF
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('stat-active-orders').textContent = orders.length;
+            lucide.createIcons();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+
+            document.getElementById('tab-role-admin').addEventListener('click', () => setLoginRole('admin'));
+            document.getElementById('tab-role-client').addEventListener('click', () => setLoginRole('client'));
+
+            document.getElementById('btn-direct-admin').addEventListener('click', () => loginUser('admin'));
+            document.getElementById('btn-standard-login').addEventListener('click', () => {
+                const isClientTab = document.getElementById('tab-role-client').classList.contains('bg-indigo-600');
+                loginUser(isClientTab ? 'client' : 'admin');
+            });
+
+            document.getElementById('btn-logout').addEventListener('click', function () {
+                document.getElementById('app-workspace').classList.add('hidden');
+                document.getElementById('auth-screen').classList.remove('hidden');
+            });
+
+            document.getElementById('btn-open-create-modal').addEventListener('click', function () {
+                document.getElementById('modal-create-order').classList.remove('hidden');
+            });
+
+            const closeModal = function () {
+                document.getElementById('modal-create-order').classList.add('hidden');
+            };
+
+            document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+            document.getElementById('btn-cancel-modal').addEventListener('click', closeModal);
+
+            document.getElementById('po-pattern').addEventListener('input', function (e) {
+                const val = e.target.value.trim();
+                if (PATTERN_CATALOG[val]) {
+                    document.getElementById('po-foundry').value = PATTERN_CATALOG[val].foundry || '';
+                    document.getElementById('po-client').value = PATTERN_CATALOG[val].client || '';
+                }
+            });
+
+            document.getElementById('btn-submit-po').addEventListener('click', function () {
+                const client = document.getElementById('po-client').value || 'Direct Client';
+                const foundry = document.getElementById('po-foundry').value || 'Unassigned';
+                const pattern = document.getElementById('po-pattern').value || 'N/A';
+                const qty = document.getElementById('po-qty').value || '10';
+                const targetDate = document.getElementById('po-date').value || '2026-10-30';
+
+                const newOrder = {
+                    id: 'PO-2026-' + Math.floor(100 + Math.random() * 900),
+                    client: client,
+                    foundry: foundry,
+                    pattern: pattern,
+                    qty: qty,
+                    targetDate: targetDate
+                };
+
+                orders.unshift(newOrder);
+                renderOrders();
+                closeModal();
+            });
+        });
+    </script>
 </body>
 </html>
