@@ -2385,8 +2385,8 @@ async function resolvePatternFoundry(item) {
                     result.foundry ||
                     (
                         result.source === "not-assigned"
-                            ? "Not Assigned"
-                            : "Pattern Not in Master"
+                            ? "⚠ Not Assigned"
+                            : "⚠ Pattern Not in Master"
                     )
             });
         }
