@@ -1300,6 +1300,28 @@ const firebaseConfig = {
                 document.getElementById(
                     "btn-open-create-modal"
                 );
+            
+            const patternMasterButton =
+    document.getElementById(
+        "btn-open-pattern-master"
+    );
+
+const patternMasterModal =
+    document.getElementById(
+        "modal-pattern-master"
+    );
+
+if (roleData.role === "admin") {
+
+    patternMasterButton.classList.remove("hidden");
+    patternMasterButton.classList.add("flex");
+
+} else {
+
+    patternMasterButton.classList.add("hidden");
+    patternMasterButton.classList.remove("flex");
+
+}
 
 
             if (roleData.role === "admin") {
