@@ -3010,7 +3010,47 @@ async function resolveAllocationFoundry(item) {
 
 async function buildFoundryAllocation() {
 
+   async function buildFoundryAllocation() {
+
     const allocation = [];
+
+    const dispatchSnapshot =
+        await getDocs(
+            collection(
+                db,
+                "foundryDispatches"
+            )
+        );
+
+    const dispatchedMap = {};
+
+    dispatchSnapshot.forEach(
+        dispatchDoc => {
+
+            const dispatch =
+                dispatchDoc.data();
+
+            const items =
+                Array.isArray(dispatch.items)
+                    ? dispatch.items
+                    : [];
+
+            items.forEach(item => {
+
+                const key =
+                    `${item.orderId}::${item.itemIndex}`;
+
+                dispatchedMap[key] =
+                    (dispatchedMap[key] || 0) +
+                    Number(
+                        item.quantity || 0
+                    );
+
+            });
+
+        }
+    );
+
 
     for (const order of orders) {
 
@@ -3022,12 +3062,23 @@ async function buildFoundryAllocation() {
             Array.isArray(order.itemsList)
                 ? order.itemsList
                 : [{
-                    pattern: order.pattern || "",
-                    grade: order.grade || "",
-                    quantity: order.qty || 0,
-                    received: order.received || 0,
-                    foundry: order.foundry || "Unassigned"
+                    pattern:
+                        order.pattern || "",
+
+                    grade:
+                        order.grade || "",
+
+                    quantity:
+                        order.qty || 0,
+
+                    received:
+                        order.received || 0,
+
+                    foundry:
+                        order.foundry ||
+                        "Unassigned"
                 }];
+
 
         for (
             let itemIndex = 0;
@@ -3035,29 +3086,41 @@ async function buildFoundryAllocation() {
             itemIndex++
         ) {
 
-            const item = rawItems[itemIndex];
+            const item =
+                rawItems[itemIndex];
 
             const ordered =
-                Number(item.quantity || 0);
+                Number(
+                    item.quantity || 0
+                );
 
-            const received =
-                Number(item.received || 0);
+            const alreadyDispatched =
+                Number(
+                    dispatchedMap[
+                        `${order.id}::${itemIndex}`
+                    ] || 0
+                );
 
             const outstanding =
                 Math.max(
                     0,
-                    ordered - received
+                    ordered -
+                    alreadyDispatched
                 );
 
             if (outstanding <= 0) {
                 continue;
             }
 
+
             const result =
-                await resolveAllocationFoundry(item);
+                await resolveAllocationFoundry(
+                    item
+                );
 
             let foundry =
                 result.foundry;
+
 
             if (!foundry) {
 
@@ -3065,7 +3128,9 @@ async function buildFoundryAllocation() {
                     result.source === "not-assigned"
                         ? "⚠ NOT ASSIGNED"
                         : "⚠ PATTERN NOT IN MASTER";
+
             }
+
 
             allocation.push({
 
@@ -3076,42 +3141,37 @@ async function buildFoundryAllocation() {
                     order.id,
 
                 itemIndex:
-
                     itemIndex,
 
                 foundry:
-
                     foundry,
 
                 source:
-
                     result.source,
 
                 pattern:
-
                     item.pattern || "-",
 
                 grade:
-
                     item.grade || "-",
 
                 quantity:
-
                     outstanding,
 
                 targetDate:
-
                     order.targetDate ||
                     order.dueDate ||
                     "-"
 
             });
+
         }
+
     }
 
     return allocation;
-}
 
+} 
 
 function renderFoundryAllocation() {
 
