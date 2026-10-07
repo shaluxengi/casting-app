@@ -3479,6 +3479,157 @@ window.toggleFoundryAllocationItem =
 
 window.clearFoundrySelection =
     clearFoundrySelection;
+        document
+    .getElementById("btn-foundry-generate-package")
+    .addEventListener(
+        "click",
+        () => {
+
+            const selectedItems =
+                foundryAllocationItems.filter(
+                    item =>
+                        selectedFoundryAllocationItems
+                            .has(item.key)
+                );
+
+            if (!selectedItems.length) {
+
+                alert(
+                    "Please select at least one item."
+                );
+
+                return;
+            }
+
+
+            const foundries =
+                [
+                    ...new Set(
+                        selectedItems.map(
+                            item =>
+                                item.foundry
+                        )
+                    )
+                ];
+
+
+            if (foundries.length !== 1) {
+
+                alert(
+                    "Please select items from one foundry at a time."
+                );
+
+                return;
+            }
+
+
+            const foundry =
+                foundries[0];
+
+
+            if (
+                foundry.startsWith("⚠")
+            ) {
+
+                alert(
+                    "Items with unresolved foundry assignment cannot be dispatched."
+                );
+
+                return;
+            }
+
+
+            const dispatchDate =
+                document
+                    .getElementById(
+                        "foundry-dispatch-date"
+                    )
+                    .value ||
+                new Date()
+                    .toISOString()
+                    .slice(0, 10);
+
+
+            const dispatchRef =
+                "VF-WO-" +
+                dispatchDate.replaceAll("-", "") +
+                "-" +
+                Math.floor(
+                    1000 +
+                    Math.random() * 9000
+                );
+
+
+            const lines =
+                selectedItems.map(
+                    (item, index) => {
+
+                        return `${index + 1}. Pattern: ${
+                            item.pattern
+                        }
+Grade: ${
+                            item.grade
+                        }
+Quantity: ${
+                            item.quantity
+                        } pcs
+Target Delivery: ${
+                            item.targetDate
+                        }`;
+
+                    }
+                );
+
+
+            generatedFoundryPackage = {
+
+                reference:
+                    dispatchRef,
+
+                foundry:
+                    foundry,
+
+                dispatchDate:
+                    dispatchDate,
+
+                items:
+                    selectedItems
+
+            };
+
+
+            document
+                .getElementById(
+                    "foundry-dispatch-reference"
+                )
+                .value =
+                    dispatchRef;
+
+
+            document
+                .getElementById(
+                    "foundry-dispatch-message"
+                )
+                .value =
+
+`VORTEXFLOW FOUNDRY WORK PACKAGE
+
+Dispatch Ref: ${dispatchRef}
+Foundry: ${foundry.toUpperCase()}
+Target Delivery / Dispatch Date: ${dispatchDate}
+
+${lines.join("\n\n")}
+
+Please confirm receipt and production scheduling.
+
+This work package contains manufacturing information only.
+Customer identity and customer PO information are not included.`;
+
+
+            lucide.createIcons();
+
+        }
+    );
         
         /* =========================================================
            PRINT
