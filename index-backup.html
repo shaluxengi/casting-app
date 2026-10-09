@@ -1,0 +1,5182 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>VortexFlow | Supply Chain & Order Management</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,.25);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+
+            #printable-po-area,
+            #printable-po-area * {
+                visibility: visible !important;
+            }
+
+            #printable-po-area {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 24px !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-20 md:pb-6">
+
+    <!-- ========================================================= -->
+    <!-- AUTH SCREEN -->
+    <!-- ========================================================= -->
+
+    <div id="auth-screen"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
+
+        <div class="glass-modal w-full max-w-md rounded-2xl border border-slate-800 shadow-2xl p-6 space-y-5">
+
+            <div class="text-center space-y-2">
+
+                <div
+                    class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/30">
+
+                    <i data-lucide="layers" class="w-7 h-7 text-white"></i>
+
+                </div>
+
+                <h2 class="text-xl font-bold text-white tracking-tight">
+                    VortexFlow Portal
+                </h2>
+
+                <p class="text-xs text-slate-400">
+                    Secure Sign In
+                </p>
+
+            </div>
+
+
+            <div id="login-error-msg"
+                class="hidden p-3 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs rounded-xl font-medium text-center">
+            </div>
+
+
+            <div id="login-loading"
+                class="hidden p-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs rounded-xl text-center">
+
+                <div class="flex items-center justify-center gap-2">
+
+                    <div class="loading-spinner"></div>
+
+                    <span>Signing in...</span>
+
+                </div>
+
+            </div>
+
+
+            <div class="space-y-4">
+
+                <div>
+
+                    <label class="block text-xs font-medium text-slate-300 mb-1">
+                        Email Address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="login-email"
+                        autocomplete="username"
+                        placeholder="Enter your email"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+
+                </div>
+
+
+                <div>
+
+                    <label class="block text-xs font-medium text-slate-300 mb-1">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="login-password"
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                        class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="btn-standard-login"
+                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-indigo-600/30 transition">
+
+                    Sign In
+
+                </button>
+
+            </div>
+
+
+            <div class="text-center">
+
+                <p class="text-[10px] text-slate-500">
+                    Access is controlled by VortexFlow security.
+                </p>
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- MAIN APPLICATION -->
+    <!-- ========================================================= -->
+
+    <div id="app-workspace" class="hidden">
+
+        <!-- HEADER -->
+
+        <header
+            class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3 no-print">
+
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+
+                <div class="flex items-center space-x-3">
+
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+
+                        <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <h1
+                            class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+
+                            VortexFlow
+
+                            <span
+                                id="role-badge"
+                                class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+
+                                User
+
+                            </span>
+
+                        </h1>
+
+
+                        <p class="text-xs text-slate-400">
+
+                            Logged in as:
+
+                            <span
+                                id="user-display-email"
+                                class="text-slate-200 font-mono">
+
+                                -
+
+                            </span>
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="btn-logout"
+                    class="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/30 text-slate-300 hover:text-rose-400 border border-slate-800 transition">
+
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+
+                </button>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- MAIN -->
+
+        <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+
+            <!-- STATISTICS -->
+
+            <section
+                class="grid grid-cols-2 md:grid-cols-4 gap-4 no-print">
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Active Orders
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-active-orders">
+
+                        0
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Completed
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-completed">
+
+                        0 pcs
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Pattern Catalog
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-patterns">
+
+                        0
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="glass-panel p-4 rounded-2xl border border-slate-800">
+
+                    <span class="text-xs font-medium uppercase text-slate-400">
+                        Clients Loaded
+                    </span>
+
+                    <div
+                        class="text-2xl font-bold text-white mt-1"
+                        id="stat-clients">
+
+                        0
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- PO LEDGER -->
+
+            <section
+                class="glass-panel rounded-2xl border border-slate-800 p-4">
+
+                <div
+                    class="flex items-center justify-between mb-4 no-print">
+
+                    <div>
+
+                        <h2 class="text-base font-semibold text-white">
+                            Purchase Orders Ledger
+                        </h2>
+
+                        <p class="text-xs text-slate-400">
+                            Real-time status and foundry dispatching
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        id="btn-open-create-modal"
+                        class="hidden px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 items-center gap-1.5 transition">
+
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+
+                        Create Purchase Order
+
+                    </button>
+
+<button
+    type="button"
+    id="btn-open-pattern-master"
+    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-xs font-semibold">
+    <i data-lucide="database" class="w-4 h-4 inline-block mr-1"></i>
+    Pattern Master
+</button>
+<button
+  type="button"
+  id="btn-add-pattern"
+  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold">
+  + Add Pattern
+</button>
+</div>
+
+
+                <div
+                    id="orders-card-grid"
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- CREATE PO MODAL -->
+    <!-- ========================================================= -->
+
+    <div
+        id="modal-create-order"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
+
+        <div
+            class="glass-modal w-full max-w-2xl rounded-2xl border border-slate-800 p-5 space-y-4">
+
+            <div
+                class="flex items-center justify-between border-b border-slate-800 pb-3">
+
+                <h3 class="text-base font-semibold text-white">
+                    Create Purchase Order
+                </h3>
+
+                <button
+                    type="button"
+                    id="btn-close-modal"
+                    class="text-slate-400 hover:text-white">
+
+                    <i data-lucide="x" class="w-5 h-5"></i>
+
+                </button>
+
+            </div>
+
+<div class="space-y-4">
+
+    <!-- PO HEADER -->
+
+    <div class="grid grid-cols-2 gap-4">
+
+        <div>
+            <label class="block text-xs text-slate-300 mb-1">
+                Customer PO No.
+            </label>
+
+            <input
+                type="text"
+                id="po-number"
+                placeholder="e.g. RMP/PO/4587"
+                class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+        </div>
+
+
+        <div>
+            <label class="block text-xs text-slate-300 mb-1">
+                Customer
+            </label>
+
+            <input
+                type="text"
+                id="po-client"
+                placeholder="e.g. RMP / Megha Engineering"
+                class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+        </div>
+
+    </div>
+
+
+    <!-- PO ITEMS -->
+
+    <div>
+
+        <div class="flex items-center justify-between mb-2">
+
+            <label class="block text-xs text-slate-300">
+                PO Items
+            </label>
+
+            <button
+                type="button"
+                id="btn-add-po-item"
+                class="px-3 py-1.5 bg-emerald-600/20
+                       text-emerald-300 border border-emerald-500/30
+                       rounded-lg text-xs font-semibold">
+
+                + Add Item
+
+            </button>
+
+        </div>
+
+
+        <div
+            class="overflow-x-auto rounded-xl border border-slate-700">
+
+            <table class="w-full text-xs">
+
+                <thead class="bg-slate-800">
+
+                    <tr>
+
+                        <th class="px-3 py-2 text-left">
+                            Pattern / Drawing
+                        </th>
+
+                        <th class="px-3 py-2 text-left">
+                            Grade
+                        </th>
+
+                        <th class="px-3 py-2 text-left">
+                            Foundry
+                        </th>
+
+                        <th class="px-3 py-2 text-right">
+                            Qty
+                        </th>
+
+                        <th class="px-3 py-2 text-left">
+                            Target Date
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="po-items-body">
+
+                    <tr class="border-t border-slate-800">
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="text"
+                                id="po-pattern"
+                                placeholder="Pattern / Drawing"
+                                class="w-full min-w-[140px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="text"
+                                id="po-grade"
+                                placeholder="CI"
+                                class="w-full min-w-[70px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="text"
+                                id="po-foundry"
+                                placeholder="Auto"
+                                class="w-full min-w-[100px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="number"
+                                id="po-qty"
+                                value="10"
+                                min="1"
+                                class="w-full min-w-[70px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+
+                        <td class="px-2 py-2">
+
+                            <input
+                                type="date"
+                                id="po-date"
+                                class="w-full min-w-[130px]
+                                       bg-slate-900
+                                       border border-slate-700
+                                       rounded-lg px-2 py-2
+                                       text-xs text-slate-200">
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+   
+
+            <div
+                class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+
+                <button
+                    type="button"
+                    id="btn-cancel-modal"
+                    class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">
+
+                    Cancel
+
+                </button>
+
+
+                <button
+                    type="button"
+                    id="btn-submit-po"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">
+
+                    Submit Order
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- FOUNDRY DISPATCH MODAL -->
+    <!-- ========================================================= -->
+
+<!-- PATTERN MASTER MODAL -->
+<div id="modal-pattern-master"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+
+    <div class="glass-modal w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 p-6 space-y-5">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-700 pb-4">
+
+            <div>
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="database" class="w-5 h-5 text-indigo-400"></i>
+                    Pattern Master
+                    <div class="mt-5 p-4 rounded-xl border border-slate-700 bg-slate-900/50">
+
+  <div class="flex gap-3">
+
+    <input
+      id="pattern-master-search"
+      type="text"
+      placeholder="Search pattern..."
+      class="flex-1 px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm outline-none">
+
+    <button
+      type="button"
+      id="btn-search-pattern-master"
+      class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white">
+      Search
+    </button>
+
+  </div>
+
+  <div
+    id="pattern-master-search-results"
+    class="mt-4 max-h-64 overflow-y-auto">
+  </div>
+
+</div>
+                </h3>
+
+                <p class="text-xs text-slate-400 mt-1">
+                    Manage pattern → foundry → client master data
+                </p>
+            </div>
+
+            <button
+                type="button"
+                id="btn-close-pattern-master"
+                class="text-slate-400 hover:text-white">
+
+                <i data-lucide="x" class="w-5 h-5"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- Import Section -->
+        <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-5">
+
+            <div class="flex items-center justify-between mb-4">
+
+                <div>
+                    <h4 class="text-sm font-semibold text-white">
+                        Import Pattern Master
+                    </h4>
+
+                    <p class="text-xs text-slate-400 mt-1">
+                        Import your Pattern / Foundry / Client master file.
+                    </p>
+                </div>
+
+                <span
+                    id="pattern-master-count"
+                    class="px-3 py-1 rounded-full bg-slate-800 text-xs text-slate-300">
+                    0 records
+                </span>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- File Input -->
+                <div>
+
+                    <label class="block text-xs font-medium text-slate-300 mb-2">
+                        Master File
+                    </label>
+
+                    <input
+                        type="file"
+                        id="pattern-master-file"
+                        accept=".csv,.xlsx,.xls"
+                        class="block w-full text-xs text-slate-300
+                               file:mr-3 file:py-2 file:px-3
+                               file:rounded-lg file:border-0
+                               file:bg-indigo-600 file:text-white
+                               hover:file:bg-indigo-500
+                               bg-slate-800 border border-slate-700
+                               rounded-lg">
+
+                </div>
+
+
+                <!-- Status -->
+                <div>
+
+                    <label class="block text-xs font-medium text-slate-300 mb-2">
+                        Import Status
+                    </label>
+
+                    <div
+                        id="pattern-master-status"
+                        class="min-h-[40px] flex items-center px-3
+                               rounded-lg bg-slate-800 border border-slate-700
+                               text-xs text-slate-400">
+
+                        Select a CSV file to begin.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Import Buttons -->
+            <div class="flex flex-wrap gap-3 mt-5">
+
+                <button
+                    type="button"
+                    id="btn-preview-pattern-master"
+                    class="px-4 py-2 rounded-lg bg-slate-700
+                           hover:bg-slate-600 text-xs font-semibold text-white">
+
+                    <i data-lucide="eye" class="w-4 h-4 inline-block mr-1"></i>
+                    Preview
+
+                </button>
+
+
+                <button
+                    type="button"
+                    id="btn-import-pattern-master"
+                    class="px-4 py-2 rounded-lg bg-indigo-600
+                           hover:bg-indigo-500 text-xs font-semibold text-white">
+
+                    <i data-lucide="upload" class="w-4 h-4 inline-block mr-1"></i>
+                    Import to Firebase
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Preview -->
+        <div class="rounded-xl border border-slate-700 bg-slate-900/50 p-5">
+
+            <div class="flex items-center justify-between mb-3">
+
+                <h4 class="text-sm font-semibold text-white">
+                    Preview
+                </h4>
+
+                <span
+                    id="pattern-master-preview-count"
+                    class="text-xs text-slate-400">
+                    No data loaded
+                </span>
+
+            </div>
+
+
+            <div class="overflow-x-auto rounded-lg border border-slate-700">
+
+                <table class="w-full text-xs">
+
+                    <thead class="bg-slate-800 text-slate-300">
+
+                        <tr>
+
+                            <th class="text-left px-3 py-2">
+                                Pattern
+                            </th>
+
+                            <th class="text-left px-3 py-2">
+                                Foundry
+                            </th>
+
+                            <th class="text-left px-3 py-2">
+                                Client
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody
+                        id="pattern-master-preview-body"
+                        class="divide-y divide-slate-800">
+
+                        <tr>
+
+                            <td
+                                colspan="3"
+                                class="px-3 py-8 text-center text-slate-500">
+
+                                No preview available.
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- Close -->
+        <div class="flex justify-end pt-2">
+
+            <button
+                type="button"
+                id="btn-close-pattern-master-bottom"
+                class="px-4 py-2 rounded-lg bg-slate-800
+                       hover:bg-slate-700 text-xs font-semibold text-slate-300">
+
+                Close
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- END PATTERN MASTER MODAL -->
+<!-- ADD PATTERN MODAL -->
+<div
+  id="modal-add-pattern"
+  class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+
+  <div
+    class="glass-modal w-full max-w-lg rounded-2xl border border-slate-700 p-6">
+
+    <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-5">
+      <div>
+        <h3 class="text-lg font-semibold text-white">
+          Add New Pattern
+        </h3>
+        <p class="text-xs text-slate-400 mt-1">
+          Add pattern → foundry → client master data
+        </p>
+      </div>
+
+      <button
+        type="button"
+        id="btn-close-add-pattern"
+        class="text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-2">
+          Pattern / Drawing No.
+        </label>
+        <input
+          id="add-pattern-number"
+          type="text"
+          placeholder="Enter pattern number"
+          class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-2">
+          Foundry
+        </label>
+        <input
+          id="add-pattern-foundry"
+          type="text"
+          placeholder="Enter foundry name"
+          class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-2">
+          Client
+        </label>
+        <input
+          id="add-pattern-client"
+          type="text"
+          placeholder="Enter client name"
+          class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none">
+      </div>
+
+    </div>
+
+    <div
+      id="add-pattern-status"
+      class="mt-4 text-xs text-slate-400">
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6">
+
+      <button
+        type="button"
+        id="btn-cancel-add-pattern"
+        class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        id="btn-save-add-pattern"
+        class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white">
+        Save Pattern
+      </button>
+
+    </div>
+
+  </div>
+</div>    <!-- FOUNDRY WORK ALLOCATION MODAL -->
+
+<div
+    id="modal-send-foundry"
+    class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md no-print">
+
+    <div
+        class="glass-modal w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-800 p-5 space-y-5">
+
+        <!-- HEADER -->
+
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+
+            <div>
+                <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="factory"
+                        class="w-5 h-5 text-emerald-400"></i>
+
+                    Foundry Work Allocation
+                </h3>
+
+                <p class="text-[11px] text-slate-500 mt-1">
+                    Outstanding production work available for foundry dispatch
+                </p>
+            </div>
+
+            <button
+                type="button"
+                id="btn-close-foundry-modal"
+                class="text-slate-400 hover:text-white">
+
+                <i data-lucide="x" class="w-5 h-5"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- SUMMARY -->
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <p class="text-[10px] uppercase tracking-wide text-slate-500">
+                    Outstanding Items
+                </p>
+
+                <p
+                    id="allocation-total-items"
+                    class="text-xl font-bold text-white mt-1">
+                    0
+                </p>
+            </div>
+
+
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <p class="text-[10px] uppercase tracking-wide text-slate-500">
+                    Outstanding Qty
+                </p>
+
+                <p
+                    id="allocation-total-qty"
+                    class="text-xl font-bold text-emerald-400 mt-1">
+                    0
+                </p>
+            </div>
+
+
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <p class="text-[10px] uppercase tracking-wide text-slate-500">
+                    Foundries
+                </p>
+
+                <p
+                    id="allocation-total-foundries"
+                    class="text-xl font-bold text-indigo-400 mt-1">
+                    0
+                </p>
+            </div>
+
+
+            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <p class="text-[10px] uppercase tracking-wide text-slate-500">
+                    Ready to Release
+                </p>
+
+                <p
+                    id="allocation-selected-qty"
+                    class="text-xl font-bold text-amber-400 mt-1">
+                    0
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- WORK ALLOCATION -->
+
+        <div>
+
+            <div class="flex items-center justify-between mb-3">
+
+                <div>
+                    <h4 class="text-sm font-semibold text-white">
+                        Foundry Work Packages
+                    </h4>
+
+                    <p class="text-[11px] text-slate-500">
+                        Select the work that is ready to release
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    id="btn-refresh-foundry-allocation"
+                    class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1.5">
+
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+
+                    Refresh
+
+                </button>
+
+            </div>
+
+
+            <!-- FOUNDARY CARDS -->
+
+            <div
+                id="foundry-allocation-list"
+                class="space-y-3">
+
+                <div
+                    class="p-5 rounded-xl border border-slate-800 bg-slate-900/50 text-center text-xs text-slate-500">
+
+                    Loading outstanding work...
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SELECTED WORK -->
+
+        <div
+            id="foundry-selected-work-section"
+            class="hidden border-t border-slate-800 pt-4">
+
+            <div class="flex items-center justify-between mb-3">
+
+                <div>
+                    <h4 class="text-sm font-semibold text-white">
+                        Selected Work
+                    </h4>
+
+                    <p class="text-[11px] text-slate-500">
+                        Only selected items will be included in the dispatch package
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    id="btn-clear-foundry-selection"
+                    class="text-[11px] text-slate-400 hover:text-white">
+
+                    Clear Selection
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="foundry-selected-work-list"
+                class="space-y-2">
+            </div>
+
+
+            <!-- TARGET DELIVERY -->
+
+            <div class="mt-4">
+
+                <label
+                    class="block text-xs text-slate-300 mb-1">
+
+                    Target Delivery / Dispatch Date
+
+                </label>
+
+                <input
+                    type="date"
+                    id="foundry-dispatch-date"
+                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200">
+
+            </div>
+
+
+            <!-- DISPATCH REFERENCE -->
+
+            <div class="mt-4">
+
+                <label
+                    class="block text-xs text-slate-300 mb-1">
+
+                    VortexFlow Dispatch Reference
+
+                </label>
+
+                <input
+                    type="text"
+                    id="foundry-dispatch-reference"
+                    readonly
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-emerald-400 font-mono">
+
+            </div>
+
+
+            <!-- MESSAGE PREVIEW -->
+
+            <div class="mt-4">
+
+                <label
+                    class="block text-xs text-slate-300 mb-1">
+
+                    Foundry Dispatch Preview
+
+                </label>
+
+                <textarea
+                    id="foundry-dispatch-message"
+                    rows="10"
+                    readonly
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono">
+                </textarea>
+
+                <p class="text-[10px] text-slate-500 mt-1">
+                    Customer names, customer PO numbers and commercial information are never included.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div
+            class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 border-t border-slate-800">
+
+            <button
+                type="button"
+                id="btn-foundry-generate-package"
+                class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5">
+
+                <i data-lucide="package-check" class="w-3.5 h-3.5"></i>
+
+                Generate Package
+
+            </button>
+
+
+            <button
+                type="button"
+                id="btn-foundry-dispatch-pdf"
+                class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5">
+
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+
+                Export PDF
+
+            </button>
+
+
+            <button
+                type="button"
+                id="btn-foundry-dispatch-whatsapp"
+                class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5">
+
+                <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+
+                WhatsApp
+
+            </button>
+
+
+            <button
+                type="button"
+                id="btn-foundry-dispatch-email"
+                class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs rounded-xl font-semibold flex items-center justify-center gap-1.5">
+
+                <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+
+                Email
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+    <!-- PRINT AREA -->
+
+    <div id="printable-po-area" class="hidden"></div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- FIREBASE -->
+    <!-- ========================================================= -->
+
+    <script type="module">
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+       import {
+    getFirestore,
+    collection,
+    addDoc,
+    updateDoc,
+    getDocs,
+    query,
+    where,
+    orderBy,
+    doc,
+    getDoc,
+    serverTimestamp,
+    writeBatch
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+
+        /* =========================================================
+           FIREBASE CONFIGURATION
+           =========================================================
+
+           REPLACE THESE VALUES WITH YOUR FIREBASE PROJECT CONFIG.
+
+           Firebase Console:
+           Project Settings
+           -> Your apps
+           -> Web app
+           -> Firebase SDK snippet
+           -> Config
+
+        ========================================================= */
+
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAeeLuuL2PaOCzOhn_iRCi573KTmrS3Jn4",
+  authDomain: "order-tracker-pwa.firebaseapp.com",
+  projectId: "order-tracker-pwa",
+  storageBucket: "order-tracker-pwa.firebasestorage.app",
+  messagingSenderId: "157667844552",
+  appId: "1:157667844552:web:30e83d60f81d909fab20fd",
+  measurementId: "G-9LMCLGZKRK"
+};
+
+        /* =========================================================
+           FIREBASE INITIALIZATION
+        ========================================================= */
+
+        const app = initializeApp(firebaseConfig);
+
+        const auth = getAuth(app);
+
+        const db = getFirestore(app);
+
+
+
+        /* =========================================================
+           PATTERN CATALOG
+        ========================================================= */
+
+        const PATTERN_CATALOG = {
+
+            "748-14-9091": {
+                client: "Ashirwad",
+                foundry: "Castingcast"
+            },
+
+            "660-0551-778014": {
+                client: "Chirai",
+                foundry: "Castingcast"
+            },
+
+            "04-10-304": {
+                client: "Chirai",
+                foundry: "Charbhuja"
+            },
+
+            "05-10-256": {
+                client: "Chirai",
+                foundry: "Highton"
+            },
+
+            "8560324": {
+                client: "RMP",
+                foundry: "Charbhuja"
+            },
+
+            "8560325": {
+                client: "RMP",
+                foundry: "Charbhuja"
+            },
+
+            "720-32-200": {
+                client: "Chirai",
+                foundry: "Ashutosh"
+            }
+
+        };
+
+
+
+        /* =========================================================
+           GLOBAL STATE
+        ========================================================= */
+
+        let currentUser = null;
+
+        let currentUserRole = null;
+
+        let orders = [];
+
+        let selectedOrderForDispatch = null;
+
+        let editingPatternId = null;
+
+        /* =========================================================
+           LOGIN UI
+        ========================================================= */
+
+        function showLoginError(message) {
+
+            const box =
+                document.getElementById("login-error-msg");
+
+            box.textContent = message;
+
+            box.classList.remove("hidden");
+
+        }
+
+
+        function clearLoginError() {
+
+            const box =
+                document.getElementById("login-error-msg");
+
+            box.textContent = "";
+
+            box.classList.add("hidden");
+
+        }
+
+
+        function setLoginLoading(isLoading) {
+
+            const loading =
+                document.getElementById("login-loading");
+
+            const button =
+                document.getElementById("btn-standard-login");
+
+            if (isLoading) {
+
+                loading.classList.remove("hidden");
+
+                button.disabled = true;
+
+                button.classList.add("opacity-50");
+
+            } else {
+
+                loading.classList.add("hidden");
+
+                button.disabled = false;
+
+                button.classList.remove("opacity-50");
+
+            }
+
+        }
+
+
+
+        /* =========================================================
+           LOGIN
+        ========================================================= */
+
+        async function attemptLogin() {
+
+            clearLoginError();
+
+            const email =
+                document.getElementById("login-email")
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+            const password =
+                document.getElementById("login-password")
+                    .value;
+
+            if (!email || !password) {
+
+                showLoginError(
+                    "Please enter your email and password."
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                setLoginLoading(true);
+
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                let message =
+                    "Unable to sign in.";
+
+                if (
+                    error.code ===
+                    "auth/invalid-credential"
+                ) {
+
+                    message =
+                        "Incorrect email or password.";
+
+                } else if (
+                    error.code ===
+                    "auth/user-not-found"
+                ) {
+
+                    message =
+                        "No account exists with this email.";
+
+                } else if (
+                    error.code ===
+                    "auth/wrong-password"
+                ) {
+
+                    message =
+                        "Incorrect password.";
+
+                } else if (
+                    error.code ===
+                    "auth/too-many-requests"
+                ) {
+
+                    message =
+                        "Too many attempts. Please try again later.";
+
+                }
+
+                showLoginError(message);
+
+            } finally {
+
+                setLoginLoading(false);
+
+            }
+
+        }
+
+
+
+        /* =========================================================
+           LOAD USER ROLE
+        ========================================================= */
+
+        async function loadUserRole(user) {
+
+            const userRef =
+                doc(db, "users", user.uid);
+
+            const userSnap =
+                await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+
+                await signOut(auth);
+
+                throw new Error(
+                    "Your account does not have a VortexFlow role assigned."
+                );
+
+            }
+
+            const userData =
+                userSnap.data();
+
+            const role =
+                userData.role;
+
+            if (
+                role !== "admin" &&
+                role !== "client"
+            ) {
+
+                await signOut(auth);
+
+                throw new Error(
+                    "Invalid VortexFlow access role."
+                );
+
+            }
+
+            return {
+                role: role,
+                data: userData
+            };
+
+        }
+
+
+
+        /* =========================================================
+           GRANT ACCESS
+        ========================================================= */
+
+        async function grantAccess(user, roleData) {
+
+            currentUser = user;
+
+            currentUserRole =
+                roleData.role;
+
+
+            document
+                .getElementById("auth-screen")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("app-workspace")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("user-display-email")
+                .textContent = user.email;
+
+
+            document
+                .getElementById("role-badge")
+                .textContent =
+                    roleData.role === "admin"
+                        ? "Master Admin"
+                        : "Client Access";
+
+
+            const createButton =
+                document.getElementById(
+                    "btn-open-create-modal"
+                );
+            
+            const patternMasterButton =
+    document.getElementById(
+        "btn-open-pattern-master"
+    );
+
+const patternMasterModal =
+    document.getElementById(
+        "modal-pattern-master"
+    );
+
+if (roleData.role === "admin") {
+
+    patternMasterButton.classList.remove("hidden");
+    patternMasterButton.classList.add("flex");
+
+} else {
+
+    patternMasterButton.classList.add("hidden");
+    patternMasterButton.classList.remove("flex");
+
+}
+
+    patternMasterButton.addEventListener("click", () => {
+    patternMasterModal.classList.remove("hidden");
+    patternMasterModal.classList.add("flex");
+});
+
+
+    document
+  .getElementById("btn-add-pattern")
+  .addEventListener("click", () => {
+     editingPatternId = null;
+   const addPatternModal =
+  document.getElementById(
+    "modal-add-pattern"
+  );
+
+addPatternModal.classList.remove("hidden");
+addPatternModal.classList.add("flex");
+  });
+ document
+  .getElementById("btn-close-add-pattern")
+  .addEventListener("click", () => {
+      
+      editingPatternId = null;
+      
+    const modal =
+      document.getElementById("modal-add-pattern");
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  });
+
+document
+  .getElementById("btn-cancel-add-pattern")
+  .addEventListener("click", () => {
+      editingPatternId = null;
+      
+    const modal =
+      document.getElementById("modal-add-pattern");
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  });           
+document
+  .getElementById("btn-save-add-pattern")
+  .addEventListener("click", async () => {
+
+    const pattern =
+      document
+        .getElementById("add-pattern-number")
+        .value.trim();
+
+    const foundry =
+      document
+        .getElementById("add-pattern-foundry")
+        .value.trim();
+
+    const client =
+      document
+        .getElementById("add-pattern-client")
+        .value.trim();
+
+    const status =
+      document.getElementById(
+        "add-pattern-status"
+      );
+
+    if (!pattern || !foundry || !client) {
+      status.textContent =
+        "Please enter Pattern, Foundry and Client.";
+      return;
+    }
+
+    status.textContent =
+      "Checking pattern...";
+
+    const existing =
+      await getDocs(
+        query(
+          collection(db, "patternMaster"),
+          where("pattern", "==", pattern)
+        )
+      );
+
+    if (!editingPatternId && !existing.empty) {
+  status.textContent =
+    "This pattern already exists.";
+  return;
+}
+
+    if (editingPatternId) {
+
+  await updateDoc(
+    doc(
+      db,
+      "patternMaster",
+      editingPatternId
+    ),
+    {
+      pattern: pattern,
+      foundry: foundry,
+      client: client
+    }
+  );
+
+  status.textContent =
+    "Pattern updated successfully.";
+
+  editingPatternId = null;
+
+} else {
+
+  await addDoc(
+    collection(db, "patternMaster"),
+    {
+      pattern: pattern,
+      foundry: foundry,
+      client: client
+    }
+  );
+
+  status.textContent =
+    "Pattern saved successfully.";
+
+    document
+      .getElementById("add-pattern-number")
+      .value = "";
+
+    document
+      .getElementById("add-pattern-foundry")
+      .value = "";
+
+    document
+      .getElementById("add-pattern-client")
+      .value = "";}
+  });
+     document
+  .getElementById("btn-search-pattern-master")
+  .addEventListener("click", async () => {
+
+    const search =
+      document
+        .getElementById("pattern-master-search")
+        .value
+        .trim();
+
+    const results =
+      document.getElementById(
+        "pattern-master-search-results"
+      );
+
+    if (!search) {
+      results.innerHTML =
+        `<p class="text-xs text-slate-400">
+          Enter a pattern to search.
+        </p>`;
+      return;
+    }
+
+    results.innerHTML =
+      `<p class="text-xs text-slate-400">
+        Searching...
+      </p>`;
+
+    const snapshot =
+      await getDocs(
+        query(
+          collection(db, "patternMaster"),
+          where("pattern", "==", search)
+        )
+      );
+
+    if (snapshot.empty) {
+      results.innerHTML =
+        `<p class="text-xs text-red-400">
+          Pattern not found.
+        </p>`;
+      return;
+    }
+
+    const data =
+      snapshot.docs[0].data();
+
+    results.innerHTML = `
+      <div class="p-4 rounded-xl border border-slate-700 bg-slate-950">
+        <div class="text-sm text-white font-semibold">
+          ${data.pattern || "-"}
+        </div>
+
+        <div class="text-xs text-slate-400 mt-2">
+          Foundry: ${data.foundry || "-"}
+        </div>
+
+        <div class="text-xs text-slate-400 mt-1">
+          Client: ${data.client || "-"}
+        </div>
+              <button
+          type="button"
+          class="mt-3 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white"
+          data-edit-pattern="${snapshot.docs[0].id}">
+          Edit Pattern
+        </button>
+        
+        </div>
+    `;
+  });
+          document
+  .getElementById("pattern-master-search-results")
+  .addEventListener("click", async event => {
+
+    const button =
+      event.target.closest(
+        "[data-edit-pattern]"
+      );
+
+    if (!button) return;
+
+    const patternDoc =
+      await getDoc(
+        doc(
+          db,
+          "patternMaster",
+          button.dataset.editPattern
+        )
+      );
+
+    if (!patternDoc.exists()) {
+      alert("Pattern record not found.");
+      return;
+    }
+
+    const data =
+      patternDoc.data();
+
+    editingPatternId =
+      button.dataset.editPattern;
+
+    document.getElementById(
+      "add-pattern-number"
+    ).value =
+      data.pattern || "";
+
+    document.getElementById(
+      "add-pattern-foundry"
+    ).value =
+      data.foundry || "";
+
+    document.getElementById(
+      "add-pattern-client"
+    ).value =
+      data.client || "";
+
+    const editModal =
+      document.getElementById(
+        "modal-add-pattern"
+      );
+
+    editModal.classList.remove("hidden");
+    editModal.classList.add("flex");
+
+  });
+    document
+    .getElementById("btn-close-pattern-master")
+    .addEventListener("click", () => {
+        patternMasterModal.classList.add("hidden");
+        patternMasterModal.classList.remove("flex");
+    });
+
+document
+    .getElementById("btn-close-pattern-master-bottom")
+    .addEventListener("click", () => {
+        patternMasterModal.classList.add("hidden");
+        patternMasterModal.classList.remove("flex");
+    });
+            
+            let patternMasterImportData = [];
+
+document
+    .getElementById("btn-preview-pattern-master")
+    .addEventListener("click", () => {
+
+        const fileInput =
+            document.getElementById("pattern-master-file");
+
+        const status =
+            document.getElementById("pattern-master-status");
+
+        const previewBody =
+            document.getElementById("pattern-master-preview-body");
+
+        const previewCount =
+            document.getElementById("pattern-master-preview-count");
+
+        const masterCount =
+            document.getElementById("pattern-master-count");
+
+        const file = fileInput.files[0];
+
+        if (!file) {
+            status.textContent = "Please select a CSV file first.";
+            return;
+        }
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            status.textContent = "Please select the pattern_master.csv file.";
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+
+            try {
+
+                const text = event.target.result;
+
+                const rows = text
+                    .replace(/^\uFEFF/, "")
+                    .trim()
+                    .split(/\r?\n/)
+                    .map(row =>
+                        row.split(",").map(cell =>
+                            cell.trim().replace(/^"|"$/g, "")
+                        )
+                    );
+
+                if (rows.length < 2) {
+                    throw new Error("No records found.");
+                }
+
+                const headers = rows[0].map(h => h.trim());
+
+                const patternIndex =
+                    headers.indexOf("Product Name");
+
+                const foundryIndex =
+                    headers.indexOf("Foundry");
+
+                const ownerIndex =
+                    headers.indexOf("Owner");
+
+                if (
+                    patternIndex === -1 ||
+                    foundryIndex === -1 ||
+                    ownerIndex === -1
+                ) {
+                    throw new Error(
+                        "CSV must contain Product Name, Foundry and Owner columns."
+                    );
+                }
+
+                patternMasterImportData = rows
+                    .slice(1)
+                    .map(row => ({
+                        pattern:
+                            row[patternIndex]?.trim() || "",
+
+                        foundry:
+                            row[foundryIndex]?.trim() || "",
+
+                        client:
+                            row[ownerIndex]?.trim() || ""
+                    }))
+                    .filter(item =>
+                        item.pattern ||
+                        item.foundry ||
+                        item.client
+                    );
+
+                const total =
+                    patternMasterImportData.length;
+
+                masterCount.textContent =
+                    `${total} records`;
+
+                previewCount.textContent =
+                    `${total} records loaded`;
+
+                previewBody.innerHTML = "";
+
+                patternMasterImportData
+                    .slice(0, 10)
+                    .forEach(item => {
+
+                        const tr =
+                            document.createElement("tr");
+
+                        tr.innerHTML = `
+                            <td class="px-3 py-2 text-slate-200">
+                                ${item.pattern || "-"}
+                            </td>
+
+                            <td class="px-3 py-2 text-slate-300">
+                                ${item.foundry || "-"}
+                            </td>
+
+                            <td class="px-3 py-2 text-slate-300">
+                                ${item.client || "-"}
+                            </td>
+                        `;
+
+                        previewBody.appendChild(tr);
+                    });
+
+                status.textContent =
+                    `Preview loaded successfully: ${total} records. Showing first 10.`;
+
+            } catch (error) {
+
+                patternMasterImportData = [];
+
+                status.textContent =
+                    `Preview error: ${error.message}`;
+
+                previewCount.textContent =
+                    "No data loaded";
+
+                masterCount.textContent =
+                    "0 records";
+
+                previewBody.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="3"
+                            class="px-3 py-8 text-center text-red-400">
+                            ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        };
+
+        reader.onerror = () => {
+
+            status.textContent =
+                "Unable to read the selected file.";
+
+        };
+
+        reader.readAsText(file);
+
+    });
+document
+  .getElementById("btn-import-pattern-master")
+  .addEventListener("click", async () => {
+    const status = document.getElementById("pattern-master-status");
+    const button = document.getElementById("btn-import-pattern-master");
+
+    if (roleData.role !== "admin") {
+      status.textContent = "Only administrators can import Pattern Master data.";
+      return;
+    }
+
+    if (!patternMasterImportData.length) {
+      status.textContent = "Please select the CSV and click Preview first.";
+      return;
+    }
+
+    if (!confirm(`Import ${patternMasterImportData.length} records into Firebase?`)) {
+      return;
+    }
+
+    try {
+      button.disabled = true;
+      status.textContent = "Importing Pattern Master...";
+
+      const batchSize = 400;
+      let imported = 0;
+
+      for (let start = 0; start < patternMasterImportData.length; start += batchSize) {
+        const batch = writeBatch(db);
+        const rows = patternMasterImportData.slice(start, start + batchSize);
+
+        rows.forEach((item, index) => {
+          const rowNumber = start + index + 1;
+          const ref = doc(
+            db,
+            "patternMaster",
+            `pattern_${String(rowNumber).padStart(4, "0")}`
+          );
+
+          batch.set(ref, {
+            pattern: item.pattern,
+            foundry: item.foundry,
+            client: item.client,
+            sourceRow: rowNumber,
+            importedAt: serverTimestamp()
+          }, { merge: true });
+        });
+
+        await batch.commit();
+        imported += rows.length;
+        status.textContent =
+          `Imported ${imported} of ${patternMasterImportData.length}...`;
+      }
+
+      status.textContent =
+        `Import complete: ${imported} records saved to Pattern Master.`;
+
+      document.getElementById("pattern-master-count").textContent =
+        `${imported} records`;
+
+    } catch (error) {
+      console.error("Pattern Master import error:", error);
+      status.textContent = `Import failed: ${error.message}`;
+    } finally {
+      button.disabled = false;
+    }
+  });
+            if (roleData.role === "admin") {
+
+                createButton.classList.remove("hidden");
+
+                createButton.classList.add("flex");
+
+            } else {
+
+                createButton.classList.add("hidden");
+
+                createButton.classList.remove("flex");
+
+            }
+
+
+            await loadOrders();
+
+            updateStatistics();
+
+            lucide.createIcons();     
+
+        }
+
+
+        /* =========================================================
+           LOAD ORDERS
+        ========================================================= */
+
+        async function loadOrders() {
+
+            orders = [];
+
+            try {
+
+                let ordersQuery;
+
+
+                if (currentUserRole === "admin") {
+
+                    ordersQuery =
+                        query(
+                            collection(db, "orders"),
+                            orderBy(
+                                "createdAt",
+                                "desc"
+                            )
+                        );
+
+                } else {
+
+                    ordersQuery =
+                        query(
+                            collection(db, "orders"),
+                            where(
+                                "clientEmail",
+                                "==",
+                                currentUser.email
+                            ),
+                            orderBy(
+                                "createdAt",
+                                "desc"
+                            )
+                        );
+
+                }
+
+
+                const snapshot =
+                    await getDocs(ordersQuery);
+
+
+                snapshot.forEach((docSnap) => {
+
+                    orders.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    });
+
+                });
+
+
+                await renderOrders();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Order loading error:",
+                    error
+                );
+
+                document
+                    .getElementById(
+                        "orders-card-grid"
+                    )
+                    .innerHTML = `
+                        <div class="col-span-2 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+                            Unable to load purchase orders.
+                            Please check Firebase configuration and Firestore indexes.
+                        </div>
+                    `;
+
+            }
+
+        }
+
+
+
+        /* =========================================================
+           CREATE ORDER
+        ========================================================= */
+
+        async function submitPurchaseOrder() {
+
+            if (
+                !currentUser ||
+                currentUserRole !== "admin"
+            ) {
+
+                showLoginError(
+                    "Only Master Admin can create purchase orders."
+                );
+
+                return;
+
+            }
+
+const client =
+    document
+        .getElementById("po-client")
+        .value
+        .trim();
+
+const poNumber =
+    document
+        .getElementById("po-number")
+        .value
+        .trim();
+
+const rows =
+    document.querySelectorAll(
+        "#po-items-body tr"
+    );
+
+const firstInputs =
+    rows[0].querySelectorAll("input");
+
+const pattern =
+    firstInputs[0].value.trim();
+
+const grade =
+    firstInputs[1].value.trim();
+
+const foundry =
+    firstInputs[2].value.trim();
+
+const qty =
+    Number(firstInputs[3].value);
+
+const targetDate =
+    firstInputs[4].value;
+
+
+            if (!client) {
+
+                alert("Please enter the target client.");
+
+                return;
+
+            }
+
+
+            if (!pattern) {
+
+                alert(
+                    "Please enter the pattern / drawing number."
+                );
+
+                return;
+
+            }
+
+
+            if (!qty || qty < 1) {
+
+                alert("Please enter a valid quantity.");
+
+                return;
+
+            }
+
+
+            if (!targetDate) {
+
+                alert("Please select a target date.");
+
+                return;
+
+            }
+
+
+            const button =
+                document.getElementById(
+                    "btn-submit-po"
+                );
+
+            button.disabled = true;
+
+            button.textContent =
+                "Creating...";
+
+
+            try {
+
+                const poRef =
+                    await addDoc(
+                        collection(db, "orders"),
+                        {
+
+                            poNumber:
+    poNumber,
+
+client:
+    client,
+
+clientEmail:
+    client.toLowerCase() === currentUser.email.toLowerCase()
+        ? currentUser.email
+        : "",
+
+foundry:
+    "Multiple",
+
+pattern:
+    "",
+
+qty:
+    Array.from(rows).reduce(
+        (total, row) =>
+            total +
+            Number(
+                row.querySelectorAll("input")[3].value
+            ),
+        0
+    ),
+
+itemsList:
+    Array.from(rows).map(row => {
+
+        const inputs =
+            row.querySelectorAll("input");
+
+        return {
+            foundry:
+                inputs[2].value.trim() || "Unassigned",
+
+            grade:
+                inputs[1].value.trim(),
+
+            pattern:
+                inputs[0].value.trim(),
+
+            quantity:
+                Number(inputs[3].value),
+
+            received:
+                0,
+
+            targetDate:
+                inputs[4].value
+        };
+
+    }),
+
+targetDate:
+    Array.from(rows)[0]
+        .querySelectorAll("input")[4]
+        .value,
+
+status:
+    "In Production",
+
+createdBy:
+    currentUser.email,
+
+createdAt:
+    serverTimestamp()
+
+                        }
+                    );
+
+
+                alert(
+                    "Purchase Order created successfully."
+                );
+
+
+                closeCreateModal();
+
+                await loadOrders();
+
+                updateStatistics();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Unable to create Purchase Order."
+                );
+
+            } finally {
+
+                button.disabled = false;
+
+                button.textContent =
+                    "Submit Order";
+
+            }
+
+        }
+
+
+
+        /* =========================================================
+           RENDER ORDERS
+        ========================================================= */
+async function resolvePatternFoundry(item) {
+
+    if (
+        item.foundry &&
+        item.foundry !== "Unassigned"
+    ) {
+        return {
+            foundry: item.foundry,
+            source: "order"
+        };
+    }
+
+    if (!item.pattern) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
+
+    const patternQuery =
+        query(
+            collection(db, "patternMaster"),
+            where("pattern", "==", item.pattern)
+        );
+
+    const patternSnapshot =
+        await getDocs(patternQuery);
+
+    if (patternSnapshot.empty) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
+
+    const patternData =
+        patternSnapshot.docs[0].data();
+
+    if (patternData.foundry) {
+        return {
+            foundry: patternData.foundry,
+            source: "pattern-master"
+        };
+    }
+
+    return {
+        foundry: "",
+        source: "not-assigned"
+    };
+}
+       
+       async function renderOrders() {
+
+    const cardGrid =
+        document.getElementById("orders-card-grid");
+
+    if (!orders.length) {
+
+        cardGrid.innerHTML = `
+            <div class="col-span-2 text-xs text-slate-400 py-5 text-center">
+                No purchase orders available.
+            </div>
+        `;
+
+        return;
+    }
+
+    const isClient =
+        currentUserRole === "client";
+
+    const orderCards = [];
+
+    for (const o of orders) {
+
+        const poNumber =
+            o.poNumber || o.id;
+
+        const customer =
+            o.customer ||
+            o.client ||
+            "-";
+
+        const orderDate =
+            o.orderDate ||
+            o.createdAt ||
+            "-";
+
+        const dueDate =
+            o.dueDate ||
+            o.targetDate ||
+            "-";
+
+        const items =
+            Array.isArray(o.itemsList)
+                ? o.itemsList
+                : [];
+
+        const totalQty =
+            items.reduce(
+                (sum, item) =>
+                    sum + Number(item.quantity || 0),
+                0
+            );
+
+        const totalReceived =
+            items.reduce(
+                (sum, item) =>
+                    sum + Number(item.received || 0),
+                0
+            );
+
+        const visibleItems =
+            items.slice(0, 6);
+
+        const resolvedItems = [];
+
+        for (const item of visibleItems) {
+
+            const result =
+                await resolvePatternFoundry(item);
+
+            resolvedItems.push({
+                ...item,
+                displayFoundry:
+                    result.foundry ||
+                    (
+                        result.source === "not-assigned"
+                            ? "⚠ Not Assigned"
+                            : "⚠ Pattern Not in Master"
+                    )
+            });
+        }
+
+        const remainingItems =
+            Math.max(
+                items.length -
+                visibleItems.length,
+                0
+            );
+
+        orderCards.push(`
+
+            <div
+                class="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
+
+                <!-- HEADER -->
+
+                <div
+                    class="flex justify-between items-center gap-3">
+
+                    <span
+                        class="text-xs font-bold text-indigo-400">
+
+                        ${escapeHtml(poNumber)}
+
+                    </span>
+
+                    <span
+                        class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
+
+                        ${escapeHtml(
+                            o.status ||
+                            "In Production"
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <!-- CUSTOMER -->
+
+                <div
+                    class="text-[11px] text-slate-400">
+
+                    Customer:
+
+                    <span
+                        class="text-slate-200 font-semibold">
+
+                        ${escapeHtml(customer)}
+
+                    </span>
+
+                </div>
+
+
+                <!-- DATES -->
+
+                <div
+                    class="grid grid-cols-2 gap-2 text-[11px]">
+
+                    <div class="text-slate-400">
+
+                        Order Date:
+
+                        <span class="text-slate-200">
+
+                            ${escapeHtml(
+                                String(orderDate)
+                            )}
+
+                        </span>
+
+                    </div>
+
+                    <div class="text-slate-400">
+
+                        Due Date:
+
+                        <span class="text-slate-200">
+
+                            ${escapeHtml(
+                                String(dueDate)
+                            )}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ITEMS -->
+
+                <div
+                    class="border-t border-slate-800/60 pt-3 space-y-1.5">
+
+                    <div
+                        class="flex justify-between items-center mb-2">
+
+                        <span
+                            class="text-xs font-semibold text-white">
+
+                            Order Items
+
+                        </span>
+
+                        <span
+                            class="text-[10px] text-slate-400">
+
+                            ${items.length}
+                            item${items.length === 1 ? "" : "s"}
+
+                        </span>
+
+                    </div>
+
+
+                    ${
+                        resolvedItems.length
+                            ? resolvedItems.map((item) => `
+
+                                <div
+                                    class="flex items-center justify-between gap-2
+                                           bg-slate-900/40 rounded-lg px-2.5 py-1.5">
+
+                                    <div class="min-w-0">
+
+                                        <div
+                                            class="text-[11px] font-semibold text-slate-200">
+
+                                            ${escapeHtml(
+                                                item.pattern || "-"
+                                            )}
+
+                                        </div>
+
+                                        <div
+                                            class="text-[10px] text-slate-500">
+
+                                            ${escapeHtml(
+                                                item.grade || "-"
+                                            )}
+
+                                            ${
+                                                !isClient
+                                                    ? `
+                                                        · Foundry:
+                                                        ${escapeHtml(
+                                                            item.displayFoundry
+                                                        )}
+                                                      `
+                                                    : ""
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        class="text-right shrink-0">
+
+                                        <div
+                                            class="text-[11px] text-slate-200">
+
+                                            ${escapeHtml(
+                                                String(
+                                                    item.quantity || 0
+                                                )
+                                            )}
+                                            pcs
+
+                                        </div>
+
+                                        <div
+                                            class="text-[10px] text-slate-500">
+
+                                            Received:
+
+                                            ${escapeHtml(
+                                                String(
+                                                    item.received || 0
+                                                )
+                                            )}
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            `).join("")
+
+                            : `
+                                <div
+                                    class="text-[11px] text-slate-500">
+
+                                    No items found.
+
+                                </div>
+                            `
+                    }
+
+
+                    ${
+                        remainingItems > 0
+                            ? `
+                                <div
+                                    class="text-[10px] text-indigo-300 pt-1">
+
+                                    + ${remainingItems}
+                                    more item${remainingItems === 1 ? "" : "s"}
+
+                                </div>
+                              `
+                            : ""
+                    }
+
+                </div>
+
+
+                <!-- TOTALS -->
+
+                <div
+                    class="flex items-center justify-between
+                           pt-2 border-t border-slate-800/60">
+
+                    <div
+                        class="text-xs text-slate-300">
+
+                        Total:
+
+                        <span
+                            class="font-semibold text-white">
+
+                            ${escapeHtml(
+                                String(totalQty)
+                            )}
+
+                            pcs
+
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="text-[10px] text-slate-400">
+
+                        Received:
+
+                        <span
+                            class="text-emerald-300 font-semibold">
+
+                            ${escapeHtml(
+                                String(totalReceived)
+                            )}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div
+                    class="flex items-center justify-end pt-1 gap-1.5">
+
+                    ${
+                        !isClient
+                            ? `
+                                <button
+                                   onclick="openFoundryAllocation()"
+                                    class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500
+                                           text-white text-xs rounded-lg font-semibold
+                                           flex items-center gap-1">
+
+                                    <i
+                                        data-lucide="send"
+                                        class="w-3.5 h-3.5">
+                                    </i>
+
+                                    Send to Foundry
+
+                                </button>
+                              `
+                            : ""
+                    }
+
+
+                    <button
+                        onclick="printOrderPDF('${o.id}')"
+                        class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700
+                               text-slate-200 text-xs rounded-lg
+                               flex items-center gap-1">
+
+                        <i
+                            data-lucide="printer"
+                            class="w-3.5 h-3.5">
+                        </i>
+
+                        Print / PDF
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        `);
+    }
+
+    cardGrid.innerHTML =
+        orderCards.join("");
+
+    lucide.createIcons();
+
+}
+
+
+        /* =========================================================
+           STATISTICS
+        ========================================================= */
+
+        async function updateStatistics() {
+
+            document
+                .getElementById(
+                    "stat-active-orders"
+                )
+                .textContent =
+                    orders.filter(
+                        o =>
+                            o.status !==
+                            "Completed"
+                    ).length;
+
+
+            const completedQty =
+                orders
+                    .filter(
+                        o =>
+                            o.status ===
+                            "Completed"
+                    )
+                    .reduce(
+                        (
+                            total,
+                            o
+                        ) =>
+                            total +
+                            Number(
+                                o.qty || 0
+                            ),
+                        0
+                    );
+
+
+            document
+                .getElementById(
+                    "stat-completed"
+                )
+                .textContent =
+                    completedQty +
+                    " pcs";
+
+
+            const patternSnapshot =
+  await getDocs(
+    collection(db, "patternMaster")
+  );
+
+document
+  .getElementById(
+    "stat-patterns"
+  )
+  .textContent =
+    patternSnapshot.size;
+
+            const clients =
+                new Set(
+                    orders.map(
+                        o =>
+                            o.client
+                    )
+                );
+
+
+            document
+                .getElementById(
+                    "stat-clients"
+                )
+                .textContent =
+                    clients.size;
+
+        }
+
+
+
+        /* =========================================================
+   FOUNDRY WORK ALLOCATION
+========================================================= */
+
+let foundryAllocationItems = [];
+let selectedFoundryAllocationItems = new Set();
+let generatedFoundryPackage = null;
+
+
+async function resolveAllocationFoundry(item) {
+
+    if (
+        item.foundry &&
+        item.foundry !== "Unassigned"
+    ) {
+        return {
+            foundry: item.foundry,
+            source: "order"
+        };
+    }
+
+    if (!item.pattern) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
+
+    const patternQuery = query(
+        collection(db, "patternMaster"),
+        where(
+            "pattern",
+            "==",
+            item.pattern
+        )
+    );
+
+    const patternSnapshot =
+        await getDocs(patternQuery);
+
+    if (patternSnapshot.empty) {
+        return {
+            foundry: "",
+            source: "not-in-master"
+        };
+    }
+
+    const patternData =
+        patternSnapshot.docs[0].data();
+
+    if (patternData.foundry) {
+        return {
+            foundry: patternData.foundry,
+            source: "pattern-master"
+        };
+    }
+
+    return {
+        foundry: "",
+        source: "not-assigned"
+    };
+}
+
+
+async function buildFoundryAllocation() {
+
+    const allocation = [];
+
+    const dispatchSnapshot =
+        await getDocs(
+            collection(
+                db,
+                "foundryDispatches"
+            )
+        );
+
+    const dispatchedMap = {};
+
+    dispatchSnapshot.forEach(
+        dispatchDoc => {
+
+            const dispatch =
+                dispatchDoc.data();
+
+            const items =
+                Array.isArray(dispatch.items)
+                    ? dispatch.items
+                    : [];
+
+            items.forEach(item => {
+
+                const key =
+                    `${item.orderId}::${item.itemIndex}`;
+
+                dispatchedMap[key] =
+                    (dispatchedMap[key] || 0) +
+                    Number(
+                        item.quantity || 0
+                    );
+
+            });
+
+        }
+    );
+
+
+    for (const order of orders) {
+
+        if (order.status === "Completed") {
+            continue;
+        }
+
+        const rawItems =
+            Array.isArray(order.itemsList)
+                ? order.itemsList
+                : [{
+                    pattern:
+                        order.pattern || "",
+
+                    grade:
+                        order.grade || "",
+
+                    quantity:
+                        order.qty || 0,
+
+                    received:
+                        order.received || 0,
+
+                    foundry:
+                        order.foundry ||
+                        "Unassigned"
+                }];
+
+
+        for (
+            let itemIndex = 0;
+            itemIndex < rawItems.length;
+            itemIndex++
+        ) {
+
+            const item =
+                rawItems[itemIndex];
+
+            const ordered =
+                Number(
+                    item.quantity || 0
+                );
+
+            const alreadyDispatched =
+                Number(
+                    dispatchedMap[
+                        `${order.id}::${itemIndex}`
+                    ] || 0
+                );
+
+            const outstanding =
+                Math.max(
+                    0,
+                    ordered -
+                    alreadyDispatched
+                );
+
+            if (outstanding <= 0) {
+                continue;
+            }
+
+
+            const result =
+                await resolveAllocationFoundry(
+                    item
+                );
+
+            let foundry =
+                result.foundry;
+
+
+            if (!foundry) {
+
+                foundry =
+                    result.source === "not-assigned"
+                        ? "⚠ NOT ASSIGNED"
+                        : "⚠ PATTERN NOT IN MASTER";
+
+            }
+
+
+            allocation.push({
+
+                key:
+                    `${order.id}::${itemIndex}`,
+
+                orderId:
+                    order.id,
+
+                itemIndex:
+                    itemIndex,
+
+                foundry:
+                    foundry,
+
+                source:
+                    result.source,
+
+                pattern:
+                    item.pattern || "-",
+
+                grade:
+                    item.grade || "-",
+
+                quantity:
+                    outstanding,
+
+                targetDate:
+                    order.targetDate ||
+                    order.dueDate ||
+                    "-"
+
+            });
+
+        }
+
+    }
+
+    return allocation;
+
+} 
+
+function renderFoundryAllocation() {
+
+    const list =
+        document.getElementById(
+            "foundry-allocation-list"
+        );
+
+    if (!list) return;
+
+    const groups = {};
+
+    foundryAllocationItems.forEach(
+        item => {
+
+            if (!groups[item.foundry]) {
+                groups[item.foundry] = [];
+            }
+
+            groups[item.foundry].push(item);
+
+        }
+    );
+
+    const foundryNames =
+        Object.keys(groups);
+
+    const totalQty =
+        foundryAllocationItems.reduce(
+            (sum, item) =>
+                sum + item.quantity,
+            0
+        );
+
+    const selectedQty =
+        foundryAllocationItems
+            .filter(item =>
+                selectedFoundryAllocationItems
+                    .has(item.key)
+            )
+            .reduce(
+                (sum, item) =>
+                    sum + item.quantity,
+                0
+            );
+
+    document
+        .getElementById(
+            "allocation-total-items"
+        )
+        .textContent =
+            foundryAllocationItems.length;
+
+    document
+        .getElementById(
+            "allocation-total-qty"
+        )
+        .textContent =
+            `${totalQty} pcs`;
+
+    document
+        .getElementById(
+            "allocation-total-foundries"
+        )
+        .textContent =
+            foundryNames.length;
+
+    document
+        .getElementById(
+            "allocation-selected-qty"
+        )
+        .textContent =
+            `${selectedQty} pcs`;
+
+    if (!foundryNames.length) {
+
+        list.innerHTML = `
+            <div class="text-center py-10 text-slate-500">
+                No outstanding foundry work.
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML =
+        foundryNames.map(
+            foundry => {
+
+                const items =
+                    groups[foundry];
+
+                const qty =
+                    items.reduce(
+                        (sum, item) =>
+                            sum + item.quantity,
+                        0
+                    );
+
+                const isProblem =
+                    foundry.startsWith("⚠");
+
+                return `
+                    <div
+                        class="rounded-xl border
+                               ${isProblem
+                                   ? "border-amber-500/30 bg-amber-500/5"
+                                   : "border-slate-700 bg-slate-900/60"}
+                               p-4">
+
+                        <div
+                            class="flex items-center justify-between gap-3">
+
+                            <div>
+
+                                <div
+                                    class="text-sm font-bold
+                                           ${isProblem
+                                               ? "text-amber-300"
+                                               : "text-white"}">
+
+                                    ${escapeHtml(foundry)}
+
+                                </div>
+
+                                <div
+                                    class="text-xs text-slate-400 mt-1">
+
+                                    ${items.length}
+                                    item${items.length === 1 ? "" : "s"}
+                                    ·
+                                    ${qty} pcs outstanding
+
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="flex gap-2">
+
+                                <button
+                                    onclick="viewFoundryWork('${escapeHtml(foundry)}')"
+                                    class="px-3 py-1.5
+                                           bg-slate-800
+                                           hover:bg-slate-700
+                                           text-slate-200
+                                           text-xs rounded-lg">
+
+                                    View Work
+
+                                </button>
+
+                                ${
+                                    !isProblem
+                                    ? `
+                                        <button
+                                            onclick="selectAllFoundryWork('${escapeHtml(foundry)}')"
+                                            class="px-3 py-1.5
+                                                   bg-emerald-600
+                                                   hover:bg-emerald-500
+                                                   text-white
+                                                   text-xs rounded-lg">
+
+                                            Select
+
+                                        </button>
+                                      `
+                                    : ""
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+        ).join("");
+
+    lucide.createIcons();
+
+}
+
+
+function viewFoundryWork(foundry) {
+
+    const section =
+        document.getElementById(
+            "foundry-selected-work-section"
+        );
+
+    const list =
+        document.getElementById(
+            "foundry-selected-work-list"
+        );
+
+    if (!section || !list) return;
+
+    const items =
+        foundryAllocationItems.filter(
+            item =>
+                item.foundry === foundry
+        );
+
+    section.classList.remove("hidden");
+
+    list.innerHTML = `
+
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+
+            <table class="w-full text-sm">
+
+                <thead class="bg-slate-800">
+
+                    <tr>
+
+                        <th class="px-3 py-3 text-center">
+                            ✓
+                        </th>
+
+                        <th class="px-3 py-3 text-left">
+                            Pattern / Drawing
+                        </th>
+
+                        <th class="px-3 py-3 text-left">
+                            Grade
+                        </th>
+
+                        <th class="px-3 py-3 text-right">
+                            Qty
+                        </th>
+
+                        <th class="px-3 py-3 text-left">
+                            Target Delivery
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody class="divide-y divide-slate-800">
+
+                    ${
+                        items.length
+                            ? items.map(item => {
+
+                                const checked =
+                                    selectedFoundryAllocationItems
+                                        .has(item.key);
+
+                                return `
+
+                                    <tr
+                                        class="hover:bg-slate-800/50"
+                                    >
+
+                                        <td
+                                            class="px-3 py-3 text-center"
+                                        >
+
+                                            <input
+                                                type="checkbox"
+                                                ${
+                                                    checked
+                                                        ? "checked"
+                                                        : ""
+                                                }
+                                                onchange="
+                                                    toggleFoundryAllocationItem(
+                                                        '${escapeHtml(item.key)}'
+                                                    )
+                                                "
+                                                class="accent-emerald-500"
+                                            >
+
+                                        </td>
+
+                                        <td
+                                            class="px-3 py-3 font-semibold text-white"
+                                        >
+                                            ${escapeHtml(
+                                                item.pattern || "-"
+                                            )}
+                                        </td>
+
+                                        <td
+                                            class="px-3 py-3 text-slate-300"
+                                        >
+                                            ${escapeHtml(
+                                                item.grade || "-"
+                                            )}
+                                        </td>
+
+                                        <td
+                                            class="px-3 py-3 text-right font-semibold text-white"
+                                        >
+                                            ${item.quantity} pcs
+                                        </td>
+
+                                        <td
+                                            class="px-3 py-3 text-slate-300"
+                                        >
+                                            ${escapeHtml(
+                                                item.targetDate || "-"
+                                            )}
+                                        </td>
+
+                                    </tr>
+
+                                `;
+
+                            }).join("")
+                            : `
+                                <tr>
+
+                                    <td
+                                        colspan="5"
+                                        class="px-4 py-8 text-center text-slate-400"
+                                    >
+                                        No outstanding work found.
+                                    </td>
+
+                                </tr>
+                            `
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    `;
+
+    lucide.createIcons();
+
+}
+
+
+function toggleFoundryAllocationItem(key) {
+
+    if (
+        selectedFoundryAllocationItems.has(key)
+    ) {
+
+        selectedFoundryAllocationItems.delete(key);
+
+    } else {
+
+        selectedFoundryAllocationItems.add(key);
+
+    }
+
+    renderFoundryAllocation();
+
+}
+
+
+function selectAllFoundryWork(foundry) {
+
+    foundryAllocationItems
+        .filter(
+            item =>
+                item.foundry === foundry
+        )
+        .forEach(
+            item =>
+                selectedFoundryAllocationItems
+                    .add(item.key)
+        );
+
+    viewFoundryWork(foundry);
+
+    renderFoundryAllocation();
+
+}
+
+
+async function openFoundryAllocation() {
+
+    const modal =
+        document.getElementById(
+            "modal-send-foundry"
+        );
+
+    if (!modal) return;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    foundryAllocationItems =
+        await buildFoundryAllocation();
+
+    selectedFoundryAllocationItems =
+        new Set();
+
+    generatedFoundryPackage =
+        null;
+
+    renderFoundryAllocation();
+
+}
+
+
+function clearFoundrySelection() {
+
+    selectedFoundryAllocationItems =
+        new Set();
+
+    generatedFoundryPackage =
+        null;
+
+    const section =
+        document.getElementById(
+            "foundry-selected-work-section"
+        );
+
+    if (section) {
+        section.classList.add("hidden");
+    }
+
+    renderFoundryAllocation();
+
+}
+
+
+window.openFoundryAllocation =
+    openFoundryAllocation;
+        window.viewFoundryWork =
+    viewFoundryWork;
+
+window.selectAllFoundryWork =
+    selectAllFoundryWork;
+
+window.toggleFoundryAllocationItem =
+    toggleFoundryAllocationItem;
+
+window.clearFoundrySelection =
+    clearFoundrySelection;
+        async function saveFoundryDispatch() {
+
+    if (
+        !generatedFoundryPackage ||
+        !generatedFoundryPackage.items ||
+        !generatedFoundryPackage.items.length
+    ) {
+
+        alert(
+            "Please generate the work package first."
+        );
+
+        return false;
+    }
+
+    try {
+
+        const dispatchItems =
+            generatedFoundryPackage.items.map(
+                item => ({
+
+                    orderId:
+                        item.orderId,
+
+                    itemIndex:
+    item.itemIndex,
+
+                    pattern:
+                        item.pattern,
+
+                    grade:
+                        item.grade,
+
+                    quantity:
+                        Number(
+                            item.quantity || 0
+                        ),
+
+                    targetDate:
+                        item.targetDate
+
+                })
+            );
+
+        await addDoc(
+            collection(
+                db,
+                "foundryDispatches"
+            ),
+            {
+
+                reference:
+                    generatedFoundryPackage.reference,
+
+                foundry:
+                    generatedFoundryPackage.foundry,
+
+                dispatchDate:
+                    generatedFoundryPackage.dispatchDate,
+
+                items:
+                    dispatchItems,
+
+                createdBy:
+                    currentUser.email,
+
+                createdAt:
+                    serverTimestamp()
+
+            }
+        );
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "Foundry dispatch save error:",
+            error
+        );
+
+        alert(
+            "Unable to save foundry dispatch."
+        );
+
+        return false;
+    }
+}
+        document
+    .getElementById("btn-foundry-generate-package")
+    .addEventListener(
+        "click",
+        () => {
+
+            const selectedItems =
+                foundryAllocationItems.filter(
+                    item =>
+                        selectedFoundryAllocationItems
+                            .has(item.key)
+                );
+
+            if (!selectedItems.length) {
+
+                alert(
+                    "Please select at least one item."
+                );
+
+                return;
+            }
+
+
+            const foundries =
+                [
+                    ...new Set(
+                        selectedItems.map(
+                            item =>
+                                item.foundry
+                        )
+                    )
+                ];
+
+
+            if (foundries.length !== 1) {
+
+                alert(
+                    "Please select items from one foundry at a time."
+                );
+
+                return;
+            }
+
+
+            const foundry =
+                foundries[0];
+
+
+            if (
+                foundry.startsWith("⚠")
+            ) {
+
+                alert(
+                    "Items with unresolved foundry assignment cannot be dispatched."
+                );
+
+                return;
+            }
+
+
+            const dispatchDate =
+                document
+                    .getElementById(
+                        "foundry-dispatch-date"
+                    )
+                    .value ||
+                new Date()
+                    .toISOString()
+                    .slice(0, 10);
+
+
+            const dispatchRef =
+                "VF-WO-" +
+                dispatchDate.replaceAll("-", "") +
+                "-" +
+                Math.floor(
+                    1000 +
+                    Math.random() * 9000
+                );
+
+
+            const lines =
+                selectedItems.map(
+                    (item, index) => {
+
+                        return `${index + 1}. Pattern: ${
+                            item.pattern
+                        }
+Grade: ${
+                            item.grade
+                        }
+Quantity: ${
+                            item.quantity
+                        } pcs
+Target Delivery: ${
+                            item.targetDate
+                        }`;
+
+                    }
+                );
+
+
+            generatedFoundryPackage = {
+
+                reference:
+                    dispatchRef,
+
+                foundry:
+                    foundry,
+
+                dispatchDate:
+                    dispatchDate,
+
+                items:
+                    selectedItems
+
+            };
+            
+            saveFoundryDispatch();
+
+            document
+                .getElementById(
+                    "foundry-dispatch-reference"
+                )
+                .value =
+                    dispatchRef;
+
+
+            document
+                .getElementById(
+                    "foundry-dispatch-message"
+                )
+                .value =
+
+`VORTEXFLOW FOUNDRY WORK PACKAGE
+
+Dispatch Ref: ${dispatchRef}
+Foundry: ${foundry.toUpperCase()}
+Target Delivery / Dispatch Date: ${dispatchDate}
+
+${lines.join("\n\n")}
+
+Please confirm receipt and production scheduling.
+
+This work package contains manufacturing information only.
+Customer identity and customer PO information are not included.`;
+
+
+            lucide.createIcons();
+            
+
+        }
+    );
+        
+        /* =========================================================
+           PRINT
+        ========================================================= */
+
+        async function printOrderPDF(poId) {
+
+            const order =
+                orders.find(
+                    o => o.id === poId
+                );
+
+
+            if (!order) return;
+
+const rawItems =
+    Array.isArray(order.itemsList)
+        ? order.itemsList
+        : [];
+
+const items = [];
+
+for (const item of rawItems) {
+
+    let foundry =
+        item.foundry &&
+        item.foundry !== "Unassigned"
+            ? item.foundry
+            : "";
+
+    if (!foundry && item.pattern) {
+
+        const patternQuery =
+            query(
+                collection(db, "patternMaster"),
+                where("pattern", "==", item.pattern)
+            );
+
+        const patternSnapshot =
+            await getDocs(patternQuery);
+
+        if (!patternSnapshot.empty) {
+
+            foundry =
+                patternSnapshot.docs[0].data().foundry || "";
+
+        }
+    }
+
+    items.push({
+        ...item,
+        foundry: foundry || "Unassigned"
+    });
+}
+            
+            const area =
+                document.getElementById(
+                    "printable-po-area"
+                );
+
+
+            area.innerHTML = `
+
+                <div
+                    style="
+                        font-family:Arial,sans-serif;
+                        max-width:800px;
+                        margin:auto;
+                        padding:20px;
+                        border:2px solid #000;
+                    ">
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:center;
+                            border-bottom:2px solid #000;
+                            padding-bottom:10px;
+                        ">
+
+                        <div>
+
+                            <h1
+                                style="
+                                    margin:0;
+                                    font-size:24px;
+                                    text-transform:uppercase;
+                                ">
+
+                                VortexFlow Operations
+
+                            </h1>
+
+                            <p
+                                style="
+                                    margin:2px 0;
+                                    font-size:12px;
+                                    color:#555;
+                                ">
+
+                                Official Purchase Order
+
+                            </p>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                text-align:right;
+                            ">
+
+                            <h2
+                                style="
+                                    margin:0;
+                                    font-size:18px;
+                                ">
+
+                                ${escapeHtml(
+                                    order.poNumber ||
+                                    order.id
+                                )}
+
+                            </h2>
+
+                            <p
+                                style="
+                                    margin:2px 0;
+                                    font-size:12px;
+                                ">
+
+                                Date:
+                                ${new Date()
+                                    .toLocaleDateString()}
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            margin:20px 0;
+                            display:flex;
+                            justify-content:space-between;
+                        ">
+
+                        <div>
+
+                            <strong>
+                                Client:
+                            </strong>
+
+                           ${escapeHtml(
+    order.client ||
+    order.customer ||
+    "-"
+)}
+
+                            <br>
+
+                            <strong>
+                                Target Delivery:
+                            </strong>
+
+                            ${escapeHtml(
+                                order.targetDate ||
+                                "-"
+                            )}
+
+                        </div>
+
+<div>
+
+    <strong>
+        Total Items:
+    </strong>
+
+    ${items.length}
+
+    <br>
+
+    <strong>
+        Total Quantity:
+    </strong>
+
+    ${items.reduce(
+        (sum, item) =>
+            sum + Number(item.quantity || 0),
+        0
+    )}
+    pcs
+
+</div>
+
+                    </div>
+
+
+                    <table
+                        style="
+                            width:100%;
+                            border-collapse:collapse;
+                            margin-top:20px;
+                        "
+                        border="1"
+                        cellpadding="8">
+
+                        <thead>
+
+                            <tr
+                                style="
+                                    background-color:#f2f2f2;
+                                ">
+
+                               <th>
+    Pattern / Drawing No.
+</th>
+
+<th>
+    Grade
+</th>
+
+<th>
+    Foundry
+</th>
+
+<th>
+    Quantity
+</th>
+
+<th>
+    Received
+</th>
+
+<th>
+    Status
+</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            ${items.map(item => `
+
+    <tr>
+
+        <td style="text-align:center;">
+            ${escapeHtml(item.pattern || "-")}
+        </td>
+
+        <td style="text-align:center;">
+            ${escapeHtml(item.grade || "-")}
+        </td>
+
+        <td style="text-align:center;">
+            ${escapeHtml(item.foundry || "-")}
+        </td>
+
+        <td style="text-align:center;">
+            ${escapeHtml(
+                String(item.quantity || 0)
+            )}
+            pcs
+        </td>
+
+        <td style="text-align:center;">
+            ${escapeHtml(
+                String(item.received || 0)
+            )}
+            pcs
+        </td>
+
+        <td style="text-align:center;">
+            ${escapeHtml(
+                item.status ||
+                order.status ||
+                "In Production"
+            )}
+        </td>
+
+    </tr>
+
+`).join("")}
+
+                    </tbody>
+
+                    </table>
+
+
+                    <div
+                        style="
+                            margin-top:40px;
+                            border-top:1px solid #ccc;
+                            padding-top:10px;
+                            font-size:11px;
+                            text-align:center;
+                            color:#777;
+                        ">
+
+                        Computer Generated Purchase Order -
+                        VortexFlow Management System
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            area.classList.remove("hidden");
+
+            window.print();
+
+            setTimeout(
+                () =>
+                    area.classList.add(
+                        "hidden"
+                    ),
+                500
+            );
+
+        }
+
+
+
+        /* =========================================================
+           CREATE MODAL
+        ========================================================= */
+
+        function openCreateModal() {
+
+            document
+                .getElementById(
+                    "modal-create-order"
+                )
+                .classList.remove(
+                    "hidden"
+                );
+
+        }
+
+
+        function closeCreateModal() {
+
+            document
+                .getElementById(
+                    "modal-create-order"
+                )
+                .classList.add(
+                    "hidden"
+                );
+
+        }
+
+
+
+        /* =========================================================
+           ESCAPE HTML
+        ========================================================= */
+
+        function escapeHtml(value) {
+
+            return String(value ?? "")
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+
+        /* =========================================================
+           EVENT HANDLERS
+        ========================================================= */
+
+        document
+            .getElementById(
+                "btn-standard-login"
+            )
+            .addEventListener(
+                "click",
+                attemptLogin
+            );
+
+
+        document
+            .getElementById(
+                "login-password"
+            )
+            .addEventListener(
+                "keydown",
+                event => {
+
+                    if (
+                        event.key ===
+                        "Enter"
+                    ) {
+
+                        attemptLogin();
+
+                    }
+
+                }
+            );
+
+
+        document
+            .getElementById(
+                "btn-logout"
+            )
+            .addEventListener(
+                "click",
+                async () => {
+
+                    await signOut(auth);
+
+                }
+            );
+
+
+        document
+            .getElementById(
+                "btn-open-create-modal"
+            )
+            .addEventListener(
+                "click",
+                openCreateModal
+            );
+
+
+        document
+            .getElementById(
+                "btn-close-modal"
+            )
+            .addEventListener(
+                "click",
+                closeCreateModal
+            );
+
+
+        document
+            .getElementById(
+                "btn-cancel-modal"
+            )
+            .addEventListener(
+                "click",
+                closeCreateModal
+            );
+
+
+        document
+            .getElementById(
+                "btn-close-foundry-modal"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    document
+                        .getElementById(
+                            "modal-send-foundry"
+                        )
+                        .classList.add(
+                            "hidden"
+                        );
+
+                }
+            );
+
+
+        document
+            .getElementById(
+                "btn-submit-po"
+            )
+            .addEventListener(
+                "click",
+                submitPurchaseOrder
+            );
+document
+    .getElementById("btn-add-po-item")
+    .addEventListener("click", () => {
+
+        const body =
+            document.getElementById("po-items-body");
+
+        const row =
+            document.createElement("tr");
+
+        row.className =
+            "border-t border-slate-800";
+
+        row.innerHTML = `
+            <td class="px-2 py-2">
+                <input
+                    type="text"
+                    placeholder="Pattern / Drawing"
+                    class="w-full min-w-[140px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="text"
+                    placeholder="CI"
+                    class="w-full min-w-[70px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="text"
+                    placeholder="Auto"
+                    class="w-full min-w-[100px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="number"
+                    value="10"
+                    min="1"
+                    class="w-full min-w-[70px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+
+            <td class="px-2 py-2">
+                <input
+                    type="date"
+                    class="w-full min-w-[130px] bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
+            </td>
+        `;
+
+        body.appendChild(row);
+
+    });
+
+
+        /* =========================================================
+           PATTERN AUTO-FILL
+        ========================================================= */
+
+        document
+            .getElementById(
+                "po-pattern"
+            )
+            .addEventListener(
+                "input",
+                async event => {
+
+                    const value =
+                        event.target.value.trim();
+
+
+                    const patternQuery = query(
+  collection(db, "patternMaster"),
+  where("pattern", "==", value)
+);
+
+const patternSnapshot = await getDocs(patternQuery);
+
+const pattern = patternSnapshot.empty
+  ? null
+  : patternSnapshot.docs[0].data();
+
+if (!pattern) {
+  document.getElementById("po-foundry").value = "";
+  document.getElementById("po-client").value = "";
+  return;
+}
+
+
+                    document
+                        .getElementById(
+                            "po-foundry"
+                        )
+                        .value =
+                            pattern.foundry ||
+                            "";
+
+
+                    document
+                        .getElementById(
+                            "po-client"
+                        )
+                        .value =
+                            pattern.client ||
+                            "";
+
+                }
+            );
+
+document
+    .getElementById("po-items-body")
+    .addEventListener("input", async event => {
+
+        if (event.target.type !== "text")
+            return;
+
+        const row =
+            event.target.closest("tr");
+
+        if (!row)
+            return;
+
+        const inputs =
+            row.querySelectorAll("input");
+
+        if (inputs.length < 3)
+            return;
+
+        const pattern =
+            inputs[0].value.trim();
+
+        if (!pattern)
+            return;
+
+        const patternQuery =
+            query(
+                collection(db, "patternMaster"),
+                where("pattern", "==", pattern)
+            );
+
+        const snapshot =
+            await getDocs(patternQuery);
+
+        if (snapshot.empty)
+            return;
+
+        const data =
+            snapshot.docs[0].data();
+
+        inputs[2].value =
+            data.foundry || "";
+
+    });
+
+       /* =========================================================
+   FOUNDRY DISPATCH — NEW WORK PACKAGE ACTIONS
+========================================================= */
+
+document
+    .getElementById("btn-foundry-dispatch-whatsapp")
+    .addEventListener(
+        "click",
+        () => {
+
+            const message =
+                document
+                    .getElementById(
+                        "foundry-dispatch-message"
+                    )
+                    .value
+                    .trim();
+
+            if (!message) {
+                alert(
+                    "Please generate the work package first."
+                );
+                return;
+            }
+
+            const url =
+                `https://wa.me/?text=${
+                    encodeURIComponent(message)
+                }`;
+
+            window.open(
+                url,
+                "_blank"
+            );
+
+        }
+    );
+
+
+
+/* =========================================================
+   EMAIL
+========================================================= */
+
+document
+    .getElementById("btn-foundry-dispatch-email")
+    .addEventListener(
+        "click",
+        () => {
+
+            const message =
+                document
+                    .getElementById(
+                        "foundry-dispatch-message"
+                    )
+                    .value
+                    .trim();
+
+            if (!message) {
+                alert(
+                    "Please generate the work package first."
+                );
+                return;
+            }
+
+            const subject =
+                encodeURIComponent(
+                    "VortexFlow Foundry Work Package"
+                );
+
+            const body =
+                encodeURIComponent(
+                    message
+                );
+
+            window.location.href =
+                `mailto:?subject=${subject}&body=${body}`;
+
+        }
+    );
+
+
+
+/* =========================================================
+   PDF
+========================================================= */
+
+document
+    .getElementById("btn-foundry-dispatch-pdf")
+    .addEventListener(
+        "click",
+        () => {
+
+            const selectedItems =
+                generatedFoundryPackage &&
+                Array.isArray(
+                    generatedFoundryPackage.items
+                )
+                    ? generatedFoundryPackage.items
+                    : [];
+
+            if (!selectedItems.length) {
+
+                alert(
+                    "Please generate the work package first."
+                );
+
+                return;
+            }
+
+            const packageData =
+                generatedFoundryPackage;
+
+            const totalQty =
+                selectedItems.reduce(
+                    (total, item) =>
+                        total +
+                        Number(item.quantity || 0),
+                    0
+                );
+
+            const area =
+                document.getElementById(
+                    "printable-po-area"
+                );
+
+            area.innerHTML = `
+
+                <div style="
+                    font-family:Arial,sans-serif;
+                    padding:30px;
+                    color:#111;
+                    max-width:900px;
+                    margin:auto;
+                ">
+
+                    <div style="
+                        border-bottom:2px solid #111;
+                        padding-bottom:15px;
+                        margin-bottom:20px;
+                    ">
+
+                        <h2 style="
+                            margin:0 0 5px 0;
+                        ">
+                            VortexFlow
+                        </h2>
+
+                        <h3 style="
+                            margin:0;
+                        ">
+                            FOUNDRY WORK PACKAGE
+                        </h3>
+
+                    </div>
+
+                    <table style="
+                        width:100%;
+                        border-collapse:collapse;
+                        margin-bottom:25px;
+                        font-size:13px;
+                    ">
+
+                        <tr>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                                width:25%;
+                            ">
+                                Dispatch Ref
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                            ">
+                                ${escapeHtml(
+                                    packageData.reference || "-"
+                                )}
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                                width:25%;
+                            ">
+                                Foundry
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                            ">
+                                ${escapeHtml(
+                                    packageData.foundry || "-"
+                                )}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                            ">
+                                Dispatch Date
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                            ">
+                                ${escapeHtml(
+                                    packageData.dispatchDate || "-"
+                                )}
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                            ">
+                                Total Quantity
+                            </td>
+
+                            <td style="
+                                padding:7px;
+                                border:1px solid #ccc;
+                                font-weight:bold;
+                            ">
+                                ${totalQty} pcs
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                    <table style="
+                        width:100%;
+                        border-collapse:collapse;
+                        font-size:12px;
+                    ">
+
+                        <thead>
+
+                            <tr>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:center;
+                                    background:#eee;
+                                    width:7%;
+                                ">
+                                    Sr.
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:left;
+                                    background:#eee;
+                                ">
+                                    Pattern / Drawing
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:left;
+                                    background:#eee;
+                                ">
+                                    Grade
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:right;
+                                    background:#eee;
+                                ">
+                                    Qty
+                                </th>
+
+                                <th style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:left;
+                                    background:#eee;
+                                ">
+                                    Target Delivery
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            ${selectedItems.map(
+                                (item, index) => `
+
+                                    <tr>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                            text-align:center;
+                                        ">
+                                            ${index + 1}
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                            font-weight:bold;
+                                        ">
+                                            ${escapeHtml(
+                                                item.pattern || "-"
+                                            )}
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                        ">
+                                            ${escapeHtml(
+                                                item.grade || "-"
+                                            )}
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                            text-align:right;
+                                            font-weight:bold;
+                                        ">
+                                            ${Number(
+                                                item.quantity || 0
+                                            )} pcs
+                                        </td>
+
+                                        <td style="
+                                            border:1px solid #ccc;
+                                            padding:9px;
+                                        ">
+                                            ${escapeHtml(
+                                                item.targetDate || "-"
+                                            )}
+                                        </td>
+
+                                    </tr>
+
+                                `
+                            ).join("")}
+
+                            <tr>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                "></td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    font-weight:bold;
+                                ">
+                                    TOTAL
+                                </td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                "></td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                    text-align:right;
+                                    font-weight:bold;
+                                ">
+                                    ${totalQty} pcs
+                                </td>
+
+                                <td style="
+                                    border:1px solid #333;
+                                    padding:9px;
+                                "></td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                    <div style="
+                        margin-top:25px;
+                        padding:12px;
+                        border:1px solid #ccc;
+                        font-size:12px;
+                        line-height:1.5;
+                    ">
+
+                        Please confirm receipt and
+                        production scheduling.
+
+                    </div>
+
+                    <div style="
+                        margin-top:35px;
+                        border-top:1px solid #ccc;
+                        padding-top:10px;
+                        font-size:10px;
+                        text-align:center;
+                        color:#777;
+                    ">
+
+                        Computer Generated Work Package -
+                        VortexFlow Management System
+
+                    </div>
+
+                </div>
+
+            `;
+
+            area.classList.remove("hidden");
+
+            window.print();
+
+            setTimeout(
+                () => {
+                    area.classList.add("hidden");
+                },
+                500
+            );
+
+        }
+    );
+        /* =========================================================
+           FIREBASE AUTH STATE
+        ========================================================= */
+
+        onAuthStateChanged(
+            auth,
+            async user => {
+
+                if (!user) {
+
+                    currentUser = null;
+
+                    currentUserRole = null;
+
+                    document
+                        .getElementById(
+                            "auth-screen"
+                        )
+                        .classList.remove(
+                            "hidden"
+                        );
+
+                    document
+                        .getElementById(
+                            "app-workspace"
+                        )
+                        .classList.add(
+                            "hidden"
+                        );
+
+                    return;
+
+                }
+
+
+                try {
+
+                    clearLoginError();
+
+                    const roleData =
+                        await loadUserRole(
+                            user
+                        );
+
+
+                    await grantAccess(
+                        user,
+                        roleData
+                    );
+
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    document
+                        .getElementById(
+                            "app-workspace"
+                        )
+                        .classList.add(
+                            "hidden"
+                        );
+
+                    document
+                        .getElementById(
+                            "auth-screen"
+                        )
+                        .classList.remove(
+                            "hidden"
+                        );
+
+
+                    showLoginError(
+                        error.message ||
+                        "Your account could not be loaded."
+                    );
+
+                }
+
+            }
+        );
+
+
+
+        /* =========================================================
+           LUCIDE
+        ========================================================= */
+
+        lucide.createIcons();
+
+
+
+        /* =========================================================
+           EXPOSE FUNCTIONS FOR BUTTONS
+        ========================================================= */
+
+        window.openFoundryModal =
+            openFoundryModal;
+
+        window.printOrderPDF =
+            printOrderPDF;
+
+    </script>
+
+</body>
+
+</html>
